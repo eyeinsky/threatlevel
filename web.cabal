@@ -20,16 +20,16 @@ library
         JS_Syntax
       , JS_Monad
       , Web_Client_Browser
+      , Web_CSS
    -- other-modules:       
    -- other-extensions:    
    build-depends:       base >=4.6 && <4.7
                       , text
-                      , hs-minu
+                      , hs-minu, text-format-hs
                       , mtl
                       , containers
                       , bytestring
    -- hs-source-dirs:      
-
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows
                      , OverloadedStrings, ExtendedDefaultRules, NoMonomorphismRestriction
