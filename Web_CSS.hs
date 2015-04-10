@@ -43,20 +43,20 @@ instance Print Declaration where
 
 -- ** Selector
 
-data Selector = Selector (Maybe STag) [SClass] [SId] [SPseudo]
+data Selector = Selector (Maybe Tag) [Class] [Id] [Pseudo]
 instance Print Selector where
    pr (Selector mt cs is ps) = maybe "" pr mt <> T.concat (f cs <> f is <> f ps)
       where f = map pr
 
 
-data STag    = Tag T
-data SId     = Id T
-data SClass  = Class T
-data SPseudo = Pseudo T
-instance Print STag    where pr (Tag    a) =        a
-instance Print SId     where pr (Id     a) = "#" <> a
-instance Print SClass  where pr (Class  a) = "." <> a
-instance Print SPseudo where pr (Pseudo a) = ":" <> a
+data Tag    = Tag T
+data Id     = Id T
+data Class  = Class T
+data Pseudo = Pseudo T
+instance Print Tag    where pr (Tag    a) =        a
+instance Print Id     where pr (Id     a) = "#" <> a
+instance Print Class  where pr (Class  a) = "." <> a
+instance Print Pseudo where pr (Pseudo a) = ":" <> a
 
 
 -- ** Declaration
@@ -76,6 +76,10 @@ data Value
 
    | ColorHex Word32
    | ColorRGB Word8 Word8 Word8
+
+hex a     = ColorHex a
+rgb a b c = ColorRGB a b c
+
 instance Print Value where 
    pr a = case a of
       Word a -> a
@@ -96,6 +100,20 @@ instance Print Comment where
    pr (Comment a) = sur "/*" "*/" a
 
 
+-- * Instances
+deriving instance Show Rule
+deriving instance Show Prelude
+deriving instance Show Selector
+deriving instance Show Declaration
+deriving instance Show Property
+deriving instance Show Value
+deriving instance Show Comment
+deriving instance Show Tag
+deriving instance Show Id
+deriving instance Show Class
+deriving instance Show Pseudo
+
+
 -- * Print
 
 class Print a where pr :: a -> T
@@ -104,6 +122,35 @@ prs x = tlshow x
 
 -- * Monad
 
+type RM = WriterT [Rule] Identity
+runRM = runIdentity . runWriterT
+
+type DM = WriterT [Declaration] Identity
+runDM = runIdentity . runWriterT
+
+(-#) :: Selector -> T -> Selector
+Selector mt cs is ps -# str = Selector mt cs (Id str : is) ps
+
+(-.) :: Selector -> T -> Selector
+Selector mt cs is ps -. str = Selector mt (Class str : cs) is ps
+
+(-:) :: Selector -> T -> Selector
+Selector mt cs is ps -: str = Selector mt cs is (Pseudo str : ps)
+
+e = Selector Nothing [] [] []
+
+rule :: Selector -> DM () -> RM ()
+rule s ds = u -- JÄRG
+
+prop :: T -> Value -> DM ()
+prop p v = tell [ Declaration (Property p) v ]
+
+
+test :: RM ()
+test = do
+   rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2" ) $ do
+      prop "jee" $ hex 5
+      
 {-
 test = do
    
