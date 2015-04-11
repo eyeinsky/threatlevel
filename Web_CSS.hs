@@ -27,7 +27,7 @@ data Rule
    | At
 instance Print Rule where
    pr r = case r of
-      Qualified p ds -> pr p <> curly (T.intercalate ";" $ map pr ds)
+      Qualified p ds -> pr p <> curly (T.concat $ map ((<>";") . pr) ds)
       At -> pr (Comment "At rules not implemented..")
 
 
@@ -92,7 +92,7 @@ instance Print Value where
 
       ColorHex w32 -> "#" <> hex w32
       ColorRGB a b c -> format "rgb({},{},{})" (a,b,c)
-      where hex a = tlshow $ showHex a ""
+      where hex a = T.pack $ showHex a ""
 
 
 data Comment = Comment T
@@ -122,6 +122,9 @@ prs x = tlshow x
 
 -- * Monad
 
+ruleMToText :: RM () -> T.Text
+ruleMToText = T.unlines . map pr . snd . runRM
+
 type RM = WriterT [Rule] Identity
 runRM = runIdentity . runWriterT
 
@@ -140,7 +143,7 @@ Selector mt cs is ps -: str = Selector mt cs is (Pseudo str : ps)
 e = Selector Nothing [] [] []
 
 rule :: Selector -> DM () -> RM ()
-rule s ds = u -- JÄRG
+rule s ds = tell $ [ Qualified (Selectors [s]) (runIdentity . execWriterT $ ds) ]
 
 prop :: T -> Value -> DM ()
 prop p v = tell [ Declaration (Property p) v ]
@@ -150,6 +153,7 @@ test :: RM ()
 test = do
    rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2" ) $ do
       prop "jee" $ hex 5
+      prop "background-color" $ hex 7
       
 {-
 test = do
