@@ -2,7 +2,7 @@
 module JS_Monad
    (
    -- | JSM meta
-     M, runM, eval, eval', pr
+     M, runM, eval, eval', pr, S(S), defS
    
    -- | JSM primitives
    , new, newf, newf', newl, named, namedF
@@ -85,6 +85,7 @@ data S = S {
    , nameds :: S.Set Text
    }
 instance Default S where def = S 0 S.empty
+defS = def :: S
 instance Default R where def = Unknown
 
 type M = WriterT W (StateT S (ReaderT R Identity))

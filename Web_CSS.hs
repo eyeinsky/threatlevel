@@ -119,6 +119,10 @@ deriving instance Show Pseudo
 class Print a where pr :: a -> T
 prs x = tlshow x
 
+-- * Convenience
+
+tag name = Selector (Just name) [] [] []
+class_ name = Selector Nothing [Class name] [] []
 
 -- * Monad
 
@@ -126,10 +130,11 @@ ruleMToText :: RM () -> T.Text
 ruleMToText = T.unlines . map pr . snd . runRM
 
 type RM = WriterT [Rule] Identity
-runRM = runIdentity . runWriterT
+runRM = runIdentity . runWriterT :: RM a -> (a, [Rule])
 
 type DM = WriterT [Declaration] Identity
-runDM = runIdentity . runWriterT
+runDM = runIdentity . runWriterT :: DM a -> (a, [Declaration])
+execDM = snd . runDM :: DM a -> [Declaration]
 
 (-#) :: Selector -> T -> Selector
 Selector mt cs is ps -# str = Selector mt cs (Id str : is) ps
