@@ -7,6 +7,7 @@ import Prelude (fromIntegral)
 import Data.String
 import Data.Either
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 
 -- import Common
 
@@ -146,7 +147,7 @@ col (k, v) = either ev ev k <> ": " <> ev v
 instance E OpExpr where
    ev o = case o of
       OpBinary op e1 e2 -> ev e1 <> ev op <> ev e2
-      OpUnary op e -> "XXXXXX"
+      OpUnary op e -> error "web:JS_Syntax.hs:E OpUnary"
 instance E BOp where
    ev op = case op of
       BMinus -> "-"
@@ -180,8 +181,6 @@ instance E Literal where
 
 
 
-
-
 -- * AST creation convenience
 
 class    ToLit a where toLit :: a -> Literal
@@ -190,8 +189,8 @@ instance ToLit Integer  where toLit v = Int v
 instance ToLit Double   where toLit v = Double v
 instance ToLit S        where toLit v = String v
 instance ToLit String   where toLit v = String $ T.pack v
-
-instance ToLit a => ToLit [(a ,Expr)] where
+instance ToLit TL.Text  where toLit v = String $ TL.toStrict v
+instance ToLit a => ToLit [(a, Expr)] where
    toLit li = Object $ map f li
       where f (a,b) = (Right . lit $ a, b)
 

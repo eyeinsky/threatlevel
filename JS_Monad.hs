@@ -2,7 +2,7 @@
 module JS_Monad
    (
    -- | JSM meta
-     M, runM, eval, eval', pr, S(S), defS
+     M, runM, eval, eval', pr, S(S), def
    
    -- | JSM primitives
    , new, newf, newf', newl, named, namedF
@@ -42,6 +42,7 @@ module JS_Monad
    , domElem
    , tagById, tagById'
    , on
+   , findBy
 
    -- | DOM objects -> Event
    , KeyboardEvent(..), onload
@@ -71,6 +72,7 @@ import Control.Monad.Identity
 
 -- import Common
 import Web_Client_Browser
+import qualified Web_CSS as CSS
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
 
@@ -277,13 +279,22 @@ zepto expr = FuncCall "$" [ expr ]
 
 mkTag str = FuncCall "$" [ lit $ sur "<" ">" str ]
 
-on id ev jsm = do
+on el ev jsm = do
    code <- mkCode jsm 
-   bare $ call (tagById id !. "on") [ f ev, FuncExpr code ]
+   bare $ call (el !. "on") [ f ev, FuncExpr code ]
    where
       f = lit . T.toLower . tshow 
 
 -- ** DOM types (TODO)
+
+class FindBy a where
+   findBy :: a -> JS.Expr -- JS.Expr Element
+instance FindBy CSS.Id where
+   findBy (CSS.Id t) = mkFind "getElementById" t
+instance FindBy CSS.Class where
+   findBy (CSS.Class a) = mkFind "getElementsByClassName" a
+
+mkFind f a = call1 (document !. f) (lit a)
 
 data Element
 

@@ -22,6 +22,9 @@ type T = T.Text
 
 -- * Syntax
 
+type CSS = [Rule]
+instance Print CSS where
+   pr li = T.unlines $ map pr li
 data Rule
    = Qualified Prelude [Declaration]
    | At
@@ -43,15 +46,15 @@ instance Print Declaration where
 
 -- ** Selector
 
-data Selector = Selector (Maybe Tag) [Class] [Id] [Pseudo]
+data Selector = Selector (Maybe Tag) (Maybe Id) [Class] [Pseudo]
 instance Print Selector where
-   pr (Selector mt cs is ps) = maybe "" pr mt <> T.concat (f cs <> f is <> f ps)
+   pr (Selector mt mi cs ps) = g mt <> g mi <> T.concat (f cs <> f ps)
       where f = map pr
-
+            g = maybe "" pr
 
 data Tag    = Tag T
-data Id     = Id T
-data Class  = Class T
+data Id     = Id { unId :: T }
+data Class  = Class { unClass :: T }
 data Pseudo = Pseudo T
 instance Print Tag    where pr (Tag    a) =        a
 instance Print Id     where pr (Id     a) = "#" <> a
@@ -76,9 +79,17 @@ data Value
 
    | ColorHex Word32
    | ColorRGB Word8 Word8 Word8
+   | ColorRGBA Word8 Word8 Word8 Double
+
+prc i = Percent i
+px i = Px i
+em i = Em i
 
 hex a     = ColorHex a
 rgb a b c = ColorRGB a b c
+rgba a b c d = ColorRGBA a b c d
+
+str = Word
 
 instance Print Value where 
    pr a = case a of
@@ -92,6 +103,7 @@ instance Print Value where
 
       ColorHex w32 -> "#" <> hex w32
       ColorRGB a b c -> format "rgb({},{},{})" (a,b,c)
+      ColorRGBA a b c d -> format "rgb({},{},{}, {})" (a,b,c, a)
       where hex a = T.pack $ showHex a ""
 
 
@@ -121,8 +133,26 @@ prs x = tlshow x
 
 -- * Convenience
 
-tag name = Selector (Just name) [] [] []
-class_ name = Selector Nothing [Class name] [] []
+class SelectorFrom a where selFrom :: a -> Selector
+instance SelectorFrom Selector where 
+   selFrom a = a
+instance SelectorFrom Tag where 
+   selFrom a = Selector (Just a) Nothing [] []
+instance SelectorFrom Class where 
+   selFrom a = Selector Nothing Nothing [a] []
+instance SelectorFrom Id where 
+   selFrom a = Selector Nothing (Just a) [] []
+instance SelectorFrom Pseudo where
+   selFrom a = Selector Nothing Nothing [] [a]
+
+{-
+class_ name = [Selector Nothing [Class name] [] []]
+id_ name = [Selector Nothing [] [Id name] []]
+pseudo name = [Selector Nothing [] [] [name]]
+
+class2 name = Class name
+id2 name = Id name
+-}
 
 -- * Monad
 
@@ -137,18 +167,18 @@ runDM = runIdentity . runWriterT :: DM a -> (a, [Declaration])
 execDM = snd . runDM :: DM a -> [Declaration]
 
 (-#) :: Selector -> T -> Selector
-Selector mt cs is ps -# str = Selector mt cs (Id str : is) ps
+Selector mt is cs ps -# str = Selector mt (Just (Id str)) cs ps
 
 (-.) :: Selector -> T -> Selector
-Selector mt cs is ps -. str = Selector mt (Class str : cs) is ps
+Selector mt is cs ps -. str = Selector mt is (Class str : cs) ps
 
 (-:) :: Selector -> T -> Selector
-Selector mt cs is ps -: str = Selector mt cs is (Pseudo str : ps)
+Selector mt is cs ps -: str = Selector mt is cs (Pseudo str : ps)
 
-e = Selector Nothing [] [] []
+e = Selector Nothing Nothing [] []
 
-rule :: Selector -> DM () -> RM ()
-rule s ds = tell $ [ Qualified (Selectors [s]) (runIdentity . execWriterT $ ds) ]
+rule :: SelectorFrom a => a -> DM () -> RM ()
+rule s ds = tell $ [ Qualified (Selectors [selFrom s]) (runIdentity . execWriterT $ ds) ]
 
 prop :: T -> Value -> DM ()
 prop p v = tell [ Declaration (Property p) v ]
@@ -156,16 +186,19 @@ prop p v = tell [ Declaration (Property p) v ]
 
 test :: RM ()
 test = do
-   rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2" ) $ do
+   rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2") $ do
       prop "jee" $ hex 5
       prop "background-color" $ hex 7
       
-{-
-test = do
-   
-   id "smthng" $ do
-      "background-color" "red"
-      "position" "absolute"
-      "margin" "1px 1px 1px 1px"
+toRules :: RM a -> [Rule]
+toRules = snd . runRM
 
--}
+
+-- Common
+
+resetCSS = do
+   rule (Tag "body") $ nopad >> nomarg
+   rule (Tag "div") $ nopad >> nomarg
+   where 
+      nopad = prop "padding" $ px 0
+      nomarg = prop "margin" $ px 0
