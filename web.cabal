@@ -21,6 +21,7 @@ library
       , JS_Monad
       , Web_Client_Browser
       , Web_CSS
+      , Web_HTML
    -- other-modules:       
    -- other-extensions:    
    build-depends:       base >=4.6 && <4.7
