@@ -16,6 +16,7 @@ module JS_Monad
    -- | JS reexports
    , Code
    , Expr(Undefined, Null, True, False)
+   , Expr'
    , E(..) -- , ev
    , rawStm, rawExpr
 
@@ -70,13 +71,12 @@ import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad.Identity
 
--- import Common
-import Web_Client_Browser
-import qualified Web_CSS as CSS
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
 
--- default (Integer, Double, ())
+import Web_Client_Browser
+import qualified Web_CSS as CSS
+import Web_HTML
 
 type Text = JS.S
 
@@ -121,31 +121,31 @@ pr = TLIO.putStrLn . ev . eval
 
 browsers f = ask >>= f
 
-type Var = Expr
+type Var = Expr'
 
 data Var' a where
-   Term :: Expr -> Var' ()
+   Term :: Expr' -> Var' ()
    Func :: f -> Var' f
 
 v2v = int2name
 int2name i = Name $ T.pack $ 'v' : show i
 int2var = EName . int2name
 
-pushExpr :: Expr -> M Int
+pushExpr :: Expr' -> M Int
 pushExpr e = do
    s <- get
    let i = counter s -- m = u -- IM.insert i e m)
    put (s { counter = i+1})
    return i
 
-pushNamedExpr :: Text -> Expr -> M Name
+pushNamedExpr :: Text -> Expr' -> M Name
 pushNamedExpr n e = do
    modify $ \s -> s { nameds = S.insert n (nameds s) }
    return $ Name n
 
 define name expr = tell [ VarDef name [] expr ]
 
-new :: Expr -> M Expr
+new :: Expr' -> M Expr'
 new e = do
    name <- v2v <$> pushExpr e
    define name e
@@ -165,7 +165,7 @@ mkCode m = evalN' <$> ask <*> next <*> pure m
 -- 
 --
 
-bare e = tell [ BareExpr e ]; bare :: Expr -> M ()
+bare e = tell [ BareExpr e ]; bare :: Expr' -> M ()
 newf m = new =<< func m 
 newf' n m = do
    var <- new =<< func m
@@ -174,14 +174,14 @@ newf' n m = do
 
 newl l = new $ lit l
 
-named :: Text -> Expr -> M Expr
+named :: Text -> Expr' -> M Expr'
 named n e = do
    name <- pushNamedExpr n e
    define name e
    return $ EName name
 namedF n m = named n =<<$ func m
 
-ternary :: Expr -> Expr -> Expr -> Expr
+ternary :: Expr' -> Expr' -> Expr' -> Expr'
 ternary = Ternary
 
 ifmelse cond true mFalse = do
@@ -189,16 +189,16 @@ ifmelse cond true mFalse = do
    mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
    tell [ IfElse cond trueCode mElseCode ]
 
-ifelse :: Expr -> M a -> M b -> M ()
+ifelse :: Expr' -> M a -> M b -> M ()
 ifelse c t e = ifmelse c t (Just e)
 ifonly c t   = ifmelse c t Nothing
 
-retrn :: Expr -> M ()
+retrn :: Expr' -> M ()
 retrn e = tell $ [ Return e ]
 
 ex str = EName $ Name str
 
-(!.) :: Expr -> Name -> Expr
+(!.) :: Expr' -> Name -> Expr'
 (!.) expr attr = EAttr $ Attr expr attr
 (.!) expr key  = Arr expr key
 
@@ -213,12 +213,12 @@ lhs .= rhs = tell [ Def lhs rhs ]
 
 -- | Takes func body, writes Code to main writer,
 --   returns Var, where the func got bound.
-func :: M a -> M Expr
+func :: M a -> M Expr'
 func = fmap FuncExpr . mkCode
 
 arg n = Arr "arguments" (lit n)
 
-call :: Expr -> [Expr] -> Expr
+call :: Expr' -> [Expr'] -> Expr'
 call f as = FuncCall f as
 
 call0 f = FuncCall f []
@@ -242,7 +242,7 @@ e1 .- e2 = Op $ OpBinary BMinus e1 e2
 e1 .* e2 = Op $ OpBinary Mult e1 e2
 e1 ./ e2 = Op $ OpBinary Div e1 e2
 
-for :: Expr -> M a -> M ()
+for :: Expr' -> M a -> M ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
 
@@ -285,28 +285,35 @@ on el ev jsm = do
    where
       f = lit . T.toLower . tshow 
 
--- ** DOM types (TODO)
+
+
+-- ** DOM API
 
 class FindBy a where
-   findBy :: a -> JS.Expr -- JS.Expr Element
+   findBy :: a -> JS.Expr' -- JS.Expr Element
 instance FindBy CSS.Id where
-   findBy (CSS.Id t) = mkFind "getElementById" t
+   findBy (CSS.Id t) = docCall "getElementById" t
 instance FindBy CSS.Class where
-   findBy (CSS.Class a) = mkFind "getElementsByClassName" a
+   findBy (CSS.Class a) = docCall "getElementsByClassName" a
+instance FindBy CSS.TagName where
+   findBy (CSS.TagName a) = docCall "getElementsByTagName" a
 
-mkFind f a = call1 (document !. f) (lit a)
+docCall f a = call1 (document !. f) (lit a)
 
-data Element
 
-data Attr
+createElement :: TagName -> JS.Expr'
+createElement tn = docCall "createElement" $ unTagName tn
 
-data Window
-data KeyboardEvent 
-   = KeyUp
-   | KeyDown
-   | KeyPress
-   deriving (Show)
-
+-- creates the expr to create the tree, returns top
+treeCreateExpr :: HTML -> JS.Expr'
+treeCreateExpr tr = FuncExpr . eval $ case tr of 
+   TagNode tn mid cls ns -> do
+      t <- new $ createElement tn
+      maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
+      when (not . null $ cls) $ 
+         t !. "className" .= lit (TL.unwords $ map unClass cls) 
+      retrn t
+   TextNode txt -> retrn $ docCall "createTextNode" txt
 
 
 

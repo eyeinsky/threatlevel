@@ -17,42 +17,43 @@ type Code = [Statement]
 data Statement
    = FuncDef Name FormalArgs Code
    | Var Name
-   | VarDef Name [Name] Expr -- a = [b = c =] expr
-   | AttrDef Attr Expr -- TODO multiple attrs
-   | Def Expr Expr
-   | BareExpr Expr
-   | IfElse Expr Code (Maybe Code)
-   | For Statement Expr  Statement  Code
+   | VarDef Name [Name] Expr' -- a = [b = c =] expr
+   | AttrDef Attr Expr' -- TODO multiple attrs
+   | Def Expr' Expr'
+   | BareExpr Expr'
+   | IfElse Expr' Code (Maybe Code)
+   | For Statement Expr'  Statement  Code
       -- init      cond  post       body
-   | ForIn Name Expr Code
+   | ForIn Name Expr' Code
 
    | TryCatch Code Code
-   | Return Expr
+   | Return Expr'
 
-data Expr where
-   Par       :: Expr           -> Expr
-   EName     :: Name           -> Expr -- name
-   EAttr     :: Attr           -> Expr -- expr.name
-   Arr       :: Expr -> Expr   -> Expr -- expr[expr]
-   Literal   :: Literal        -> Expr -- lit
-   Op        :: OpExpr         -> Expr -- expr + expr
-   FuncExpr  :: Code           -> Expr -- fuction() { code }
-   FuncCall  :: Expr -> [Expr] -> Expr -- expr(*expr)
-   Ternary   :: Expr -> Expr -> Expr -> Expr
-   Regex     :: S -> S         -> Expr
+type Expr' = Expr ()
+data Expr a where
+   Par       :: Expr a           -> Expr a
+   EName     :: Name           -> Expr a -- name
+   EAttr     :: Attr           -> Expr a -- expr.name
+   Arr       :: Expr a -> Expr a   -> Expr a -- expr[expr]
+   Literal   :: Literal        -> Expr a -- lit
+   Op        :: OpExpr         -> Expr a -- expr + expr
+   FuncExpr  :: Code           -> Expr a -- fuction() { code }
+   FuncCall  :: Expr a -> [Expr a] -> Expr a -- expr(*expr)
+   Ternary   :: Expr a -> Expr a -> Expr a -> Expr a
+   Regex     :: S -> S         -> Expr a
 
-   Null      :: Expr
-   Undefined :: Expr
-   True      :: Expr
-   False     :: Expr
+   Null      :: Expr a
+   Undefined :: Expr a
+   True      :: Expr a
+   False     :: Expr a
 
-   Raw       :: S -> Expr -- inject raw js code
+   Raw       :: S -> Expr a -- inject raw js code
 
 
 
 data OpExpr
-   = OpBinary BOp Expr Expr
-   | OpUnary UOp Expr
+   = OpBinary BOp Expr' Expr'
+   | OpUnary UOp Expr'
 
 data UOp = UMinus | UPlus | TypeOf
 
@@ -67,18 +68,18 @@ data Literal
    = String S
    | Double Double
    | Int    Integer
-   | Array  [ Expr ]
-   | Object [ (Either Name Expr, Expr) ]
+   | Array  [ Expr' ]
+   | Object [ (Either Name Expr', Expr') ]
 
 data FormalArgs = FA [S]
 
 data Name = Name S
 
-data Attr = Attr Expr Name
+data Attr = Attr Expr' Name
 
 
 deriving instance Show Statement
-deriving instance Show Expr
+deriving instance Show Expr'
 deriving instance Show OpExpr
 deriving instance Show UOp
 deriving instance Show BOp
@@ -120,7 +121,7 @@ instance E Statement where
       where 
          a =: b = a <> " = " <> b
          eq = " = "
-instance E Expr where
+instance E Expr' where
    ev expr = case expr of
       Par   expr -> par $ ev expr
       EName name -> ev name
@@ -190,22 +191,22 @@ instance ToLit Double   where toLit v = Double v
 instance ToLit S        where toLit v = String v
 instance ToLit String   where toLit v = String $ T.pack v
 instance ToLit TL.Text  where toLit v = String $ TL.toStrict v
-instance ToLit a => ToLit [(a, Expr)] where
+instance ToLit a => ToLit [(a, Expr')] where
    toLit li = Object $ map f li
       where f (a,b) = (Right . lit $ a, b)
 
-instance ToLit [ Expr ] where
+instance ToLit [ Expr' ] where
    toLit = Array
 
-lit :: ToLit a => a -> Expr
+lit :: ToLit a => a -> Expr'
 lit = Literal . toLit
 
-attr :: Expr -> Name -> Expr
+attr :: Expr' -> Name -> Expr'
 attr base attname = EAttr $ Attr base attname
 
 instance IsString Name where
    fromString s = Name $ T.pack s
-instance IsString Expr where
+instance IsString Expr' where
    fromString s = EName $ fromString s 
 
 plus a b = Op $ OpBinary BPlus a b

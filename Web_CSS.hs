@@ -51,7 +51,7 @@ instance Print Declaration where
 
 -- ** Selector
 
-data Selector = Selector (Maybe Tag) (Maybe Id) [Class] [Pseudo]
+data Selector = Selector (Maybe TagName) (Maybe Id) [Class] [Pseudo]
 instance Print Selector where
    pr (Selector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
       where f = map pr
@@ -63,7 +63,7 @@ instance Print Pseudo where pr (Pseudo a) = ":" <> a
 -- tag, id and class in HTML
 
 
-instance Print Tag    where pr (Tag    a) =        a
+instance Print TagName    where pr (TagName    a) =        a
 instance Print Id     where pr (Id     a) = "#" <> a
 instance Print Class  where pr (Class  a) = "." <> a
 
@@ -141,7 +141,7 @@ prs x = tlshow x
 class SelectorFrom a where selFrom :: a -> Selector
 instance SelectorFrom Selector where 
    selFrom a = a
-instance SelectorFrom Tag where 
+instance SelectorFrom TagName where 
    selFrom a = Selector (Just a) Nothing [] []
 instance SelectorFrom Class where 
    selFrom a = Selector Nothing Nothing [a] []
@@ -194,8 +194,8 @@ toRules = snd . runRM
 -- Common
 
 resetCSS = do
-   rule (Tag "body") $ nopad >> nomarg
-   rule (Tag "div") $ nopad >> nomarg
+   rule (TagName "body") $ nopad >> nomarg
+   rule (TagName "div") $ nopad >> nomarg
    where 
       nopad = prop "padding" $ px 0
       nomarg = prop "margin" $ px 0
