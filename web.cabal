@@ -18,6 +18,7 @@ cabal-version:       >=1.10
 library
    exposed-modules:     
         JS_Syntax
+      , JS_Types
       , JS_Monad
       , Web_Client_Browser
       , Web_CSS

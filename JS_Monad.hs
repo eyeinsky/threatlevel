@@ -11,10 +11,11 @@ module JS_Monad
    , lit
    , ex
    , browsers
+   , Var'(..)
 
 
    -- | JS reexports
-   , Code
+   , Code, Code'
    , Expr(Undefined, Null, True, False)
    , Expr'
    , E(..) -- , ev
@@ -73,6 +74,7 @@ import Control.Monad.Identity
 
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
+import qualified JS_Types  as JT
 
 import Web_Client_Browser
 import qualified Web_CSS as CSS
@@ -80,7 +82,7 @@ import Web_HTML
 
 type Text = JS.S
 
-type W = Code
+type W = Code ()
 type R = Browser
 data S = S {
      counter :: Int
@@ -124,8 +126,7 @@ browsers f = ask >>= f
 type Var = Expr'
 
 data Var' a where
-   Term :: Expr' -> Var' ()
-   Func :: f -> Var' f
+   Var' :: Expr a -> Var' a
 
 v2v = int2name
 int2name i = Name $ T.pack $ 'v' : show i
@@ -153,10 +154,10 @@ new e = do
 
 
 {- | Evaluate JSM code to Code aka W aka [Statement]
-     It doesn't actually write anything, just run
-     a JSM code into its value starting from the
-     next available name (Int), so that it wont overwrite
-     any previously defined variables. -}
+     It doesn't actually write anything, just runs
+     a JSM code into its code value starting from the
+     next available name (Int) -- therefore not
+     overwriting any previously defined variables. -}
 mkCode :: M a -> M W
 mkCode m = evalN' <$> ask <*> next <*> pure m
    where next = (+1) <$> gets counter
@@ -181,7 +182,7 @@ named n e = do
    return $ EName name
 namedF n m = named n =<<$ func m
 
-ternary :: Expr' -> Expr' -> Expr' -> Expr'
+ternary :: Expr JT.Bool -> Expr' -> Expr' -> Expr'
 ternary = Ternary
 
 ifmelse cond true mFalse = do
@@ -218,7 +219,7 @@ func = fmap FuncExpr . mkCode
 
 arg n = Arr "arguments" (lit n)
 
-call :: Expr' -> [Expr'] -> Expr'
+call :: Expr a -> [Expr a] -> Expr a
 call f as = FuncCall f as
 
 call0 f = FuncCall f []

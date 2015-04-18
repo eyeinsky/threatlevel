@@ -9,46 +9,46 @@ import Data.Either
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
--- import Common
+import qualified JS_Types as JT
 
 type S = T.Text
-type Code = [Statement]
+type Code a = [Statement a]
+type Code' = [Statement ()]
 
-data Statement
-   = FuncDef Name FormalArgs Code
+data Statement a
+   = FuncDef Name FormalArgs (Code a)
    | Var Name
    | VarDef Name [Name] Expr' -- a = [b = c =] expr
    | AttrDef Attr Expr' -- TODO multiple attrs
    | Def Expr' Expr'
    | BareExpr Expr'
-   | IfElse Expr' Code (Maybe Code)
-   | For Statement Expr'  Statement  Code
+   | IfElse Expr' Code' (Maybe Code')
+   | For (Statement ()) Expr' (Statement ())  Code'
       -- init      cond  post       body
-   | ForIn Name Expr' Code
+   | ForIn Name Expr' Code'
 
-   | TryCatch Code Code
-   | Return Expr'
+   | TryCatch Code' Code'
+   | Return (Expr a)
 
 type Expr' = Expr ()
 data Expr a where
-   Par       :: Expr a           -> Expr a
-   EName     :: Name           -> Expr a -- name
-   EAttr     :: Attr           -> Expr a -- expr.name
-   Arr       :: Expr a -> Expr a   -> Expr a -- expr[expr]
-   Literal   :: Literal        -> Expr a -- lit
-   Op        :: OpExpr         -> Expr a -- expr + expr
-   FuncExpr  :: Code           -> Expr a -- fuction() { code }
-   FuncCall  :: Expr a -> [Expr a] -> Expr a -- expr(*expr)
-   Ternary   :: Expr a -> Expr a -> Expr a -> Expr a
-   Regex     :: S -> S         -> Expr a
+   Par       :: Expr a              -> Expr a
+   EName     :: Name                -> Expr a -- name
+   EAttr     :: Attr                -> Expr a -- expr.name
+   Arr       :: Expr a -> Expr a    -> Expr a -- expr[expr]
+   Literal   :: Literal             -> Expr a -- lit
+   Op        :: OpExpr              -> Expr a -- expr + expr
+   FuncExpr  :: Code'               -> Expr a -- fuction() { code }
+   FuncCall  :: Expr a -> [Expr a]  -> Expr a -- expr(*expr)
+   Ternary   :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
+   Regex     :: S -> S              -> Expr a
 
    Null      :: Expr a
    Undefined :: Expr a
-   True      :: Expr a
-   False     :: Expr a
+   True      :: Expr a -- JT.Bool
+   False     :: Expr a -- JT.Bool
 
    Raw       :: S -> Expr a -- inject raw js code
-
 
 
 data OpExpr
@@ -78,8 +78,8 @@ data Name = Name S
 data Attr = Attr Expr' Name
 
 
-deriving instance Show Statement
-deriving instance Show Expr'
+deriving instance Show (Statement a)
+deriving instance Show (Expr a)
 deriving instance Show OpExpr
 deriving instance Show UOp
 deriving instance Show BOp
@@ -97,9 +97,9 @@ deriving instance Show Attr
 class E a where
    ev :: a -> T.Text
 
-instance E Code where
+instance E (Code a) where
    ev li = T.intercalate ";\n" $ map ev li
-instance E Statement where
+instance E (Statement a) where
    ev stm = case stm of
       AttrDef attr exp -> ev attr =: ev exp
       Var name -> "var " <> ev name
@@ -121,7 +121,8 @@ instance E Statement where
       where 
          a =: b = a <> " = " <> b
          eq = " = "
-instance E Expr' where
+
+instance E (Expr a) where
    ev expr = case expr of
       Par   expr -> par $ ev expr
       EName name -> ev name
