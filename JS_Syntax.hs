@@ -18,8 +18,8 @@ type Code' = [Statement ()]
 data Statement a
    = FuncDef Name FormalArgs (Code a)
    | Var Name
-   | VarDef Name [Name] Expr' -- a = [b = c =] expr
-   | AttrDef Attr Expr' -- TODO multiple attrs
+   | VarDef Name [Name] (Expr a) -- a = [b = c =] expr
+   | AttrDef Attr (Expr a) -- TODO multiple attrs
    | Def Expr' Expr'
    | BareExpr Expr'
    | IfElse Expr' Code' (Maybe Code')
@@ -32,6 +32,7 @@ data Statement a
 
 type Expr' = Expr ()
 data Expr a where
+   Cast      :: Expr a              -> Expr b
    Par       :: Expr a              -> Expr a
    EName     :: Name                -> Expr a -- name
    EAttr     :: Attr                -> Expr a -- expr.name
@@ -124,7 +125,6 @@ instance E (Statement a) where
 
 instance E (Expr a) where
    ev expr = case expr of
-      Par   expr -> par $ ev expr
       EName name -> ev name
       Arr arrExpr ixExpr -> ev arrExpr <> ang (ev ixExpr)
       EAttr attr -> ev attr
@@ -140,7 +140,10 @@ instance E (Expr a) where
       True -> "true"
       False -> "false"
 
-      Raw stm -> stm
+      -- meta
+      Par expr -> par $ ev expr -- parenthesis around
+      Raw stm -> stm -- raw js text
+      Cast e -> ev e -- change type
 
 
 col (k, v) = either ev ev k <> ": " <> ev v

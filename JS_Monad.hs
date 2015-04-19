@@ -5,13 +5,12 @@ module JS_Monad
      M, runM, eval, eval', pr, S(S), def
    
    -- | JSM primitives
-   , new, newf, newf', newl, named, namedF
+   , new, newf, newf' -- newl, named, namedF
    , func, call, call0, call1, bare, arg
    , retrn
    , lit
    , ex
    , browsers
-   , Var'(..)
 
 
    -- | JS reexports
@@ -41,16 +40,13 @@ module JS_Monad
 
    -- | DOM objects
    , window, location
-   , domElem
-   , tagById, tagById'
-   , on
-   , findBy
+   , on, findBy
 
    -- | DOM objects -> Event
    , KeyboardEvent(..), onload
 
    -- | Zepto
-   , zepto, zById, mkZ
+   , zepto
    )
    where
 
@@ -79,6 +75,11 @@ import qualified JS_Types  as JT
 import Web_Client_Browser
 import qualified Web_CSS as CSS
 import Web_HTML
+
+
+--
+-- Construction
+--
 
 type Text = JS.S
 
@@ -118,40 +119,40 @@ evalN' b n = snd . fst . runM b   (def { counter = n })
 exec :: M a -> a
 exec = fst . fst . run
 
-pr :: M a -> IO ()
-pr = TLIO.putStrLn . ev . eval
 
-browsers f = ask >>= f
+--
+-- Core
+--
 
-type Var = Expr'
-
-data Var' a where
-   Var' :: Expr a -> Var' a
-
-v2v = int2name
-int2name i = Name $ T.pack $ 'v' : show i
-int2var = EName . int2name
-
-pushExpr :: Expr' -> M Int
+pushExpr :: Expr a -> M Int
 pushExpr e = do
    s <- get
    let i = counter s -- m = u -- IM.insert i e m)
    put (s { counter = i+1})
    return i
 
-pushNamedExpr :: Text -> Expr' -> M Name
+pushNamedExpr :: Text -> Expr a -> M Text
 pushNamedExpr n e = do
    modify $ \s -> s { nameds = S.insert n (nameds s) }
-   return $ Name n
+   return n
 
 define name expr = tell [ VarDef name [] expr ]
 
-new :: Expr' -> M Expr'
-new e = do
-   name <- v2v <$> pushExpr e
-   define name e
-   return $ EName name
+int2name = ("v"<>) . tshow
 
+newMaker f e = do
+   name <- Name . either int2name id <$> f e
+   define name $ cast e
+   return $ EName (name::Name)
+
+new :: Expr a -> M (Expr a)
+new e = newMaker (fmap Left . pushExpr) e
+
+new' :: Text -> Expr a -> M (Expr a)
+new' n e = newMaker (fmap Right . pushNamedExpr n) e
+
+cast :: Expr a -> Expr ()
+cast x = Cast x
 
 {- | Evaluate JSM code to Code aka W aka [Statement]
      It doesn't actually write anything, just runs
@@ -162,25 +163,14 @@ mkCode :: M a -> M W
 mkCode m = evalN' <$> ask <*> next <*> pure m
    where next = (+1) <$> gets counter
 
---
--- 
---
-
 bare e = tell [ BareExpr e ]; bare :: Expr' -> M ()
 newf m = new =<< func m 
-newf' n m = do
-   var <- new =<< func m
-   ex n .= var
-   return var
+newf' n m = new' n =<< func m
 
-newl l = new $ lit l
 
-named :: Text -> Expr' -> M Expr'
-named n e = do
-   name <- pushNamedExpr n e
-   define name e
-   return $ EName name
-namedF n m = named n =<<$ func m
+--
+-- Control structure 
+--
 
 ternary :: Expr JT.Bool -> Expr' -> Expr' -> Expr'
 ternary = Ternary
@@ -197,6 +187,16 @@ ifonly c t   = ifmelse c t Nothing
 retrn :: Expr' -> M ()
 retrn e = tell $ [ Return e ]
 
+
+--
+--
+--
+
+pr :: M a -> IO ()
+pr = TLIO.putStrLn . ev . eval
+
+browsers f = ask >>= f
+
 ex str = EName $ Name str
 
 (!.) :: Expr' -> Name -> Expr'
@@ -204,7 +204,6 @@ ex str = EName $ Name str
 (.!) expr key  = Arr expr key
 
 (!-) a b = Arr a (lit b)
-
 
 infixr 8 .=
 lhs .= rhs = tell [ Def lhs rhs ]
@@ -221,7 +220,6 @@ arg n = Arr "arguments" (lit n)
 
 call :: Expr a -> [Expr a] -> Expr a
 call f as = FuncCall f as
-
 call0 f = FuncCall f []
 call1 f a = FuncCall f [a]
 
@@ -249,46 +247,34 @@ for cond code = tell . (:[]) . f =<< mkCode code
 
 forin expr f = do
    i <- (+1) <$> gets counter  
-   tell [ ForIn (int2name i) expr [ BareExpr . call1 f $ int2var i ] ]
+   tell [ ForIn (Name $ int2name i) expr [ BareExpr . call1 f $ ex $ int2name i ] ]
 
 rawStm = BareExpr . rawExpr
 rawExpr = Raw
 
 
--- * Taken but renameable JS names
+-- * Predefined names
 
 arguments = ex "arguments"
 
+
+--
 -- * DOM
+--
 
 window = ex "window"
 document = ex "document"
 location = window !. "location"
-domElem x = call1 (document !. "getElementById") $ lit x
 
-
--- onloadIs :: Code -> Statement
-onloadIs code = onload .= FuncExpr code
+onloadIs code = onload .= FuncExpr code -- :: Code' -> Statement ()
 
 onload = ex "window" !. "onload"
-
-tagById str = FuncCall "$" [ lit $ "#" <> str] 
-zById = tagById 
-tagById' expr =  FuncCall "$" [ expr ]
-mkZ expr = FuncCall "$" [ expr ]
-zepto expr = FuncCall "$" [ expr ]
-
-mkTag str = FuncCall "$" [ lit $ sur "<" ">" str ]
 
 on el ev jsm = do
    code <- mkCode jsm 
    bare $ call (el !. "on") [ f ev, FuncExpr code ]
-   where
-      f = lit . T.toLower . tshow 
+   where f = lit . T.toLower . tshow 
 
-
-
--- ** DOM API
 
 class FindBy a where
    findBy :: a -> JS.Expr' -- JS.Expr Element
@@ -300,6 +286,7 @@ instance FindBy CSS.TagName where
    findBy (CSS.TagName a) = docCall "getElementsByTagName" a
 
 docCall f a = call1 (document !. f) (lit a)
+
 
 
 createElement :: TagName -> JS.Expr'
@@ -317,4 +304,4 @@ treeCreateExpr tr = FuncExpr . eval $ case tr of
    TextNode txt -> retrn $ docCall "createTextNode" txt
 
 
-
+zepto expr = FuncCall "$" [ expr ]

@@ -20,12 +20,13 @@ library
         JS_Syntax
       , JS_Types
       , JS_Monad
+      , JS_X
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
    -- other-modules:       
    -- other-extensions:    
-   build-depends:       base >=4.6 && <4.7
+   build-depends:       base >=4.6 && <4.8
                       , text
                       , hs-minu, text-format-hs
                       , mtl
