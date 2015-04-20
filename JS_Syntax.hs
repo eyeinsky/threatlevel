@@ -40,7 +40,12 @@ data Expr a where
    Literal   :: Literal             -> Expr a -- lit
    Op        :: OpExpr              -> Expr a -- expr + expr
    FuncExpr  :: Code'               -> Expr a -- fuction() { code }
+
+   -- untyped
    FuncCall  :: Expr a -> [Expr a]  -> Expr a -- expr(*expr)
+   -- typed
+   TypedFC   :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
+
    Ternary   :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
    Regex     :: S -> S              -> Expr a
 
@@ -131,7 +136,10 @@ instance E (Expr a) where
       Literal lit -> ev lit
       Op opExpr -> ev opExpr
       FuncExpr code -> "function() {\n" <> ev code <> ";\n}"
-      FuncCall name exprs -> ev name <> par (uncomma $ map ev exprs)
+      
+      FuncCall name exprs -> ev name <> unargs exprs
+      TypedFC f as -> par (ev f) <> unargs (args as)
+
       Ternary b t f -> par (ev b <> "?" <> ev t <> ":" <> ev f)
       Regex pat mod -> sur "/" "/" pat <> mod
 
@@ -144,6 +152,9 @@ instance E (Expr a) where
       Par expr -> par $ ev expr -- parenthesis around
       Raw stm -> stm -- raw js text
       Cast e -> ev e -- change type
+
+      where
+         unargs = par . uncomma . map ev
 
 
 col (k, v) = either ev ev k <> ": " <> ev v
@@ -214,3 +225,18 @@ instance IsString Expr' where
    fromString s = EName $ fromString s 
 
 plus a b = Op $ OpBinary BPlus a b
+
+cast :: Expr a -> Expr ()
+cast x = Cast x
+
+
+-- transform (Expr a, (Expr b, .. to 
+class Args a where
+   args :: a -> [Expr']
+instance Args (Expr a, END) where
+   args (e, ()) = [cast e]
+instance Args (b, c) => Args (Expr a, (b, c)) where
+   args (e, t) = cast e : args t
+type END = ()
+
+

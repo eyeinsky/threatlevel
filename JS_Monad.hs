@@ -6,11 +6,12 @@ module JS_Monad
    
    -- | JSM primitives
    , new, newf, newf' -- newl, named, namedF
-   , func, call, call0, call1, bare, arg
+   , func, call, call0, call1, bare, arg, tcall
    , retrn
    , lit
    , ex
    , browsers
+   , cast
 
 
    -- | JS reexports
@@ -151,9 +152,6 @@ new e = newMaker (fmap Left . pushExpr) e
 new' :: Text -> Expr a -> M (Expr a)
 new' n e = newMaker (fmap Right . pushNamedExpr n) e
 
-cast :: Expr a -> Expr ()
-cast x = Cast x
-
 {- | Evaluate JSM code to Code aka W aka [Statement]
      It doesn't actually write anything, just runs
      a JSM code into its code value starting from the
@@ -211,17 +209,22 @@ lhs .= rhs = tell [ Def lhs rhs ]
 
 -- ** Functions
 
--- | Takes func body, writes Code to main writer,
---   returns Var, where the func got bound.
+-- *** Untyped
 func :: M a -> M Expr'
-func = fmap FuncExpr . mkCode
-
-arg n = Arr "arguments" (lit n)
-
+func = fmap FuncExpr . mkCode -- writes M a to writer, returns name
 call :: Expr a -> [Expr a] -> Expr a
 call f as = FuncCall f as
 call0 f = FuncCall f []
 call1 f a = FuncCall f [a]
+arg n = Arr "arguments" (lit n)
+
+-- *** Typed
+tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
+tcall f as = TypedFC f as
+
+
+
+-- ** Operators
 
 e1 .== e2 = Op $ OpBinary  Eq e1 e2
 e1 .=== e2 = Op $ OpBinary  Eq e1 e2
@@ -305,3 +308,20 @@ treeCreateExpr tr = FuncExpr . eval $ case tr of
 
 
 zepto expr = FuncCall "$" [ expr ]
+
+
+{-
+-- / mock 
+type A1 = JT.Bool
+type A2 = JT.String
+type A3 = JT.Number
+type R1 = JT.Object
+type AS = (Expr A1, (Expr A2, (Expr A3, END)))
+f :: Expr (AS, R1); f = u
+as :: AS; as = u
+t1 = tcall f as 
+t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
+           (EName (Name "a1") ::        Expr Bool, ())
+-- mock / --}
+
+

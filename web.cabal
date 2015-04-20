@@ -20,7 +20,6 @@ library
         JS_Syntax
       , JS_Types
       , JS_Monad
-      , JS_X
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
