@@ -120,17 +120,22 @@ evalN' b n = snd . fst . runM b   (def { counter = n })
 exec :: M a -> a
 exec = fst . fst . run
 
+browser = ask
 
 --
 -- Core
 --
 
-pushExpr :: Expr a -> M Int
-pushExpr e = do
+nextIncIdent :: M Int
+nextIncIdent = do
    s <- get
-   let i = counter s -- m = u -- IM.insert i e m)
+   let i = counter s
    put (s { counter = i+1})
    return i
+
+
+pushExpr :: Expr a -> M Int
+pushExpr _ = nextIncIdent -- m = u -- IM.insert i e m)
 
 pushNamedExpr :: Text -> Expr a -> M Text
 pushNamedExpr n e = do
@@ -139,10 +144,10 @@ pushNamedExpr n e = do
 
 define name expr = tell [ VarDef name [] expr ]
 
-int2name = ("v"<>) . tshow
+int2text = ("v"<>) . tshow
 
 newMaker f e = do
-   name <- Name . either int2name id <$> f e
+   name <- Name . either int2text id <$> f e
    define name $ cast e
    return $ EName (name::Name)
 
@@ -158,8 +163,8 @@ new' n e = newMaker (fmap Right . pushNamedExpr n) e
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
 mkCode :: M a -> M W
-mkCode m = evalN' <$> ask <*> next <*> pure m
-   where next = (+1) <$> gets counter
+mkCode mcode = evalN' <$> browser <*> nextIdent <*> pure mcode
+   where nextIdent = (+1) <$> gets counter
 
 bare e = tell [ BareExpr e ]; bare :: Expr' -> M ()
 newf m = new =<< func m 
@@ -250,7 +255,7 @@ for cond code = tell . (:[]) . f =<< mkCode code
 
 forin expr f = do
    i <- (+1) <$> gets counter  
-   tell [ ForIn (Name $ int2name i) expr [ BareExpr . call1 f $ ex $ int2name i ] ]
+   tell [ ForIn (Name $ int2text i) expr [ BareExpr . call1 f $ ex $ int2text i ] ]
 
 rawStm = BareExpr . rawExpr
 rawExpr = Raw
@@ -323,5 +328,22 @@ t1 = tcall f as
 t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
            (EName (Name "a1") ::        Expr Bool, ())
 -- mock / --}
+
+-- function literals
+{- mock
+mkf $ \ a b c -> do
+   putStrLn c
+   retrn $ a .+ b
+-}
+
+class FL a where
+   fl :: a -> M b
+instance FL (M a) where
+   fl m = u
+instance FL b => FL (Expr a -> b) where
+   fl f = do
+      x <- ex . int2text <$> nextIncIdent
+      fl (f x)
+
 
 
