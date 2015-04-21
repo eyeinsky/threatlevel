@@ -344,6 +344,3 @@ instance FL b => FL (Expr a -> b) where
    fl f = do
       x <- ex . int2text <$> nextIncIdent
       fl (f x)
-
-
-
