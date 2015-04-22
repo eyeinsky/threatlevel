@@ -2,11 +2,17 @@
 module JS_Monad
    (
    -- | JSM meta
-     M, runM, eval, eval', pr, S(S), def
+     M, runM, eval, eval', run, pr, S(S), def
    
    -- | JSM primitives
-   , new, newf, newf' -- newl, named, namedF
-   , func, call, call0, call1, bare, arg, tcall
+   , new, new'
+   , block, block', blockExpr
+   , newf , newf' , func
+
+   , call, call0, call1, bare, arg
+
+   , FL(..)
+
    , retrn
    , lit
    , ex
@@ -77,6 +83,7 @@ import Web_Client_Browser
 import qualified Web_CSS as CSS
 import Web_HTML
 
+import Debug.Trace
 
 --
 -- Construction
@@ -149,7 +156,7 @@ int2text = ("v"<>) . tshow
 newMaker f e = do
    name <- Name . either int2text id <$> f e
    define name $ cast e
-   return $ EName (name::Name)
+   return $ EName name
 
 new :: Expr a -> M (Expr a)
 new e = newMaker (fmap Left . pushExpr) e
@@ -166,9 +173,9 @@ mkCode :: M a -> M W
 mkCode mcode = evalN' <$> browser <*> nextIdent <*> pure mcode
    where nextIdent = (+1) <$> gets counter
 
-bare e = tell [ BareExpr e ]; bare :: Expr' -> M ()
-newf m = new =<< func m 
-newf' n m = new' n =<< func m
+bare e  = tell [ BareExpr e ]; bare :: Expr' -> M ()
+block    = new    <=< blockExpr 
+block' n = new' n <=< blockExpr
 
 
 --
@@ -215,8 +222,8 @@ lhs .= rhs = tell [ Def lhs rhs ]
 -- ** Functions
 
 -- *** Untyped
-func :: M a -> M Expr'
-func = fmap FuncExpr . mkCode -- writes M a to writer, returns name
+blockExpr :: M a -> M Expr'
+blockExpr = fmap FuncExpr . mkCode -- writes M a to writer, returns name
 call :: Expr a -> [Expr a] -> Expr a
 call f as = FuncCall f as
 call0 f = FuncCall f []
@@ -278,10 +285,9 @@ onloadIs code = onload .= FuncExpr code -- :: Code' -> Statement ()
 
 onload = ex "window" !. "onload"
 
-on el ev jsm = do
-   code <- mkCode jsm 
-   bare $ call (el !. "on") [ f ev, FuncExpr code ]
-   where f = lit . T.toLower . tshow 
+on el eventType fexpr = do
+   bare $ call (el !. "on") [ str, fexpr ]
+   where str = lit . T.toLower . tshow $ eventType
 
 
 class FindBy a where
@@ -329,18 +335,22 @@ t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
            (EName (Name "a1") ::        Expr Bool, ())
 -- mock / --}
 
--- function literals
-{- mock
-mkf $ \ a b c -> do
-   putStrLn c
-   retrn $ a .+ b
--}
 
+func f = do
+   (args', fexp) <- fl (args, f)
+   new fexp
+   where args = [] :: [Expr']
+newf    = new    <=< func
+newf' n = new' n <=< func
+
+-- class to generate Code for function
 class FL a where
-   fl :: a -> M b
-instance FL (M a) where
-   fl m = u
-instance FL b => FL (Expr a -> b) where
-   fl f = do
+   fl :: a -> M ([Expr'], Expr')
+instance FL ([Expr'], M a) where
+   fl (a, f) = let r = reverse a in do
+      fexp <- FuncExprA r <$> mkCode f
+      return $ (r, fexp)
+instance FL ([Expr'], b) => FL ([Expr'], Expr' -> b) where
+   fl (a, f) = do
       x <- ex . int2text <$> nextIncIdent
-      fl (f x)
+      fl (x:a, f x)

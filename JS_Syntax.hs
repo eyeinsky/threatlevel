@@ -39,7 +39,9 @@ data Expr a where
    Arr       :: Expr a -> Expr a    -> Expr a -- expr[expr]
    Literal   :: Literal             -> Expr a -- lit
    Op        :: OpExpr              -> Expr a -- expr + expr
+
    FuncExpr  :: Code'               -> Expr a -- fuction() { code }
+   FuncExprA :: [Expr'] -> Code'    -> Expr a
 
    -- untyped
    FuncCall  :: Expr a -> [Expr a]  -> Expr a -- expr(*expr)
@@ -135,7 +137,10 @@ instance E (Expr a) where
       EAttr attr -> ev attr
       Literal lit -> ev lit
       Op opExpr -> ev opExpr
-      FuncExpr code -> "function() {\n" <> ev code <> ";\n}"
+      FuncExpr code -> "function() { " <> ev code <> ";}"
+      FuncExprA args code -> "function"
+         <> unargs args
+         <> curly (ev code <> ";")
       
       FuncCall name exprs -> ev name <> unargs exprs
       TypedFC f as -> par (ev f) <> unargs (args as)
