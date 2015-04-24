@@ -2,23 +2,19 @@
 module JS_Monad
    (
    -- | JSM meta
-     M, runM, eval, eval', run, pr, S(S), def
+     M, S, runM, eval, eval', run, pr, def, Text
    
    -- | JSM primitives
    , new, new'
    , block, block', blockExpr
    , newf , newf' , func
-
    , call, call0, call1, bare, arg
-
-   , FL(..)
 
    , retrn
    , lit
    , ex
    , browsers
    , cast
-
 
    -- | JS reexports
    , Code, Code'
@@ -89,42 +85,41 @@ import Debug.Trace
 -- Construction
 --
 
-type Text = JS.S
-
-type W = Code ()
+type W r = Code r
 type R = Browser
 data S = S {
      counter :: Int
    , nameds :: S.Set Text
    }
+
 instance Default S where def = S 0 S.empty
 defS = def :: S
 instance Default R where def = Unknown
 
-type M = WriterT W (StateT S (ReaderT R Identity))
+type M r = WriterT (W r) (StateT S (ReaderT R Identity))
 
 
-runM :: R -> S -> M a -> ((a, W), S)
+runM :: R -> S -> M r a -> ((a, W r), S)
 runM b s = id . rd . st . wr
    where id = runIdentity
          st = flip runStateT s
          wr = runWriterT
          rd = flip runReaderT b
 
-run :: M a -> ((a, W), S)
+run :: M r a -> ((a, W r), S)
 run = runM def def 
 runDef = runM def def 
 
-eval :: M a -> W
+eval :: M r a -> W r
 eval    = snd . fst . run
 eval' b = snd . fst . runM b def
 
 -- | Start from n with var numbers
-evalN :: Int -> M a -> W
+evalN :: Int -> M r a -> W r
 evalN    n = snd . fst . runM def (def { counter = n }) -- (n, IM.empty)
 evalN' b n = snd . fst . runM b   (def { counter = n })
 
-exec :: M a -> a
+exec :: M r a -> a
 exec = fst . fst . run
 
 browser = ask
@@ -133,7 +128,7 @@ browser = ask
 -- Core
 --
 
-nextIncIdent :: M Int
+nextIncIdent :: M r Int
 nextIncIdent = do
    s <- get
    let i = counter s
@@ -141,10 +136,10 @@ nextIncIdent = do
    return i
 
 
-pushExpr :: Expr a -> M Int
+pushExpr :: Expr a -> M r Int
 pushExpr _ = nextIncIdent -- m = u -- IM.insert i e m)
 
-pushNamedExpr :: Text -> Expr a -> M Text
+pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
    modify $ \s -> s { nameds = S.insert n (nameds s) }
    return n
@@ -155,13 +150,13 @@ int2text = ("v"<>) . tshow
 
 newMaker f e = do
    name <- Name . either int2text id <$> f e
-   define name $ cast e
-   return $ EName name
+   define name $ Cast e
+   return $ Cast $ EName name
 
-new :: Expr a -> M (Expr a)
+new :: Expr a -> M r (Expr a) -- TODO ? r == a
 new e = newMaker (fmap Left . pushExpr) e
 
-new' :: Text -> Expr a -> M (Expr a)
+new' :: Text -> Expr a -> M r (Expr a) -- TODO  ? r == a
 new' n e = newMaker (fmap Right . pushNamedExpr n) e
 
 {- | Evaluate JSM code to Code aka W aka [Statement]
@@ -169,11 +164,11 @@ new' n e = newMaker (fmap Right . pushNamedExpr n) e
      a JSM code into its code value starting from the
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
-mkCode :: M a -> M W
+mkCode :: M r a -> M r (W r)
 mkCode mcode = evalN' <$> browser <*> nextIdent <*> pure mcode
    where nextIdent = (+1) <$> gets counter
 
-bare e  = tell [ BareExpr e ]; bare :: Expr' -> M ()
+bare e  = tell [ BareExpr e ]; bare :: Expr r -> M r ()
 block    = new    <=< blockExpr 
 block' n = new' n <=< blockExpr
 
@@ -182,7 +177,7 @@ block' n = new' n <=< blockExpr
 -- Control structure 
 --
 
-ternary :: Expr JT.Bool -> Expr' -> Expr' -> Expr'
+ternary :: Expr a {-JT.-} -> Expr a -> Expr a -> Expr a
 ternary = Ternary
 
 ifmelse cond true mFalse = do
@@ -190,27 +185,27 @@ ifmelse cond true mFalse = do
    mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
    tell [ IfElse cond trueCode mElseCode ]
 
-ifelse :: Expr' -> M a -> M b -> M ()
+ifelse :: Expr r -> M r a -> M r b -> M r () -- ? Expr r
 ifelse c t e = ifmelse c t (Just e)
 ifonly c t   = ifmelse c t Nothing
 
-retrn :: Expr' -> M ()
-retrn e = tell $ [ Return e ]
+retrn :: Expr a -> M a () -- ? !!!
+retrn e = tell $ [ Return $ Cast e ]
 
 
 --
 --
 --
 
-pr :: M a -> IO ()
+pr :: M r a -> IO ()
 pr = TLIO.putStrLn . ev . eval
 
 browsers f = ask >>= f
 
 ex str = EName $ Name str
 
-(!.) :: Expr' -> Name -> Expr'
-(!.) expr attr = EAttr $ Attr expr attr
+(!.) :: Expr a -> Name -> Expr b
+(!.) expr attr = EAttr $ Attr (Cast expr) attr
 (.!) expr key  = Arr expr key
 
 (!-) a b = Arr a (lit b)
@@ -222,9 +217,9 @@ lhs .= rhs = tell [ Def lhs rhs ]
 -- ** Functions
 
 -- *** Untyped
-blockExpr :: M a -> M Expr'
+blockExpr :: M r a -> M r (Expr r)
 blockExpr = fmap FuncExpr . mkCode -- writes M a to writer, returns name
-call :: Expr a -> [Expr a] -> Expr a
+call :: Expr a -> [Expr b] -> Expr c
 call f as = FuncCall f as
 call0 f = FuncCall f []
 call1 f a = FuncCall f [a]
@@ -232,12 +227,13 @@ arg n = Arr "arguments" (lit n)
 
 -- *** Typed
 tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
-tcall f as = TypedFC f as
+tcall f as = TypedFCall f as
 
 
 
 -- ** Operators
 
+-- (.==), (.===), (.!=), (.!==) :: Expr a -> Expr a -> Expr JT.Bool
 e1 .== e2 = Op $ OpBinary  Eq e1 e2
 e1 .=== e2 = Op $ OpBinary  Eq e1 e2
 e1 .!= e2 = Op $ OpBinary NEq e1 e2
@@ -256,7 +252,7 @@ e1 .- e2 = Op $ OpBinary BMinus e1 e2
 e1 .* e2 = Op $ OpBinary Mult e1 e2
 e1 ./ e2 = Op $ OpBinary Div e1 e2
 
-for :: Expr' -> M a -> M ()
+for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
 
@@ -291,7 +287,7 @@ on el eventType fexpr = do
 
 
 class FindBy a where
-   findBy :: a -> JS.Expr' -- JS.Expr Element
+   findBy :: a -> JS.Expr b -- JS.Expr Element
 instance FindBy CSS.Id where
    findBy (CSS.Id t) = docCall "getElementById" t
 instance FindBy CSS.Class where
@@ -318,7 +314,7 @@ treeCreateExpr tr = FuncExpr . eval $ case tr of
    TextNode txt -> retrn $ docCall "createTextNode" txt
 
 
-zepto expr = FuncCall "$" [ expr ]
+zepto expr = FuncCall (ex "$") [ expr ] -- :: Expr ()
 
 
 {-
@@ -336,21 +332,24 @@ t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
 -- mock / --}
 
 
-func f = do
-   (args', fexp) <- fl (args, f)
-   new fexp
-   where args = [] :: [Expr']
-newf    = new    <=< func
-newf' n = new' n <=< func
+-- | Binds a function to variable and returns the variable
+newf     = new    <=< func
+newf' n  = new' n <=< func
 
--- class to generate Code for function
-class FL a where
-   fl :: a -> M ([Expr'], Expr')
-instance FL ([Expr'], M a) where
-   fl (a, f) = let r = reverse a in do
-      fexp <- FuncExprA r <$> mkCode f
-      return $ (r, fexp)
-instance FL ([Expr'], b) => FL ([Expr'], Expr' -> b) where
-   fl (a, f) = do
+
+-- | Returns a function definition Expr
+func     = fmap (Cast . uncurry TypedFDef) . funcLit
+class Function a where
+   type Args' a
+   type Ret a
+   funcLit :: a -> M (Ret a) (Args' a, Code (Ret a))
+instance Function (M r a) where
+   type Args' (M r a) = ()
+   type Ret (M r a) = r
+   funcLit f = ((),) <$> mkCode f
+instance (Function b) => Function (Expr a -> b) where
+   type Args' (Expr a -> b) = (Expr a, Args' b)
+   type Ret   (Expr a -> b) = Ret b
+   funcLit f = do
       x <- ex . int2text <$> nextIncIdent
-      fl (x:a, f x)
+      first (x,) <$> funcLit (f x)
