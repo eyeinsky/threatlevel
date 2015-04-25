@@ -1,6 +1,7 @@
-{-# LANGUAGE ExtendedDefaultRules #-}
 module JS_Monad
-   (
+   ( 
+   
+   -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader,
    -- | JSM meta
      M, S, runM, eval, eval', run, pr, def, Text
    
@@ -16,12 +17,14 @@ module JS_Monad
    , browsers
    , cast
 
-   -- | JS reexports
-   , Code, Code'
+   -- | JS_Syntax reexports
+   , Code
    , Expr(Undefined, Null, True, False)
-   , Expr'
    , E(..) -- , ev
    , rawStm, rawExpr
+   
+   -- | JS_Types reexports
+   , JT.String, JT.Number, JT.Array, JT.Object, JT.Bool
 
    -- | Attribute and array index
    , (!.), (.!),  {- shorthand: -} (!-)
@@ -74,6 +77,7 @@ import Control.Monad.Identity
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
 import qualified JS_Types  as JT
+import Base
 
 import Web_Client_Browser
 import qualified Web_CSS as CSS
@@ -114,7 +118,6 @@ eval :: M r a -> W r
 eval    = snd . fst . run
 eval' b = snd . fst . runM b def
 
--- | Start from n with var numbers
 evalN :: Int -> M r a -> W r
 evalN    n = snd . fst . runM def (def { counter = n }) -- (n, IM.empty)
 evalN' b n = snd . fst . runM b   (def { counter = n })
@@ -135,10 +138,8 @@ nextIncIdent = do
    put (s { counter = i+1})
    return i
 
-
 pushExpr :: Expr a -> M r Int
-pushExpr _ = nextIncIdent -- m = u -- IM.insert i e m)
-
+pushExpr _ = nextIncIdent
 pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
    modify $ \s -> s { nameds = S.insert n (nameds s) }
@@ -153,22 +154,23 @@ newMaker f e = do
    define name $ Cast e
    return $ Cast $ EName name
 
-new :: Expr a -> M r (Expr a) -- TODO ? r == a
+new :: Expr a -> M r (Expr a)
 new e = newMaker (fmap Left . pushExpr) e
 
-new' :: Text -> Expr a -> M r (Expr a) -- TODO  ? r == a
+new' :: Text -> Expr a -> M r (Expr a)
 new' n e = newMaker (fmap Right . pushNamedExpr n) e
 
-{- | Evaluate JSM code to Code aka W aka [Statement]
+{- | Evaluate JSM code to Code aka W r aka [Statement]
      It doesn't actually write anything, just runs
      a JSM code into its code value starting from the
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
-mkCode :: M r a -> M r (W r)
+mkCode :: M sub a -> M parent (W sub)
 mkCode mcode = evalN' <$> browser <*> nextIdent <*> pure mcode
    where nextIdent = (+1) <$> gets counter
 
-bare e  = tell [ BareExpr e ]; bare :: Expr r -> M r ()
+bare :: Expr a -> M r ()
+bare e  = tell [ BareExpr e ] 
 block    = new    <=< blockExpr 
 block' n = new' n <=< blockExpr
 
@@ -177,7 +179,7 @@ block' n = new' n <=< blockExpr
 -- Control structure 
 --
 
-ternary :: Expr a {-JT.-} -> Expr a -> Expr a -> Expr a
+ternary :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
 ternary = Ternary
 
 ifmelse cond true mFalse = do
@@ -233,24 +235,46 @@ tcall f as = TypedFCall f as
 
 -- ** Operators
 
--- (.==), (.===), (.!=), (.!==) :: Expr a -> Expr a -> Expr JT.Bool
-e1 .== e2 = Op $ OpBinary  Eq e1 e2
-e1 .=== e2 = Op $ OpBinary  Eq e1 e2
-e1 .!= e2 = Op $ OpBinary NEq e1 e2
-e1 .!== e2 = Op $ OpBinary NEq e1 e2
+{- 
+e1 .==  e2 = Op $ OpBinary   Eq e1 e2
+e1 .=== e2 = Op $ OpBinary  EEq e1 e2
+e1 .!=  e2 = Op $ OpBinary  NEq e1 e2
+e1 .!== e2 = Op $ OpBinary NEEq e1 e2
 
 e1 .&& e2 = Op $ OpBinary And e1 e2
 e1 .|| e2 = Op $ OpBinary Or e1 e2
 
-e1 .< e2  = Op $ OpBinary Lt e1 e2
-e1 .> e2  = Op $ OpBinary Gt e1 e2
+e1 .<  e2  = Op $ OpBinary Lt e1 e2
+e1 .>  e2  = Op $ OpBinary Gt e1 e2
 e1 .<= e2 = Op $ OpBinary LEt e1 e2
 e1 .>= e2 = Op $ OpBinary GEt e1 e2
 
-e1 .+ e2 = Op $ OpBinary BPlus  e1 e2
-e1 .- e2 = Op $ OpBinary BMinus e1 e2
+e1 .+ e2 = Op $ OpBinary Plus e1 e2
+e1 .- e2 = Op $ OpBinary Minus e1 e2
 e1 .* e2 = Op $ OpBinary Mult e1 e2
 e1 ./ e2 = Op $ OpBinary Div e1 e2
+-}
+
+
+-- typed
+e1 .==  e2 = bop JT.eq e1 e2
+e1 .=== e2 = bop JT.eeq e1 e2
+e1 .!=  e2 = bop JT.neq e1 e2
+e1 .!== e2 = bop JT.neeq e1 e2
+
+e1 .&& e2 = bop JT.and e1 e2
+e1 .|| e2 = bop JT.or e1 e2
+
+e1 .>  e2 = bop JT.gt e1 e2
+e1 .<  e2 = bop JT.lt e1 e2
+e1 .>= e2 = bop JT.gte e1 e2
+e1 .<= e2 = bop JT.lte e1 e2
+
+e1 .+ e2 = bop JT.plus e1 e2
+e1 .- e2 = bop JT.minus e1 e2
+e1 .* e2 = bop JT.mult e1 e2
+e1 ./ e2 = bop JT.div e1 e2
+bop p a b = BOp $ BOE p a b
 
 for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
@@ -299,11 +323,11 @@ docCall f a = call1 (document !. f) (lit a)
 
 
 
-createElement :: TagName -> JS.Expr'
+createElement :: TagName -> JS.Expr a
 createElement tn = docCall "createElement" $ unTagName tn
 
 -- creates the expr to create the tree, returns top
-treeCreateExpr :: HTML -> JS.Expr'
+treeCreateExpr :: HTML -> JS.Expr a
 treeCreateExpr tr = FuncExpr . eval $ case tr of 
    TagNode tn mid cls ns -> do
       t <- new $ createElement tn
@@ -338,11 +362,12 @@ newf' n  = new' n <=< func
 
 
 -- | Returns a function definition Expr
-func     = fmap (Cast . uncurry TypedFDef) . funcLit
+-- func :: (Args (Args' a), Function a) => a -> M (Ret a) (Expr b)
+func f = fmap (Cast . uncurry TypedFDef) . funcLit $ f
 class Function a where
    type Args' a
    type Ret a
-   funcLit :: a -> M (Ret a) (Args' a, Code (Ret a))
+   funcLit :: a -> M self (Args' a, Code (Ret a))
 instance Function (M r a) where
    type Args' (M r a) = ()
    type Ret (M r a) = r
@@ -353,3 +378,11 @@ instance (Function b) => Function (Expr a -> b) where
    funcLit f = do
       x <- ex . int2text <$> nextIncIdent
       first (x,) <$> funcLit (f x)
+
+{-
+-}
+test = let 
+   in do
+   f <- newf $ \ (a :: Expr JT.Number) -> retrn $ a .+ a
+   -- g <- newf $ \ (a :: Expr JT.String) -> retrn $ a .+ a
+   retrn f

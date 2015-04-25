@@ -23,6 +23,7 @@ library
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
+      , Base
    -- other-modules:       
    -- other-extensions:    
    build-depends:       base >=4.6 && <4.8
