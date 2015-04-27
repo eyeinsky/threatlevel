@@ -7,9 +7,16 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Base
 
-data Array a where
-   Array :: [a] -> Array a
-data Object
+
+newtype Bool = Bool P.Bool
+newtype Number = Number P.Double
+newtype NumberI = NumberI P.Integer
+newtype String = String T.Text
+newtype Array a = Array [a]
+data Object = Object
+data Regex = Regex T.Text T.Text
+
+-- * Operators
 
 data UOp = UMinus | UPlus | TypeOf | Not
 data BOp
@@ -18,18 +25,16 @@ data BOp
    | And | Or
    | Gt  | Lt  | GEt | LEt
 
-class O ty (op :: BOp) where type D ty op :: *
-class U ty (op :: UOp) where
 
-data Bool where
-   True :: Bool
-   False :: Bool
-   deriving (Show)
+-- * Instances
+
+class O (ty :: *) (op :: BOp) where type D ty op :: *
+class U (ty :: *) (op :: UOp) where
+
 instance O Bool And where type D Bool And = Bool
 instance O Bool Or  where type D Bool Or = Bool
--- instance O Bool Not
+instance U Bool Not
 
-data Number where Number :: P.Double -> Number
 instance O Number Plus  where type D Number Plus = Number
 instance O Number Minus where type D Number Minus = Number
 instance O Number Mult  where type D Number Mult = Number
@@ -42,45 +47,15 @@ instance O Number NEEq  where type D Number NEEq = Bool
 instance U Number UPlus  where -- type D Number UPlus = Number
 instance U Number UMinus where -- type D Number UMinus = Number
 
-data String where String :: T.Text -> String
 instance O String Plus  where type D String Plus = String 
 
-instance U TypeOf a
+instance U a TypeOf 
 
-
--- * Haskell types to JavaScript 
-
-class HJ a where
-   type Dest a
-   jst :: a -> Dest a
-instance HJ P.Bool where
-   type Dest P.Bool = Bool
-   jst x = case x of 
-      P.True -> True
-      _      -> False
-instance HJ P.Double where
-   type Dest P.Double = Number
-   jst n = Number n
-instance HJ P.Integer where
-   type Dest P.Integer = Number
-   jst n = Number $ fromInteger n
-instance HJ P.Int where
-   type Dest P.Int = Number
-   jst n = Number $ fromInteger $ toInteger n
-instance HJ P.String where
-   type Dest P.String = String
-   jst n = String $ T.pack n
-instance HJ T.Text where
-   type Dest T.Text = String
-   jst n = String n
-instance HJ TL.Text where
-   type Dest TL.Text = String
-   jst n = String $ TL.toStrict n
 
 
 -- * Printers
-instance E Number where ev (Number a) = tshow a
-instance E Bool   where ev x = T.toLower $ tshow x
+-- instance E Number where ev (Number a) = tshow a
+-- instance E Bool   where ev x = T.toLower $ tshow x
 
 data Proxy a = Proxy
 plus  = Proxy :: Proxy Plus
@@ -116,3 +91,5 @@ instance E (Proxy UPlus) where ev _ = "+"
 instance E (Proxy UMinus) where ev _ = "-"
 instance E (Proxy Not) where ev _ = "!"
 instance E (Proxy TypeOf) where ev _ = "typeof"
+
+

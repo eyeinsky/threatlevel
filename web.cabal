@@ -19,6 +19,7 @@ library
    exposed-modules:     
         JS_Syntax
       , JS_Types
+      , JS_Ops_Untyped
       , JS_Monad
       , Web_Client_Browser
       , Web_CSS

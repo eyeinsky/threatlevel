@@ -1,7 +1,7 @@
 module JS_Monad
    ( 
    
-   -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader,
+   test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
    -- | JSM meta
      M, S, runM, eval, eval', run, pr, def, Text
    
@@ -12,19 +12,20 @@ module JS_Monad
    , call, call0, call1, bare, arg
 
    , retrn
-   , lit
+   , lit, ulit
    , ex
    , browsers
    , cast
 
    -- | JS_Syntax reexports
    , Code
-   , Expr(Undefined, Null, True, False)
-   , E(..) -- , ev
-   , rawStm, rawExpr
+   , Expr(Undefined, Null, Par, Literal, Cast) -- , True, False)
+   , E(..)
+   , rawStm, rawExpr 
    
    -- | JS_Types reexports
-   , JT.String, JT.Number, JT.Array, JT.Object, JT.Bool
+   , JT.String(..), JT.Number(..), JT.Array(..), JT.Object(..), JT.Bool(..)
+   , JT.Regex(..), JT.NumberI
 
    -- | Attribute and array index
    , (!.), (.!),  {- shorthand: -} (!-)
@@ -77,6 +78,7 @@ import Control.Monad.Identity
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
 import qualified JS_Types  as JT
+import JS_Ops_Untyped
 import Base
 
 import Web_Client_Browser
@@ -182,16 +184,17 @@ block' n = new' n <=< blockExpr
 ternary :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
 ternary = Ternary
 
+-- ifmelse :: Expr JT.Bool -> M r a -> M r (a) -> M r a
 ifmelse cond true mFalse = do
    trueCode <- mkCode true
    mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
    tell [ IfElse cond trueCode mElseCode ]
 
-ifelse :: Expr r -> M r a -> M r b -> M r () -- ? Expr r
+-- ifelse :: Expr JT.Bool -> M r a -> M r a -> M r a
 ifelse c t e = ifmelse c t (Just e)
 ifonly c t   = ifmelse c t Nothing
 
-retrn :: Expr a -> M a () -- ? !!!
+retrn :: Expr a -> M a ()
 retrn e = tell $ [ Return $ Cast e ]
 
 
@@ -210,7 +213,7 @@ ex str = EName $ Name str
 (!.) expr attr = EAttr $ Attr (Cast expr) attr
 (.!) expr key  = Arr expr key
 
-(!-) a b = Arr a (lit b)
+(!-) a b = Arr a (ulit b)
 
 infixr 8 .=
 lhs .= rhs = tell [ Def lhs rhs ]
@@ -220,7 +223,7 @@ lhs .= rhs = tell [ Def lhs rhs ]
 
 -- *** Untyped
 blockExpr :: M r a -> M r (Expr r)
-blockExpr = fmap FuncExpr . mkCode -- writes M a to writer, returns name
+blockExpr = fmap (FuncDef []) . mkCode -- writes M a to writer, returns name
 call :: Expr a -> [Expr b] -> Expr c
 call f as = FuncCall f as
 call0 f = FuncCall f []
@@ -232,49 +235,6 @@ tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
 tcall f as = TypedFCall f as
 
 
-
--- ** Operators
-
-{- 
-e1 .==  e2 = Op $ OpBinary   Eq e1 e2
-e1 .=== e2 = Op $ OpBinary  EEq e1 e2
-e1 .!=  e2 = Op $ OpBinary  NEq e1 e2
-e1 .!== e2 = Op $ OpBinary NEEq e1 e2
-
-e1 .&& e2 = Op $ OpBinary And e1 e2
-e1 .|| e2 = Op $ OpBinary Or e1 e2
-
-e1 .<  e2  = Op $ OpBinary Lt e1 e2
-e1 .>  e2  = Op $ OpBinary Gt e1 e2
-e1 .<= e2 = Op $ OpBinary LEt e1 e2
-e1 .>= e2 = Op $ OpBinary GEt e1 e2
-
-e1 .+ e2 = Op $ OpBinary Plus e1 e2
-e1 .- e2 = Op $ OpBinary Minus e1 e2
-e1 .* e2 = Op $ OpBinary Mult e1 e2
-e1 ./ e2 = Op $ OpBinary Div e1 e2
--}
-
-
--- typed
-e1 .==  e2 = bop JT.eq e1 e2
-e1 .=== e2 = bop JT.eeq e1 e2
-e1 .!=  e2 = bop JT.neq e1 e2
-e1 .!== e2 = bop JT.neeq e1 e2
-
-e1 .&& e2 = bop JT.and e1 e2
-e1 .|| e2 = bop JT.or e1 e2
-
-e1 .>  e2 = bop JT.gt e1 e2
-e1 .<  e2 = bop JT.lt e1 e2
-e1 .>= e2 = bop JT.gte e1 e2
-e1 .<= e2 = bop JT.lte e1 e2
-
-e1 .+ e2 = bop JT.plus e1 e2
-e1 .- e2 = bop JT.minus e1 e2
-e1 .* e2 = bop JT.mult e1 e2
-e1 ./ e2 = bop JT.div e1 e2
-bop p a b = BOp $ BOE p a b
 
 for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
@@ -301,7 +261,7 @@ window = ex "window"
 document = ex "document"
 location = window !. "location"
 
-onloadIs code = onload .= FuncExpr code -- :: Code' -> Statement ()
+onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
 onload = ex "window" !. "onload"
 
@@ -319,7 +279,7 @@ instance FindBy CSS.Class where
 instance FindBy CSS.TagName where
    findBy (CSS.TagName a) = docCall "getElementsByTagName" a
 
-docCall f a = call1 (document !. f) (lit a)
+docCall f a = call1 (document !. f) (ulit a)
 
 
 
@@ -328,7 +288,7 @@ createElement tn = docCall "createElement" $ unTagName tn
 
 -- creates the expr to create the tree, returns top
 treeCreateExpr :: HTML -> JS.Expr a
-treeCreateExpr tr = FuncExpr . eval $ case tr of 
+treeCreateExpr tr = FuncDef [] . eval $ case tr of 
    TagNode tn mid cls ns -> do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
@@ -356,33 +316,59 @@ t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
 -- mock / --}
 
 
--- | Binds a function to variable and returns the variable
+-- * The typing machinery for functions
+
 newf     = new    <=< func
 newf' n  = new' n <=< func
 
 
 -- | Returns a function definition Expr
--- func :: (Args (Args' a), Function a) => a -> M (Ret a) (Expr b)
-func f = fmap (Cast . uncurry TypedFDef) . funcLit $ f
+func :: Function a => a -> M parent (Expr (Arguments a))
+func f = do
+   (argType,b,c) <- funcLit f
+   return $ Cast $ FuncDef b c -- `asTypeOf` 
+
 class Function a where
-   type Args' a
-   type Ret a
-   funcLit :: a -> M self (Args' a, Code (Ret a))
+   type Arguments a
+   type Final a
+   funcLit :: a -> M self (Arguments a, [Expr ()], Code (Final a))
 instance Function (M r a) where
-   type Args' (M r a) = ()
-   type Ret (M r a) = r
-   funcLit f = ((),) <$> mkCode f
+   type Arguments (M r a) = JT.Proxy (Final (M r a))
+   type Final (M r a) = r
+   funcLit f = (JT.Proxy, [], ) <$> mkCode f
 instance (Function b) => Function (Expr a -> b) where
-   type Args' (Expr a -> b) = (Expr a, Args' b)
-   type Ret   (Expr a -> b) = Ret b
+   type Arguments (Expr a -> b) = (Expr a, Arguments b)
+   type Final     (Expr a -> b) = Final b
    funcLit f = do
       x <- ex . int2text <$> nextIncIdent
-      first (x,) <$> funcLit (f x)
+      (a, a', b) <- funcLit (f x)
+      return ((x,a), Cast x : a', b)
 
-{-
+
+class Apply f a where
+   type Result f a
+   fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()])
+instance Apply f () where
+   type Result f () = f
+   fapply f _ = (f, []) 
+instance (Apply fs as, f ~ a) => Apply (Expr f, fs) (Expr a, as) where
+   type Result (Expr f, fs) (Expr a, as) = Result fs as
+   fapply f (a, as) = (f',  Cast a : asList)
+      where (f', asList) = fapply (Cast f :: Expr fs) (as :: as)
+
+appExpr :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
+appExpr f a = uncurry FuncCall $ fapply f a
+
+appWrap :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac) 
+appWrap f a = FuncDef [] [ Return $ appExpr f a ]
+
+
+{- ** THE DREAM **
 -}
 test = let 
    in do
-   f <- newf $ \ (a :: Expr JT.Number) -> retrn $ a .+ a
-   -- g <- newf $ \ (a :: Expr JT.String) -> retrn $ a .+ a
-   retrn f
+   return1 <- newf' "ret1" $ \ (s :: Expr JT.String) ->
+      retrn (lit (1::Int) :: Expr JT.NumberI)
+   addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
+      retrn $ a .+ b
+   retrn $ appWrap addArgs (lit (2::Int), (lit (2::Int), ()))
