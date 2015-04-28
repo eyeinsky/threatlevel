@@ -1,7 +1,8 @@
+{-# LANGUAGE UndecidableInstances #-}
 module JS_Monad
    ( 
    
-   test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
+   -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
    -- | JSM meta
      M, S, runM, eval, eval', run, pr, def, Text
    
@@ -149,7 +150,8 @@ pushNamedExpr n e = do
 
 define name expr = tell [ VarDef name [] expr ]
 
-int2text = ("v"<>) . tshow
+int2text = intPref "v"
+intPref p i = p <> tshow i
 
 newMaker f e = do
    name <- Name . either int2text id <$> f e
@@ -207,7 +209,7 @@ pr = TLIO.putStrLn . ev . eval
 
 browsers f = ask >>= f
 
-ex str = EName $ Name str
+ex txt = EName $ Name txt
 
 (!.) :: Expr a -> Name -> Expr b
 (!.) expr attr = EAttr $ Attr (Cast expr) attr
@@ -344,24 +346,43 @@ instance (Function b) => Function (Expr a -> b) where
       (a, a', b) <- funcLit (f x)
       return ((x,a), Cast x : a', b)
 
-
 class Apply f a where
    type Result f a
-   fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()])
-instance Apply f () where
-   type Result f () = f
-   fapply f _ = (f, []) 
-instance (Apply fs as, f ~ a) => Apply (Expr f, fs) (Expr a, as) where
+   fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()], Int)
+
+instance Apply (JT.Proxy f) () where
+   {- Function is exhausted, start returning. -}
+   type Result (JT.Proxy f) () = JT.Proxy f
+   fapply f _ = (f, [], 0)
+
+instance Apply fs () => Apply (f, fs) () where
+   {- All actual arguments are applied, but the function
+      is not fully saturated. Count the remaining arguments
+      into an Int. -}
+   type Result (f, fs) () = (f, fs)
+   fapply f _ = (f, [], 1+i)
+      where (_,_,i) = fapply (Cast f :: Expr fs) ()
+
+instance (f ~ a, Apply fs as)
+   => Apply (Expr f, fs) (Expr a, as) where
+   {- More of both formal and actual arguments to apply. -}
    type Result (Expr f, fs) (Expr a, as) = Result fs as
-   fapply f (a, as) = (f',  Cast a : asList)
-      where (f', asList) = fapply (Cast f :: Expr fs) (as :: as)
+   fapply f (a, as) = (f',  Cast a : asList, i)
+      where (f', asList, i) = fapply (Cast f :: Expr fs) (as :: as)
 
+-- | Wraps result in all cases
 appExpr :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
-appExpr f a = uncurry FuncCall $ fapply f a
+appExpr f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
+   where (f', a', i) = fapply f a
+         args = map (ex . intPref "a") [1..i]
+         {- LATER TODO: argument integers are prefixed with "a".
+            Though this doesn't interfere with my "v" prefixes
+            generated from the 'M r a', then this could be a
+            possible source of unsafety if I should ever change
+            the identifier generation machinery.
+          -}  
 
-appWrap :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac) 
-appWrap f a = FuncDef [] [ Return $ appExpr f a ]
-
+f -/ (a :: Expr a) = appExpr f (a, ())
 
 {- ** THE DREAM **
 -}
@@ -371,4 +392,5 @@ test = let
       retrn (lit (1::Int) :: Expr JT.NumberI)
    addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
       retrn $ a .+ b
-   retrn $ appWrap addArgs (lit (2::Int), (lit (2::Int), ()))
+   -- retrn $ appExpr addArgs ({-lit (2::Int),-} (lit (2::Int), ()))
+   retrn $ addArgs -/ lit (2::Int) -/ lit (3::Int) -- , (lit (2::Int), ()))

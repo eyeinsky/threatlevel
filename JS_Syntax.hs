@@ -47,8 +47,8 @@ data Expr a where
    Arr       :: Expr a -> Expr a    -> Expr a -- expr[expr]
 
    -- untyped
-   ULit      :: ULiteral            -> Expr a
-   Op        :: OpExpr  a           -> Expr a -- expr + expr
+   ULit      :: ULiteral            -> Expr a 
+   Op        :: OpExpr  a           -> Expr a -- expr `op` expr
 
    -- typed
    Literal   :: Literal a => a      -> Expr a
