@@ -1,4 +1,4 @@
-{-# LANGUAGE UndecidableInstances #-}
+-- {-# LANGUAGE UndecidableInstances #-}
 module JS_Monad
    ( 
    
@@ -268,7 +268,7 @@ onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 onload = ex "window" !. "onload"
 
 on el eventType fexpr = do
-   bare $ call (el !. "on") [ str, fexpr ]
+   bare $ call (el !. "on") [ str, Cast fexpr ]
    where str = lit . T.toLower . tshow $ eventType
 
 
@@ -335,7 +335,7 @@ class Function a where
    type Final a
    funcLit :: a -> M self (Arguments a, [Expr ()], Code (Final a))
 instance Function (M r a) where
-   type Arguments (M r a) = JT.Proxy (Final (M r a))
+   type Arguments (M r a) = JT.Proxy r
    type Final (M r a) = r
    funcLit f = (JT.Proxy, [], ) <$> mkCode f
 instance (Function b) => Function (Expr a -> b) where
@@ -349,12 +349,10 @@ instance (Function b) => Function (Expr a -> b) where
 class Apply f a where
    type Result f a
    fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()], Int)
-
 instance Apply (JT.Proxy f) () where
    {- Function is exhausted, start returning. -}
    type Result (JT.Proxy f) () = JT.Proxy f
    fapply f _ = (f, [], 0)
-
 instance Apply fs () => Apply (f, fs) () where
    {- All actual arguments are applied, but the function
       is not fully saturated. Count the remaining arguments
@@ -362,7 +360,6 @@ instance Apply fs () => Apply (f, fs) () where
    type Result (f, fs) () = (f, fs)
    fapply f _ = (f, [], 1+i)
       where (_,_,i) = fapply (Cast f :: Expr fs) ()
-
 instance (f ~ a, Apply fs as)
    => Apply (Expr f, fs) (Expr a, as) where
    {- More of both formal and actual arguments to apply. -}
