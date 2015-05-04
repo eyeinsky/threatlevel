@@ -1,4 +1,4 @@
-module Base where
+module Common where
 
 import qualified Data.Text as T
 

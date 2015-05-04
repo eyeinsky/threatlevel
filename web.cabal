@@ -21,11 +21,13 @@ library
       , JS_Types
       , JS_Ops_Untyped
       , JS_Monad
+      , JS_DOM
+      , JS
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
-      , Base
-   -- other-modules:       
+   other-modules:       
+        Common
    -- other-extensions:    
    build-depends:       base >=4.6 && <4.8
                       , text

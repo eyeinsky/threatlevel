@@ -1,62 +1,4 @@
--- {-# LANGUAGE UndecidableInstances #-}
-module JS_Monad
-   ( 
-   
-   -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
-   -- | JSM meta
-     M, S, runM, eval, eval', run, pr, def, Text
-   
-   -- | JSM primitives
-   , new, new'
-   , block, block', blockExpr
-   , newf , newf' , func
-   , call, call0, call1, bare, arg
-
-   , retrn
-   , lit, ulit
-   , ex
-   , browsers
-   , cast
-
-   -- | JS_Syntax reexports
-   , Code
-   , Expr(Undefined, Null, Par, Literal, Cast) -- , True, False)
-   , E(..)
-   , rawStm, rawExpr 
-   
-   -- | JS_Types reexports
-   , JT.String(..), JT.Number(..), JT.Array(..), JT.Object(..), JT.Bool(..)
-   , JT.Regex(..), JT.NumberI
-
-   -- | Attribute and array index
-   , (!.), (.!),  {- shorthand: -} (!-)
-
-   -- | Operators
-   , (.=)
-   , (.==), (.!=), (.===), (.!==)
-   , (.&&), (.||)
-   , (.<), (.>), (.<=), (.>=)
-   , (.+), (.-), (.*), (./)
-
-   -- | Control flow
-   , for, forin
-   , ifelse, ifonly
-   , ternary
-
-   -- | Defined variables
-   , arguments
-
-   -- | DOM objects
-   , window, location
-   , on, findBy
-
-   -- | DOM objects -> Event
-   , KeyboardEvent(..), onload
-
-   -- | Zepto
-   , zepto
-   )
-   where
+module JS_Monad where
 
 import Prelude2 hiding ((.-))
 import Text.Exts
@@ -80,11 +22,9 @@ import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
 import qualified JS_Types  as JT
 import JS_Ops_Untyped
-import Base
+import Common
 
 import Web_Client_Browser
-import qualified Web_CSS as CSS
-import Web_HTML
 
 import Debug.Trace
 
@@ -199,6 +139,7 @@ ifonly c t   = ifmelse c t Nothing
 retrn :: Expr a -> M a ()
 retrn e = tell $ [ Return $ Cast e ]
 
+untype = Cast :: Expr a -> Expr ()
 
 --
 --
@@ -254,53 +195,6 @@ rawExpr = Raw
 
 arguments = ex "arguments"
 
-
---
--- * DOM
---
-
-window = ex "window"
-document = ex "document"
-location = window !. "location"
-
-onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
-
-onload = ex "window" !. "onload"
-
-on el eventType fexpr = do
-   bare $ call (el !. "on") [ str, Cast fexpr ]
-   where str = lit . T.toLower . tshow $ eventType
-
-
-class FindBy a where
-   findBy :: a -> JS.Expr b -- JS.Expr Element
-instance FindBy CSS.Id where
-   findBy (CSS.Id t) = docCall "getElementById" t
-instance FindBy CSS.Class where
-   findBy (CSS.Class a) = docCall "getElementsByClassName" a
-instance FindBy CSS.TagName where
-   findBy (CSS.TagName a) = docCall "getElementsByTagName" a
-
-docCall f a = call1 (document !. f) (ulit a)
-
-
-
-createElement :: TagName -> JS.Expr a
-createElement tn = docCall "createElement" $ unTagName tn
-
--- creates the expr to create the tree, returns top
-treeCreateExpr :: HTML -> JS.Expr a
-treeCreateExpr tr = FuncDef [] . eval $ case tr of 
-   TagNode tn mid cls ns -> do
-      t <- new $ createElement tn
-      maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
-      when (not . null $ cls) $ 
-         t !. "className" .= lit (TL.unwords $ map unClass cls) 
-      retrn t
-   TextNode txt -> retrn $ docCall "createTextNode" txt
-
-
-zepto expr = FuncCall (ex "$") [ expr ] -- :: Expr ()
 
 
 {-

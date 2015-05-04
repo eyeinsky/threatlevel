@@ -5,7 +5,7 @@ import Prelude2 hiding (Bool(..), String, Eq)
 import Text.Exts
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Base
+import Common
 
 
 newtype Bool = Bool P.Bool

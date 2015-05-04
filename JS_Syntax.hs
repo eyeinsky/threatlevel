@@ -16,7 +16,7 @@ import qualified Data.Text.Lazy as TL
 
 import qualified JS_Types as JT
 import JS_Types (UOp(..), BOp(..))
-import Base
+import Common
 
 type Code a = [ Statement a  ]
 
