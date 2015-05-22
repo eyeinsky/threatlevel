@@ -36,17 +36,18 @@ instance Event Touch
 class Show a => ToOn a where
    toOn :: a -> T.Text
    toOn = ("on"<>) . T.toLower . tshow
+
 instance ToOn MouseEvent 
 instance ToOn KeyboardEvent
 instance ToOn HTMLFrameObjectEvent
 instance ToOn HTMLFormEvent
 
-instance Show KeyboardEvent
-instance Show MouseEvent
-instance Show HTMLFrameObjectEvent
-instance Show HTMLFormEvent
-instance Show Progress
-instance Show Touch
+deriving instance Show KeyboardEvent
+deriving instance Show MouseEvent
+deriving instance Show HTMLFrameObjectEvent
+deriving instance Show HTMLFormEvent
+deriving instance Show Progress
+deriving instance Show Touch
 
 
 
@@ -91,15 +92,15 @@ data HTMLFormEvent
 
 
 
--- no "on" prefix:
+-- No "on" prefixed attributes for html elements these events:
 
 data UIEvent
    = FocusIn
    | FocusOut
    | DOMActivate
 
-   {- 
-data DOMMutation -- (not well supported per wikipedia)
+{-  -- (not well supported per wikipedia, so won't implement
+data DOMMutation
    | DOMSubtreeModified
    | DOMNodeInserted
    | DOMNodeRemoved

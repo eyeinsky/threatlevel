@@ -26,6 +26,11 @@ library
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
+      , HTTP_Common
+      , HTTP_Header
+      , HTTP_Response
+      , HTTP_URL
+
    other-modules:       
         Common
    -- other-extensions:    
@@ -35,6 +40,8 @@ library
                       , mtl
                       , containers
                       , bytestring
+                      , lens, network, wai, case-insensitive, http-types, blaze-builder
+                      , blaze-html, aeson, network-simple
    -- hs-source-dirs:      
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows

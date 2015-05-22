@@ -22,6 +22,9 @@ document = ex "document"
 location :: Expr Location
 location = window !. "location"
 
+toJson :: Expr ()
+toJson = ex "JSON" !. "stringify"
+
 onloadIs :: Code () -> M r ()
 onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
@@ -32,13 +35,12 @@ onload = ex "window" !. "onload"
 
 
 on :: (Event event, ToOn event)
-   => Expr Tag -- attatch to
-   -> event    -- on this event
-   -> Expr (Expr event, JT.Proxy ()) -- this function
+   => Expr Tag                       -- When this element
+   -> event                          --   .. has this event
+   -> Expr (Expr event, JT.Proxy ()) --   .. then do this.
    -> M r ()
 on el eventType fexpr = do
-   bare $ call (el !. "on") [ str, Cast fexpr ]
-   where str = lit . toOn $ eventType
+   (el !. Name (toOn eventType)) .= fexpr
 
 
 class FindBy a where findBy :: a -> JS.Expr Tag

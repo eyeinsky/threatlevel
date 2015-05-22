@@ -33,15 +33,16 @@ import Debug.Trace
 --
 
 type W r = Code r
-type R = Browser
+type R = (Browser, Bool {- allow explicit names -})
 data S = S {
      counter :: Int
    , nameds :: S.Set Text
    }
 
+
 instance Default S where def = S 0 S.empty
 defS = def :: S
-instance Default R where def = Unknown
+instance Default R where def = (Unknown, True)
 
 type M r = WriterT (W r) (StateT S (ReaderT R Identity))
 
@@ -68,7 +69,7 @@ evalN' b n = snd . fst . runM b   (def { counter = n })
 exec :: M r a -> a
 exec = fst . fst . run
 
-browser = ask
+browser = asks fst
 
 --
 -- Core
@@ -102,7 +103,10 @@ new :: Expr a -> M r (Expr a)
 new e = newMaker (fmap Left . pushExpr) e
 
 new' :: Text -> Expr a -> M r (Expr a)
-new' n e = newMaker (fmap Right . pushNamedExpr n) e
+new' n e = bool ignore name =<< asks snd
+   where
+      name = newMaker (fmap Right . pushNamedExpr n) e
+      ignore = new e
 
 {- | Evaluate JSM code to Code aka W r aka [Statement]
      It doesn't actually write anything, just runs
@@ -110,11 +114,12 @@ new' n e = newMaker (fmap Right . pushNamedExpr n) e
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
 mkCode :: M sub a -> M parent (W sub)
-mkCode mcode = evalN' <$> browser <*> nextIdent <*> pure mcode
+mkCode mcode = evalN' <$> ask <*> nextIdent <*> pure mcode
    where nextIdent = (+1) <$> gets counter
 
 bare :: Expr a -> M r ()
-bare e  = tell [ BareExpr e ] 
+bare e  = tell [ BareExpr e ]
+
 block    = new    <=< blockExpr 
 block' n = new' n <=< blockExpr
 
@@ -147,8 +152,6 @@ untype = Cast :: Expr a -> Expr ()
 
 pr :: M r a -> IO ()
 pr = TLIO.putStrLn . ev . eval
-
-browsers f = ask >>= f
 
 ex txt = EName $ Name txt
 

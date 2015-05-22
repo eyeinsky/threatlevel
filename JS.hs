@@ -14,7 +14,7 @@ module JS
    , retrn
    , lit, ulit
    , ex
-   , browsers
+   , browser
    , untype
 
    -- | JS_Syntax reexports
@@ -51,6 +51,7 @@ module JS
    , zepto, onload
    , tag, createHtml
    , appendChild
+   , toJson
 
    -- Web_HTML
    , toOn
