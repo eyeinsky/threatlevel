@@ -44,7 +44,7 @@ data Expr a where
    Par       :: Expr a              -> Expr a
    EName     :: Name                -> Expr a -- name
    EAttr     :: Attr                -> Expr a -- expr.name
-   Arr       :: Expr a -> Expr a    -> Expr a -- expr[expr]
+   Arr       :: Expr a -> Expr b    -> Expr c -- expr[expr]
 
    -- untyped
    ULit      :: ULiteral            -> Expr a 
@@ -257,20 +257,20 @@ instance E ULiteral where
       ULObject obj -> curly $ uncomma . map f $ obj
          where f (e,expr) = either ev ev e <> ":" <> ev expr 
 
-class ToULiteral a where uliteral :: a -> ULiteral
-instance ToULiteral Int where uliteral = ULInteger . toInteger
+class    ToULiteral a       where uliteral :: a -> ULiteral
+instance ToULiteral Int     where uliteral = ULInteger . toInteger
 instance ToULiteral Integer where uliteral = ULInteger 
-instance ToULiteral Bool where uliteral = ULBool
-instance ToULiteral T.Text where uliteral = ULString
+instance ToULiteral Bool    where uliteral = ULBool
+instance ToULiteral T.Text  where uliteral = ULString
 instance ToULiteral TL.Text where uliteral = uliteral . TL.toStrict
-instance ToULiteral String where uliteral = uliteral . T.pack
+instance ToULiteral String  where uliteral = uliteral . T.pack
 instance ToULiteral [ Expr a ] where
    uliteral = ULArray . map Cast
 instance ToULiteral a => ToULiteral [(a, Expr b)] where
    uliteral li = ULObject $ map f li
       where f (a,b) = (Right . ulit $ a, Cast b)
 
-ulit = ULit . uliteral :: ToULiteral a => a -> Expr ()
+ulit = ULit . uliteral :: ToULiteral a => a -> Expr b
 
 
 attr :: Expr a -> Name -> Expr b

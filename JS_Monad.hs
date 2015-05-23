@@ -157,6 +157,8 @@ ex txt = EName $ Name txt
 
 (!.) :: Expr a -> Name -> Expr b
 (!.) expr attr = EAttr $ Attr (Cast expr) attr
+
+
 (.!) expr key  = Arr expr key
 
 (!-) a b = Arr a (ulit b)
@@ -197,22 +199,6 @@ rawExpr = Raw
 -- * Predefined names
 
 arguments = ex "arguments"
-
-
-
-{-
--- / mock 
-type A1 = JT.Bool
-type A2 = JT.String
-type A3 = JT.Number
-type R1 = JT.Object
-type AS = (Expr A1, (Expr A2, (Expr A3, END)))
-f :: Expr (AS, R1); f = u
-as :: AS; as = u
-t1 = tcall f as 
-t2 = tcall (EName (Name "x")  :: Expr ((Expr Bool, ())  , JT.Number ))
-           (EName (Name "a1") ::        Expr Bool, ())
--- mock / --}
 
 
 -- * The typing machinery for functions

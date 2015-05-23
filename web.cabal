@@ -22,6 +22,7 @@ library
       , JS_Ops_Untyped
       , JS_Monad
       , JS_DOM
+      , JS_API
       , JS
       , Web_Client_Browser
       , Web_CSS

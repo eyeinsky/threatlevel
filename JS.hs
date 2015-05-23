@@ -53,6 +53,12 @@ module JS
    , appendChild
    , toJson
 
+   -- JS_API
+   -- Array
+   , push, JS_API.length, JS_API.last
+   -- Date
+   , now
+   , eventKey
    -- Web_HTML
    , toOn
 
@@ -67,6 +73,8 @@ import Common
 import JS_Types as JT
 import JS_Syntax
 import JS_Monad
+import JS_API
+
 import JS_Ops_Untyped
 import JS_DOM
 
