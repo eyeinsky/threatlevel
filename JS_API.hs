@@ -22,6 +22,12 @@ last as = as .! (JS_API.length as .- ulit 1)
 
 now = ex "Date" !. "now"
 
+-- * JSON
+
+jSON = ex "JSON"
+
+fromJSON = call1 (jSON !. "parse")
+toJSON = call1 (jSON !. "stringify")
 
 
 -- * Event

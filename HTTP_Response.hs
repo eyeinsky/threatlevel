@@ -6,6 +6,7 @@ import qualified Text.Blaze.Html5            as E
 import           Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString.Lazy as LBS
 import qualified HTTP_Header as Hdr
 
 -- Wai/Warp conversions
@@ -20,19 +21,22 @@ import Network.HTTP.Types (
    , hServer, status303, status404, status503, QueryText)
 import           Blaze.ByteString.Builder.ByteString (fromLazyByteString)
 
+import Data.Aeson as JSON
 
 
 
 -- * Response
 
+-- The high-level response type
+
 newtype Resp = Resp { unResp :: ([Hdr.Header], RespAction) }
 
 
 -- stuff that differs
-data RespAction
-   = Html     E.Html E.Html
-   | JSON     E.Html
-   | Redirect T.Text
+data RespAction where
+   Html :: E.Html -> E.Html -> RespAction
+   JSON :: ToJSON a => a -> RespAction
+   Redirect :: T.Text -> RespAction
 
 
 addHeader :: Hdr.Header -> Resp -> Resp
@@ -41,11 +45,12 @@ addHeader c (Resp (hs, resp)) = Resp (c : hs, resp)
 
 -- ** Shorthands
 
-utf8Html ra = Resp (common, ra)
+utf8ct what ra = Resp (common, ra)
    where
    common :: [ Hdr.Header ]
-   common = [ Hdr.Header (Hdr.ContentType, "text/html; charset=UTF-8") ]
+   common = [ Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8") ]
 
+utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8")
 
 addHead a (Resp (hs, ra)) = Resp (hs, ra')
    where ra' = case ra of Html h b -> Html (h>>a) b; _ -> ra
@@ -58,16 +63,22 @@ postpendBody a (Resp (hs, ra)) = Resp (hs, ra')
 
 -- * Conversion to Wai/Warp
 
-toWai (Resp (hs, ra)) = f $ case ra of
-   Html     hh hb -> waiHtml $ E.docType >> E.head hh >> E.body hb
-   JSON     hb    -> waiHtml $ hb
-   Redirect url   -> waiRedir $ url
+toWai (Resp (hs, ra)) = addHeaders $ case ra of
+   Html hh hb
+      -> waiBs [ utf8textHdr "html" ] . renderHtml
+            $ E.docType >> E.head hh >> E.body hb
+   JSON json    -> waiBs [ utf8textHdr "json" ] $ encode json
+   Redirect url -> waiRedir $ url
    where
-      f (ResponseBuilder st hdrs builder) =
+      addHeaders (ResponseBuilder st hdrs builder) =
          ResponseBuilder st (map Hdr.cc hs <> hdrs) builder
 
-waiHtml :: E.Html -> Response
-waiHtml html = responseBuilder ok200 [] (fromLazyByteString . renderHtml $ html)
+
+waiBs :: [ Hdr.Header ] -> LBS.ByteString -> Response
+waiBs hs bs = responseBuilder ok200 hs' bs'
+   where hs' = map Hdr.cc hs
+         bs' = fromLazyByteString bs
+
 
 waiRedir :: T.Text -> Response
 waiRedir url = responseBuilder status303 (("Location", url') : []) (fromLazyByteString $ "")

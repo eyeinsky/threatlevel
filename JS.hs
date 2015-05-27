@@ -55,10 +55,7 @@ module JS
 
    -- JS_API
    -- Array
-   , push, JS_API.length, JS_API.last
-   -- Date
-   , now
-   , eventKey
+   , module JS_API
    -- Web_HTML
    , toOn
 
