@@ -36,6 +36,7 @@ module JS
    , (.&&), (.||)
    , (.<), (.>), (.<=), (.>=)
    , (.+), (.-), (.*), (./)
+   , (.+=), (.-=), (.*=), (./=)
 
    -- | Control flow
    , for, forin
@@ -46,12 +47,14 @@ module JS
    , arguments
 
    -- | from JS_DOM
+   , module JS_DOM
+   {-
    , window, location
    , on, findBy
    , zepto, onload
    , tag, createHtml
    , appendChild
-   , toJson
+   , toJson -}
 
    -- JS_API
    -- Array

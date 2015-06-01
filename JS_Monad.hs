@@ -166,6 +166,10 @@ ex txt = EName $ Name txt
 infixr 8 .=
 lhs .= rhs = tell [ Def lhs rhs ]
 
+a .+= b = a .= (a .+ b)
+a .-= b = a .= (a .- b)
+a .*= b = a .= (a .* b)
+a ./= b = a .= (a ./ b)
 
 -- ** Functions
 

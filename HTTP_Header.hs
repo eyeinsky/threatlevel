@@ -18,14 +18,23 @@ import qualified Data.Text.Encoding as TE
 newtype Header = Header (HeaderName, T)
 hdr a b = Header (a, b)
 
+
+{-
+data ResponseHeader = ResponseHeader {
+     
+   , 
+   }
+-}
+
 instance ToPayload Header where
-   toPayload (Header (k, v)) = find k <> ": " <> v
+   toPayload (Header (k, v)) = find k headerMap <> ": " <> v
 instance ToPayload [Header] where
    toPayload = unlines . map toPayload
 
-find k = fromMaybe (error "header missing from map") $ lookup k headerMap
+find k m = fromMaybe (error "header missing from map") $ lookup k m
 
 data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
+
     -- Generic Headers
    CacheControl :: HeaderName
    Connection :: HeaderName
@@ -34,26 +43,7 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    TransferEncoding :: HeaderName
    Upgrade :: HeaderName
    Via :: HeaderName
-    -- Request Headers
-   Accept :: HeaderName
-   AcceptCharset :: HeaderName
-   AcceptEncoding :: HeaderName
-   AcceptLanguage :: HeaderName
-   Authorization :: HeaderName
-   Cookie :: HeaderName
-   Expect :: HeaderName
-   From :: HeaderName
-   Host :: HeaderName
-   IfModifiedSince :: HeaderName
-   IfMatch :: HeaderName
-   IfNoneMatch :: HeaderName
-   IfRange :: HeaderName
-   IfUnmodifiedSince :: HeaderName
-   MaxForwards :: HeaderName
-   ProxyAuthorization :: HeaderName
-   Range :: HeaderName
-   Referer :: HeaderName
-   UserAgent :: HeaderName
+
     -- Response Headers
    Age :: HeaderName
    Location :: HeaderName
@@ -67,6 +57,7 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    Vary :: HeaderName
    Warning :: HeaderName
    WWWAuthenticate :: HeaderName
+
     -- Entity Headers :: HeaderName
    Allow :: HeaderName
    ContentBase :: HeaderName
@@ -80,10 +71,13 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    ETag :: HeaderName
    Expires :: HeaderName
    LastModified :: HeaderName
+
     -- | MIME entity headers (for sub-parts)
    ContentTransferEncoding :: HeaderName
+
     -- | Allows for unrecognised or experimental headers.
    Custom :: T -> HeaderName -- not in header map below.
+
 
 headerMap :: [ (HeaderName, T) ]
 headerMap =
@@ -94,25 +88,7 @@ headerMap =
    , p "Transfer-Encoding"    TransferEncoding
    , p "Upgrade"              Upgrade
    , p "Via"                  Via
-   , p "Accept"               Accept
-   , p "Accept-Charset"       AcceptCharset
-   , p "Accept-Encoding"      AcceptEncoding
-   , p "Accept-Language"      AcceptLanguage
-   , p "Authorization"        Authorization
-   , p "Cookie"               Cookie
-   , p "Expect"               Expect
-   , p "From"                 From
-   , p "Host"                 Host
-   , p "If-Modified-Since"    IfModifiedSince
-   , p "If-Match"             IfMatch
-   , p "If-None-Match"        IfNoneMatch
-   , p "If-Range"             IfRange
-   , p "If-Unmodified-Since"  IfUnmodifiedSince
-   , p "Max-Forwards"         MaxForwards
-   , p "Proxy-Authorization"  ProxyAuthorization
-   , p "Range"                Range
-   , p "Referer"              Referer
-   , p "User-Agent"           UserAgent
+
    , p "Age"                  Age
    , p "Location"             Location
    , p "Proxy-Authenticate"   ProxyAuthenticate
@@ -139,7 +115,7 @@ headerMap =
    , p "Last-Modified"        LastModified
    , p "Content-Transfer-Encoding" ContentTransferEncoding
    ]
-  where p a b = (b,a)
+p a b = (b,a)
 
 -- 
 accHtml = "text/html"
@@ -153,9 +129,64 @@ deriving instance Eq Header
 -- Conversion to http-types headers (for Wai/Warp)
 
 cc (Header (hn, t)) = (n,v) :: H.Header
-   where n = CI.mk $ f $ find hn
+   where n = CI.mk $ f $ find hn headerMap
          v = f t
          f = TE.encodeUtf8 . TL.toStrict
+
+
+
+-- * Request header
+
+newtype RequestHeader = RequestHeader
+   { _unRequestHeader :: (RequestHeaderName, T) }
+
+data RequestHeaderName where
+   Accept :: RequestHeaderName
+   AcceptCharset :: RequestHeaderName
+   AcceptEncoding :: RequestHeaderName
+   AcceptLanguage :: RequestHeaderName
+   Authorization :: RequestHeaderName
+   Cookie :: RequestHeaderName
+   Expect :: RequestHeaderName
+   From :: RequestHeaderName
+   Host :: RequestHeaderName
+   IfModifiedSince :: RequestHeaderName
+   IfMatch :: RequestHeaderName
+   IfNoneMatch :: RequestHeaderName
+   IfRange :: RequestHeaderName
+   IfUnmodifiedSince :: RequestHeaderName
+   MaxForwards :: RequestHeaderName
+   ProxyAuthorization :: RequestHeaderName
+   Range :: RequestHeaderName
+   Referer :: RequestHeaderName
+   UserAgent :: RequestHeaderName
+   deriving (Eq, Ord)
+
+instance ToPayload RequestHeader where
+   toPayload = flip find map . fst . _unRequestHeader
+      where 
+         map = [
+              p "Accept"               Accept
+            , p "Accept-Charset"       AcceptCharset
+            , p "Accept-Encoding"      AcceptEncoding
+            , p "Accept-Language"      AcceptLanguage
+            , p "Authorization"        Authorization
+            , p "Cookie"               Cookie
+            , p "Expect"               Expect
+            , p "From"                 From
+            , p "Host"                 Host
+            , p "If-Modified-Since"    IfModifiedSince
+            , p "If-Match"             IfMatch
+            , p "If-None-Match"        IfNoneMatch
+            , p "If-Range"             IfRange
+            , p "If-Unmodified-Since"  IfUnmodifiedSince
+            , p "Max-Forwards"         MaxForwards
+            , p "Proxy-Authorization"  ProxyAuthorization
+            , p "Range"                Range
+            , p "Referer"              Referer
+            , p "User-Agent"           UserAgent
+            ]
+
 
 
 -- * Cookie
@@ -170,8 +201,7 @@ data Cookie = Cookie'
 
 instance ToPayload Cookie where
    toPayload (Cookie' k v d p e) = un ";" $ filter (not . TL.null)
-         [ x, d', p', e'
-         ]
+         [ x, d', p', e' ]
       where
          x  = format "{}={}" (k, v)
          d' = format "Domain={}" [d]
@@ -181,3 +211,4 @@ instance ToPayload Cookie where
 cookie' a b c d e = Header (SetCookie, toPayload $ Cookie' a b c d e)
 mkC k v = cookie' k v "typorg.dev" [] ""
 delC k  = cookie' k "deleted" "typorg.dev" [] "Thu, 01-Jan-1970 00:00:01 GMT"
+

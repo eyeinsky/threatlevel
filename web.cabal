@@ -27,6 +27,7 @@ library
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
+      , Web
       , HTTP_Common
       , HTTP_Header
       , HTTP_Response

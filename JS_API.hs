@@ -6,6 +6,8 @@ import JS_Syntax
 import JS_Monad
 import JS_Ops_Untyped
 
+import Web_HTML
+
 
 -- * Array
 
@@ -26,11 +28,26 @@ now = ex "Date" !. "now"
 
 jSON = ex "JSON"
 
+-- fromJSON :: Expr a -> Expr JT.String
 fromJSON = call1 (jSON !. "parse")
+
+toJSON :: Expr a -> Expr JS_Types.String
 toJSON = call1 (jSON !. "stringify")
 
 
--- * Event
+-- * Number
+
+parseFloat a = call1 (ex "parseFloat") a
+
+-- * DOM/Event
+
+-- focus :: Expr Tag -> Expr M r ()
+focus e = call0 (e !. "focus")
+
+-- blur :: Expr Tag -> M r ()
+blur e = call0 (e !. "blur")
+
+
 
 -- | Get char from keyboard event
 eventKey event = do -- from: http://unixpapa.com/js/key.html
@@ -44,3 +61,45 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
          (  (which .!= ulit 0 :: Expr JS_Types.Bool)
         .&& event !. "charCode" .!= ulit 0
         ) (from which {-all others-}) Null)
+
+-- * Async
+
+data JobId
+
+setInterval :: Expr a -> Expr b -> M r (Expr JobId)
+setInterval f t = new $ call (ex "setInterval") [ Cast f, t]
+
+clearInterval :: Expr JobId -> M r ()
+clearInterval id = bare $ call1 (ex "clearInterval") id
+
+setTimeout :: Expr a -> Expr b -> M r (Expr JobId)
+setTimeout f t = new $ call (ex "setTimeout") [ Cast f, t]
+
+clearTimeout :: Expr JobId -> M r ()
+clearTimeout id = bare $ call1 (ex "clearTimeout") id
+
+
+-- * XMLHttpRequest (Ajax)
+
+-- Expr URL -> data -> (\ x -> M y z) -> M a b
+doPost' a b c = bare $ ajaxExpr "post" a b c
+doGet' a b c = bare $ ajaxExpr "get" a b c
+ajaxExpr meth uri data_ callback =
+   call (ex "$" !. meth) [ uri, data_, Cast callback ]
+
+
+-- * Various
+
+alert x = bare $ call1 (ex "alert") x
+
+-- ** Debugging
+
+toConsole args = bare $ call (ex "console" !. "log") args
+
+dbg v expr = do
+   ex v .= expr
+   toConsole [expr]
+
+-- printl :: Expr T.Text -> Expr JS_Types.String -> M r ()
+printl lbl expr = 
+   toConsole [ lbl .+ ulit ": <" .+ expr .+ ulit ">" ]

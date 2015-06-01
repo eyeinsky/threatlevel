@@ -7,7 +7,6 @@ import           Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as LBS
-import qualified HTTP_Header as Hdr
 
 -- Wai/Warp conversions
 import Network.Wai ( Response, responseBuilder, responseFile
@@ -23,6 +22,7 @@ import           Blaze.ByteString.Builder.ByteString (fromLazyByteString)
 
 import Data.Aeson as JSON
 
+import qualified HTTP_Header as Hdr
 
 
 -- * Response
@@ -34,10 +34,9 @@ newtype Resp = Resp { unResp :: ([Hdr.Header], RespAction) }
 
 -- stuff that differs
 data RespAction where
-   Html :: E.Html -> E.Html -> RespAction
-   JSON :: ToJSON a => a -> RespAction
+   Html     :: E.Html -> E.Html -> RespAction
+   JSON     :: ToJSON a => a -> RespAction 
    Redirect :: T.Text -> RespAction
-
 
 addHeader :: Hdr.Header -> Resp -> Resp
 addHeader c (Resp (hs, resp)) = Resp (c : hs, resp)
@@ -63,15 +62,11 @@ postpendBody a (Resp (hs, ra)) = Resp (hs, ra')
 
 -- * Conversion to Wai/Warp
 
-toWai (Resp (hs, ra)) = addHeaders $ case ra of
-   Html hh hb
-      -> waiBs [ utf8textHdr "html" ] . renderHtml
+toWai (Resp (hs, ra)) = waiAddHeaders (map Hdr.cc hs) $ case ra of
+   Html hh hb -> waiBs [ utf8textHdr "html" ] . renderHtml
             $ E.docType >> E.head hh >> E.body hb
    JSON json    -> waiBs [ utf8textHdr "json" ] $ encode json
    Redirect url -> waiRedir $ url
-   where
-      addHeaders (ResponseBuilder st hdrs builder) =
-         ResponseBuilder st (map Hdr.cc hs <> hdrs) builder
 
 
 waiBs :: [ Hdr.Header ] -> LBS.ByteString -> Response
@@ -79,10 +74,15 @@ waiBs hs bs = responseBuilder ok200 hs' bs'
    where hs' = map Hdr.cc hs
          bs' = fromLazyByteString bs
 
+waiAddHeaders hs (ResponseBuilder st hdrs builder) =
+   ResponseBuilder st (hs <> hdrs) builder
 
 waiRedir :: T.Text -> Response
 waiRedir url = responseBuilder status303 (("Location", url') : []) (fromLazyByteString $ "")
    where url' = TE.encodeUtf8 url
+
+waiSendFile path = responseFile ok200 [htmlUtf8 path False] (T.unpack path) Nothing
+htmlUtf8 fn bool = u -- (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
 
 {-
 sendEmbed assoc path = lookup path assoc
@@ -97,10 +97,8 @@ err msg = maybe (returnHtmlPage msg)
 sendAttachment :: T.Text -> T.Text -> Response
 sendAttachment name path = responseFile ok200 [dispDownload name] (T.unpack path) Nothing
 
-sendFile path = responseFile ok200 [htmlUtf8 path False] (T.unpack path) Nothing
 -- sendFileAge maxAge path = responseFile ok200 [htmlUtf8 path False, mkAge maxAge] (T.unpack tee) Nothing
 
 dispDownload fn = ("Content-Disposition", "attachment; filename=\""<>TE.encodeUtf8 fn<>"\"")
-htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
 -}
 

@@ -22,9 +22,6 @@ document = ex "document"
 location :: Expr Location
 location = window !. "location"
 
-toJson :: Expr ()
-toJson = ex "JSON" !. "stringify"
-
 onloadIs :: Code () -> M r ()
 onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
@@ -43,6 +40,8 @@ on el eventType fexpr = do
    (el !. Name (toOn eventType)) .= fexpr
 
 
+-- * Finding elements
+
 class FindBy a where findBy :: a -> JS.Expr Tag
 instance FindBy CSS.Id where
    findBy (CSS.Id t) = docCall "getElementById" t
@@ -50,12 +49,19 @@ instance FindBy CSS.Class where
    findBy (CSS.Class a) = docCall "getElementsByClassName" a
 instance FindBy CSS.TagName where
    findBy (CSS.TagName a) = docCall "getElementsByTagName" a
+instance FindBy (Expr CSS.Id) where
+   findBy a = docCall' "getElementById" a
+instance FindBy (Expr CSS.Class) where
+   findBy a = docCall' "getElementsByClassName" a
 
-docCall f a = call1 (document !. f) (ulit a)
+docCall' f a = call1 (document !. f) a
+docCall f a = docCall' f (ulit a)
+
+
+-- * Modify DOM
 
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
-
 
 tag :: TagName -> JS.Expr Tag
 tag tn = docCall "createElement" $ unTagName tn
@@ -73,10 +79,12 @@ createHtml tr = FuncDef [] . eval $ case tr of
    TextNode txt -> retrn $ docCall "createTextNode" txt
 
 
-test = div [div [], div [TextNode "xxx"]]
-   where
-      div c = TagNode (TagName "div") Nothing [] c
-
 zepto expr = FuncCall (ex "$") [ expr ] -- :: Expr ()
 
+setInnerHTML e x = e !. "innerHTML" .= x
 
+-- ** CSS
+
+setCSSAttr e k v = e !. "style" !. k .= v
+addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) cls
+remClass cls el = bare $ call1 (el !. "classList" !. "remove") cls
