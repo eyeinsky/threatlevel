@@ -24,6 +24,7 @@ library
       , JS_DOM
       , JS_API
       , JS
+      , JS_Derive
       , Web_Client_Browser
       , Web_CSS
       , Web_HTML
@@ -44,6 +45,7 @@ library
                       , bytestring
                       , lens, network, wai, case-insensitive, http-types, blaze-builder
                       , blaze-html, aeson, network-simple
+                      , template-haskell
    -- hs-source-dirs:      
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows
