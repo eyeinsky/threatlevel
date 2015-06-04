@@ -161,6 +161,7 @@ ex txt = EName $ Name txt
 
 (.!) expr key  = Arr expr key
 
+(!-) :: ToULiteral b => Expr a -> b -> Expr c -- TODO add types
 (!-) a b = Arr a (ulit b)
 
 infixr 8 .=

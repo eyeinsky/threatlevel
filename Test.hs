@@ -9,7 +9,7 @@ import JS_Derive
 type St = Prelude2.String
 
 
-data D1 = D1 Int
+data D1 = D1 Int | D1'
 data D2 = D2 Int St
 data D3 = D3 Int St | D3' Int St
 
@@ -24,3 +24,5 @@ $(myDeriveJS defaultOptions ''D3)
 $(myDeriveJS defaultOptions ''R1)
 $(myDeriveJS defaultOptions ''R2)
 $(myDeriveJS defaultOptions ''R3)
+{-
+-}

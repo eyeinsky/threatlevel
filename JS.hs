@@ -19,9 +19,10 @@ module JS
 
    -- | JS_Syntax reexports
    , Code
-   , Expr(Undefined, Null, Par, Literal, Cast) -- , True, False)
+   , Expr(Undefined, Null, Par, Literal, ULit, Cast) -- , True, False)
    , E(..)
    , rawStm, rawExpr 
+   , ULiteral(..)
    
    -- | JS_Types reexports
    , JT.String(..), JT.Number(..), JT.Array(..), JT.Object(..), JT.Bool(..)
@@ -66,7 +67,7 @@ module JS
    )
    where
 
-import Prelude2 hiding ((.-))
+import Prelude2 hiding ((.-), for)
 
 import Data.Default
 import Common

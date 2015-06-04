@@ -94,12 +94,8 @@ alert x = bare $ call1 (ex "alert") x
 
 -- ** Debugging
 
-toConsole args = bare $ call (ex "console" !. "log") args
+consoleLog args = bare $ call (ex "console" !. "log") args
 
-dbg v expr = do
+debug v expr = do
    ex v .= expr
-   toConsole [expr]
-
--- printl :: Expr T.Text -> Expr JS_Types.String -> M r ()
-printl lbl expr = 
-   toConsole [ lbl .+ ulit ": <" .+ expr .+ ulit ">" ]
+   consoleLog [expr]
