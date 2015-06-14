@@ -15,6 +15,8 @@ import qualified Data.Text       as T
 import qualified Data.Text.Lazy  as TL
 import qualified Data.Text.Encoding as TE
 
+import qualified Cookie as C
+
 newtype Header = Header (HeaderName, T)
 hdr a b = Header (a, b)
 
@@ -191,24 +193,12 @@ instance ToPayload RequestHeader where
 
 -- * Cookie
 
-data Cookie = Cookie'
-   { name :: T
-   , value :: T
-   , domain :: T
-   , cPath :: [T]
-   , expires :: T
-   }
+-- def moved to Cookie, as JS_DOM is using it too
 
-instance ToPayload Cookie where
-   toPayload (Cookie' k v d p e) = un ";" $ filter (not . TL.null)
-         [ x, d', p', e' ]
-      where
-         x  = format "{}={}" (k, v)
-         d' = format "Domain={}" [d]
-         p' = format "Path={}" ["/" <> un "/" p]
-         e' = format "Expires={}" [e]
+instance ToPayload C.Cookie where
+   toPayload = C.cookieString
 
-cookie' a b c d e = Header (SetCookie, toPayload $ Cookie' a b c d e)
+cookie' a b c d e = Header (SetCookie, toPayload $ C.Cookie a b c d e)
 mkC k v = cookie' k v "typorg.dev" [] ""
 delC k  = cookie' k "deleted" "typorg.dev" [] "Thu, 01-Jan-1970 00:00:01 GMT"
 

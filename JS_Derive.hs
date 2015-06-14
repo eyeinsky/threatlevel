@@ -46,15 +46,17 @@ f123 xs f g = case xs of
 
 -- | >1 data constructors (data T = A .. | B ..)
 multiCon :: Con {-^ Data constructor -} -> Q Dec {-^ The respective function -}
-multiCon dc = do
-   -- let argt = [t| J.Expr $(newType "a") |] 
-   case dc of
+multiCon dc = case dc of
       RecC name vst   -> funD fn [recClause (Just name) False $ map vstName vst ]
       NormalC name st -> case st of
-         [] -> let empty = [| J.ULit (J.ULArray []) |]
+         _ : _ : _ -> funD fn [ dtClause (Just name) True    (length st) ]
+         t : _ -> do
+            arg <- newName "a" 
+            funD fn [ clause [varP arg] (normalB 
+                 [| J.ulit [ $(mkTag name), $(mkContents $ varE arg) ] |]) [] ]
+         _ -> let empty = [| J.ULit (J.ULArray []) |]
             in funD fn [ clause [] (normalB 
-                 [| [ $(mkTag name), $(mkContents empty) ] |]) [] ]
-         _ -> funD fn [ dtClause (Just name) True    (length st) ]
+                 [| J.ulit [ $(mkTag name), $(mkContents empty) ] |]) [] ]
    where fn = fname dc 
 
 
@@ -63,11 +65,11 @@ multiCon dc = do
 singleCon :: Con -> Q Dec
 singleCon dc = case dc of
    RecC    _ vst -> func dc [recClause Nothing True $ map vstName vst ]
-   NormalC _  st -> f123 st
-      (\x -> newName "a" >>= \ n -> func dc [clause [varP n] (normalB $ varE n) []] )
-      -- ^ single-data single-value constructor (data A = A Int)
-      (\st -> func dc [dtClause  Nothing False (length st)])
+   NormalC _  st -> case st of
+      _ : _ : _ -> func dc [dtClause  Nothing False (length st)]
       -- ^ single-data multi-value constructor ()
+      _ : _ -> newName "a" >>= \ n -> func dc [clause [varP n] (normalB $ varE n) []]
+      -- ^ single-data single-value constructor (data A = A Int)
 
 
 
@@ -79,28 +81,21 @@ recClause mTag ifcontents xs = do
    lhs names (mkBody mTag ifcontents $ zipWith mkTup xs names)
   where
       mkTup :: String -> Name -> ExpQ
-      mkTup s n = [| ($k, $(nameCast n)) |]
-         where k = stringE s
-               -- v = varE n
-
+      mkTup s n = let
+            k = stringE s
+            v = nameCast n
+         in [| ($k, $(nameCast n)) |]
 
 dtClause :: Maybe Name -> Bool -> Int -> ClauseQ
 dtClause mTag ifcontents n = do
    names <- replicateM n (newName "a")
    lhs names (mkBody mTag ifcontents $ nameCast<$>names)
 
-lhs names body = do
-   t <- newType "arg"
-   -- let f = flip sigP (pure t) . varP -- func arg scoped types
-   let f = varP
-   clause (map f names) body []
+lhs names body = clause (map varP names) body []
          
 
 mkBody :: Maybe Name -> Bool -> [ExpQ] -> Q Body
-mkBody mb inContents li = do
-   et <- newType "elemType"
-   let sig = id -- [| $li :: [J.Expr et] |] 
-   normalB $ appE [|J.ulit|] $ sig $ listE $ maybe li
+mkBody mb inContents li = normalB $ appE [|J.ulit|] $ listE $ maybe li
       (\name -> let tag = mkTag name
          in if inContents
           then let li' = [| J.ulit $(listE li) |]

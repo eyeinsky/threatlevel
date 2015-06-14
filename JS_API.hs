@@ -2,6 +2,7 @@ module JS_API where
 
 import Prelude2 hiding ((.-))
 import JS_Types
+import qualified JS_Types as T
 import JS_Syntax
 import JS_Monad
 import JS_Ops_Untyped
@@ -11,8 +12,8 @@ import Web_HTML
 
 -- * Array
 
-push :: Expr a -> Expr (Array (Expr a)) -> M r ()
-push a as = bare $ call1 (as !. "push") a
+push :: Expr a -> Expr (Array (Expr a)) -> Expr c -- M r ()
+push a as = call1 (as !. "push") a
 
 length :: Expr (Array (Expr a)) -> Expr NumberI
 length as = as !. "length"
@@ -31,13 +32,22 @@ jSON = ex "JSON"
 -- fromJSON :: Expr a -> Expr JT.String
 fromJSON = call1 (jSON !. "parse")
 
-toJSON :: Expr a -> Expr JS_Types.String
+toJSON :: Expr a -> Expr T.String
 toJSON = call1 (jSON !. "stringify")
 
+-- * String
+
+toString :: Expr a -> Expr T.String
+toString obj = call0 (obj !. "toString")
+
+split :: Expr T.String -> Expr T.String -> Expr (T.Array T.String)
+split str sep = call1 (str !. "split") sep 
 
 -- * Number
 
 parseFloat a = call1 (ex "parseFloat") a
+
+nearestInt n = call1 (ex "Math" !. "round") n
 
 -- * DOM/Event
 
