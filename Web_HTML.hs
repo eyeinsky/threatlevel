@@ -2,9 +2,13 @@ module Web_HTML where
 
 import Prelude2
 import Text.Exts
+import Data.String
 
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
+
+import qualified Data.HashMap.Strict as HM
+import Control.Lens
 
 data TagName = TagName { unTagName :: TL.Text }
 data Id      = Id { unId :: TL.Text }
@@ -13,10 +17,24 @@ deriving instance Show TagName
 deriving instance Show Id
 deriving instance Show Class
 
-data HTML
-   = TagNode TagName (Maybe Id) [Class] [HTML]
-   | TextNode TL.Text
 
+
+declareLenses [d|
+   data HTML
+      = TagNode {
+           tagLens :: TagName
+         , id      :: Maybe Id
+         , classes :: [Class]
+         , attrs   :: HM.HashMap TL.Text TL.Text
+         , contents :: [HTML]
+         }
+      | TextNode TL.Text
+   |]
+
+instance IsString HTML where
+   fromString str = TextNode $ TL.pack str
+
+tag str = TagNode (TagName str) Nothing [] HM.empty []
 
 data Tag
 data Attr

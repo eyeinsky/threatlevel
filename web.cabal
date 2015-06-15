@@ -33,6 +33,8 @@ library
       , HTTP_Header
       , HTTP_Response
       , HTTP_URL
+      , Cookie
+      , Warp_Helpers
 
    other-modules:       
         Common
@@ -41,11 +43,12 @@ library
                       , text
                       , hs-minu, text-format-hs
                       , mtl
-                      , containers
+                      , containers, unordered-containers
                       , bytestring
                       , lens, network, wai, case-insensitive, http-types, blaze-builder
                       , blaze-html, aeson, network-simple
                       , template-haskell
+                      , warp
    -- hs-source-dirs:      
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows

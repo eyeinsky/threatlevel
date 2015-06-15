@@ -9,6 +9,7 @@ import JS_Ops_Untyped
 
 import Web_HTML
 
+import HTTP
 
 -- * Array
 
@@ -92,10 +93,24 @@ clearTimeout id = bare $ call1 (ex "clearTimeout") id
 -- * XMLHttpRequest (Ajax)
 
 -- Expr URL -> data -> (\ x -> M y z) -> M a b
-doPost' a b c = bare $ ajaxExpr "post" a b c
-doGet' a b c = bare $ ajaxExpr "get" a b c
-ajaxExpr meth uri data_ callback =
-   call (ex "$" !. meth) [ uri, data_, Cast callback ]
+-- doPost' a b c = call ajaxExpr ["post", a, b, c]
+doPost' a b c = do
+   aj <- newf $ ajaxExpr
+   bare $ call aj [ulit "POST", a, b, c]
+doGet' a b c = do
+   aj <- newf $ ajaxExpr
+   bare $ call aj [ulit "GET", a, b, c]
+
+ajaxExpr meth uri data_ callback = do
+   xhr <- new $ ex "new XMLHttpRequest()"
+   wrap <- newf $ \ret -> do
+      debug "respObj" ret
+      text <- new $ xhr !. "responseText"
+      json <- new $ fromJSON text
+      bare $ call1 callback json
+   xhr !. "onload" .= wrap
+   bare (call (xhr !. "open") [meth, uri, ulit True]) 
+   bare $ call1 (xhr !. "send") data_
 
 
 -- * Various
@@ -106,6 +121,7 @@ alert x = bare $ call1 (ex "alert") x
 
 consoleLog args = bare $ call (ex "console" !. "log") args
 
-debug v expr = do
-   ex v .= expr
+debug var expr = do
+   ex var .= expr
+   consoleLog [ulit var]
    consoleLog [expr]

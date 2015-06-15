@@ -4,6 +4,7 @@ import Prelude2
 import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
+import qualified Data.HashMap.Strict as HM
 
 import JS_Syntax as JS
 import JS_Monad
@@ -42,7 +43,8 @@ on el eventType fexpr = do
 
 -- * Finding elements
 
-class FindBy a where findBy :: a -> JS.Expr Tag
+-- | The global find
+class    FindBy a where findBy :: a -> JS.Expr Tag
 instance FindBy CSS.Id where
    findBy (CSS.Id t) = docCall "getElementById" t
 instance FindBy CSS.Class where
@@ -57,21 +59,27 @@ instance FindBy (Expr CSS.Class) where
 docCall' f a = call1 (document !. f) a
 docCall f a = docCall' f (ulit a)
 
+-- | 
+findUnder :: FindBy a => Expr Tag -> a -> Expr Tag
+findUnder e a = u
+
+
 
 -- * Modify DOM
 
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
 
-tag :: TagName -> JS.Expr Tag
-tag tn = docCall "createElement" $ unTagName tn
+createElement :: TagName -> JS.Expr Tag
+createElement tn = docCall "createElement" $ unTagName tn
 
 -- creates the expr to create the tree, returns top
 createHtml :: HTML -> JS.Expr Tag
 createHtml tr = FuncDef [] . eval $ case tr of 
-   TagNode tn mid cls children -> do
-      t <- new $ tag tn
+   TagNode tn mid cls attrs children -> do
+      t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
+      forM_ (HM.toList attrs) $ \ (k,v) -> t !. Name (TL.toStrict k) .= ulit v
       when (not . null $ cls) $ 
          t !. "className" .= lit (TL.unwords $ map unClass cls) 
       mapM_ (bare . appendChild t . call0 . createHtml) children
@@ -85,6 +93,6 @@ setInnerHTML e x = e !. "innerHTML" .= x
 
 -- ** CSS
 
-setCSSAttr e k v = e !. "style" !. k .= v
+cssAttr e k v = e !. "style" !. k .= v
 addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) cls
 remClass cls el = bare $ call1 (el !. "classList" !. "remove") cls

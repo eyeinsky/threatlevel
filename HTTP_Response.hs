@@ -65,8 +65,9 @@ postpendBody a (Resp (hs, ra)) = Resp (hs, ra')
 toWai (Resp (hs, ra)) = waiAddHeaders (map Hdr.cc hs) $ case ra of
    Html hh hb -> waiBs [ utf8textHdr "html" ] . renderHtml
             $ E.docType >> E.head hh >> E.body hb
-   JSON json    -> waiBs [ utf8textHdr "json" ] $ encode json
+   JSON json    -> waiBs [ jsh ] $ encode json
    Redirect url -> waiRedir $ url
+   where jsh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
 
 
 waiBs :: [ Hdr.Header ] -> LBS.ByteString -> Response
