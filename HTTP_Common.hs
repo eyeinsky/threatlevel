@@ -5,6 +5,11 @@ import Prelude2
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as TIO
 
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString      as B
+import qualified Data.ByteString.Char8 as B8
+
+
 
 -- * Request payload type (TODO: to bs)
 
@@ -31,3 +36,11 @@ crlf = "\r\n"
 todo = error "TODO"
 
 rp = TIO.putStr . toPayload
+
+
+class BodyAs b where
+   parseBody :: B.ByteString {-^ defined by NS.recv-} -> b
+{- ^ We use BodyAs as a class to be able to extende it to
+     arbitrary types. -}
+
+

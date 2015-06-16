@@ -14,6 +14,8 @@ import Web_CSS as CSS
 import Web_HTML
 
 
+-- * Objects
+
 window :: Expr Window
 window = ex "window"
 
@@ -70,6 +72,11 @@ findUnder e a = u
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
 
+remove :: Expr Tag -> M r ()
+remove e = bare $ call0 (e !. "remove")
+
+setInnerHTML e x = e !. "innerHTML" .= x
+
 createElement :: TagName -> JS.Expr Tag
 createElement tn = docCall "createElement" $ unTagName tn
 
@@ -87,9 +94,6 @@ createHtml tr = FuncDef [] . eval $ case tr of
    TextNode txt -> retrn $ docCall "createTextNode" txt
 
 
-zepto expr = FuncCall (ex "$") [ expr ] -- :: Expr ()
-
-setInnerHTML e x = e !. "innerHTML" .= x
 
 -- ** CSS
 

@@ -9,8 +9,6 @@ import JS_Ops_Untyped
 
 import Web_HTML
 
-import HTTP
-
 -- * Array
 
 push :: Expr a -> Expr (Array (Expr a)) -> Expr c -- M r ()
