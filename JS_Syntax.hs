@@ -52,7 +52,7 @@ data Expr a where
 
    -- typed
    Literal   :: Literal a => a      -> Expr a
-   BOp       :: E (JT.Proxy o) => BOpExpr t o -> Expr t -- expr + expr
+   BOp       :: E (Proxy o) => BOpExpr t o -> Expr t -- expr + expr
    UOp       :: UOpExpr t o         -> Expr t -- expr + expr
 
    -- untyped
@@ -80,14 +80,14 @@ data OpExpr a where
 -- *** Typed operators
 
 data BOpExpr t o where
-   BOE :: JT.O t o => JT.Proxy o -> Expr t -> Expr t -> BOpExpr (JT.D t o) o
+   BOE :: JT.O t o => Proxy o -> Expr t -> Expr t -> BOpExpr (JT.D t o) o
 data UOpExpr t o where
    UOE :: JT.U t o => Expr t -> UOpExpr t o
 
-instance E (JT.Proxy o) => E (BOpExpr a o) where
+instance E (Proxy o) => E (BOpExpr a o) where
    ev (BOE p a b) = ev a <> ev p <> ev b
-instance E (JT.Proxy o) => E (UOpExpr a o) where
-   ev (UOE a) = ev (JT.Proxy :: JT.Proxy o) <> ev a
+instance E (Proxy o) => E (UOpExpr a o) where
+   ev (UOE a) = ev (Proxy :: Proxy o) <> ev a
 
 
 

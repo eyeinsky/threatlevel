@@ -22,10 +22,10 @@ deriving instance Show Class
 declareLenses [d|
    data HTML
       = TagNode {
-           tagLens :: TagName
-         , id      :: Maybe Id
-         , classes :: [Class]
-         , attrs   :: HM.HashMap TL.Text TL.Text
+           tagLens  :: TagName
+         , id       :: Maybe Id
+         , classes  :: [Class]
+         , attrs    :: HM.HashMap TL.Text TL.Text
          , contents :: [HTML]
          }
       | TextNode TL.Text

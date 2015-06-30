@@ -101,25 +101,30 @@ doGet' a b c = do
 
 ajaxExpr meth uri data_ callback = do
    xhr <- new $ ex "new XMLHttpRequest()"
-   wrap <- newf $ \ret -> do
-      debug "respObj" ret
+   wrap <- newf $ \(ret :: Expr ()) -> do
       text <- new $ xhr !. "responseText"
       json <- new $ fromJSON text
       bare $ call1 callback json
-   xhr !. "onload" .= wrap
+   xhr !. "onload" .= Cast wrap
    bare (call (xhr !. "open") [meth, uri, ulit True]) 
    bare $ call1 (xhr !. "send") data_
 
 
--- * Various
+
+-- * Modal dialogs
 
 alert x = bare $ call1 (ex "alert") x
 
--- ** Debugging
+-- prompt
+
+-- ?
+
+
+
+-- ** Consoleobject/debugging
 
 consoleLog args = bare $ call (ex "console" !. "log") args
 
 debug var expr = do
    ex var .= expr
-   consoleLog [ulit var]
-   consoleLog [expr]
+   consoleLog [toString expr .+ ulit " (in: \"" .+ ulit var .+ ulit "\")"]

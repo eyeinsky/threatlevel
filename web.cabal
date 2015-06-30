@@ -2,7 +2,7 @@
 -- see http://haskell.org/cabal/users-guide/
 
 name:                web
-version:             0.1.0.0
+version:             0.2.0.0
 -- synopsis:            
 -- description:         
 license:             GPL-2
@@ -39,10 +39,10 @@ library
    other-modules:       
         Common
    -- other-extensions:    
-   build-depends:       base >=4.6 && <4.8
+   build-depends:       base
                       , text
                       , hs-minu, text-format-hs
-                      , mtl
+                      , mtl, lens
                       , containers, unordered-containers
                       , bytestring
                       , lens, network, wai, case-insensitive, http-types, blaze-builder
@@ -58,4 +58,5 @@ library
                      , BangPatterns, TypeFamilies, StandaloneDeriving
                      , DataKinds, PolyKinds, GeneralizedNewtypeDeriving
                      , NamedFieldPuns
+                     , FunctionalDependencies 
    default-language:    Haskell2010

@@ -1,7 +1,20 @@
+{-
+TODO
+   * defining a function with literal shouldnt run in monad
+
+      I.e '\ e -> retrn e' should return a 'Expr (Expr x, Proxy x)'
+      rather than the 'M ...' that it does in the 'Function' class.
+      I think I did it that way due to generating the formal args in
+      the monad, but I think these can be arbitrary as they don't
+      overwrite variables in outer scopes.
+      
+-}
 module JS_Monad where
 
-import Prelude2 hiding ((.-))
+import Prelude2 hiding ((.-), (&))
 import Text.Exts
+import Control.Lens hiding ((.=))
+import qualified Control.Lens as L
 
 import Data.Default
 
@@ -32,13 +45,14 @@ import Debug.Trace
 -- Construction
 --
 
-type W r = Code r
-type R = (Browser, Bool {- allow explicit names -})
-data S = S {
-     counter :: Int
-   , nameds :: S.Set Text
-   }
-
+declareLenses [d|
+   type W r = Code r
+   type R = (Browser, Bool {- allow explicit names -})
+   data S = S {
+        counter :: Int
+      , nameds :: S.Set Text
+      }
+   |]
 
 instance Default S where def = S 0 S.empty
 defS = def :: S
@@ -48,11 +62,11 @@ type M r = WriterT (W r) (StateT S (ReaderT R Identity))
 
 
 runM :: R -> S -> M r a -> ((a, W r), S)
-runM b s = id . rd . st . wr
+runM r s = id . rd . st . wr
    where id = runIdentity
          st = flip runStateT s
          wr = runWriterT
-         rd = flip runReaderT b
+         rd = flip runReaderT r
 
 run :: M r a -> ((a, W r), S)
 run = runM def def 
@@ -63,8 +77,8 @@ eval    = snd . fst . run
 eval' b = snd . fst . runM b def
 
 evalN :: Int -> M r a -> W r
-evalN    n = snd . fst . runM def (def { counter = n }) -- (n, IM.empty)
-evalN' b n = snd . fst . runM b   (def { counter = n })
+evalN    n = snd . fst . runM def (def & counter .~ n) -- (n, IM.empty)
+evalN' b n = snd . fst . runM b   (def & counter .~ n)
 
 exec :: M r a -> a
 exec = fst . fst . run
@@ -75,18 +89,11 @@ browser = asks fst
 -- Core
 --
 
-nextIncIdent :: M r Int
-nextIncIdent = do
-   s <- get
-   let i = counter s
-   put (s { counter = i+1})
-   return i
-
 pushExpr :: Expr a -> M r Int
-pushExpr _ = nextIncIdent
+pushExpr _ = counter <<%= (+1)
 pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
-   modify $ \s -> s { nameds = S.insert n (nameds s) }
+   modify (nameds %~ S.insert n)
    return n
 
 define name expr = tell [ VarDef name [] expr ]
@@ -115,7 +122,7 @@ new' n e = bool ignore name =<< asks snd
      overwriting any previously defined variables. -}
 mkCode :: M sub a -> M parent (W sub)
 mkCode mcode = evalN' <$> ask <*> nextIdent <*> pure mcode
-   where nextIdent = (+1) <$> gets counter
+   where nextIdent = (+1) <$> gets (^.counter)
 
 bare :: Expr a -> M r ()
 bare e  = tell [ BareExpr e ]
@@ -175,10 +182,14 @@ a ./= b = a .= (a ./ b)
 -- ** Functions
 
 -- *** Untyped
+
 blockExpr :: M r a -> M r (Expr r)
-blockExpr = fmap (FuncDef []) . mkCode -- writes M a to writer, returns name
+blockExpr = fmap (FuncDef []) . mkCode
+-- ^ Writes argument 'M r a' to writer and returns a callable name
+
 call :: Expr a -> [Expr b] -> Expr c
-call f as = FuncCall f as
+call  f as = FuncCall f as
+
 call0 f = FuncCall f []
 call1 f a = FuncCall f [a]
 arg n = Arr "arguments" (lit n)
@@ -194,7 +205,7 @@ for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
 
 forin expr f = do
-   i <- (+1) <$> gets counter  
+   i <- (+1) <$> gets (^.counter)
    tell [ ForIn (Name $ int2text i) expr [ BareExpr . call1 f $ ex $ int2text i ] ]
 
 rawStm = BareExpr . rawExpr
@@ -206,7 +217,7 @@ rawExpr = Raw
 arguments = ex "arguments"
 
 
--- * The typing machinery for functions
+-- * Typing machinery for functions
 
 newf     = new    <=< func
 newf' n  = new' n <=< func
@@ -214,32 +225,40 @@ newf' n  = new' n <=< func
 
 -- | Returns a function definition Expr
 func :: Function a => a -> M parent (Expr (Arguments a))
-func f = do
-   (argType,b,c) <- funcLit f
-   return $ Cast $ FuncDef b c -- `asTypeOf` 
+func f = funcPrim <$> ask <*> get <*> pure f
 
+
+
+funcPrim :: Function a => R -> S -> a -> Expr (Arguments a)
+funcPrim r s fexp = FuncDef args code
+   where (type_, args, code) = fst . fst $ runM r s $ funcLit fexp
+
+
+
+-- | The 'Function' class turns function literals into typed
+-- functions.
 class Function a where
    type Arguments a
    type Final a
    funcLit :: a -> M self (Arguments a, [Expr ()], Code (Final a))
 instance Function (M r a) where
-   type Arguments (M r a) = JT.Proxy r
+   type Arguments (M r a) = Proxy r
    type Final (M r a) = r
-   funcLit f = (JT.Proxy, [], ) <$> mkCode f
+   funcLit f = (Proxy, [], ) <$> mkCode f
 instance (Function b) => Function (Expr a -> b) where
    type Arguments (Expr a -> b) = (Expr a, Arguments b)
    type Final     (Expr a -> b) = Final b
    funcLit f = do
-      x <- ex . int2text <$> nextIncIdent
+      x <- ex . int2text <$> (counter <<%= (+1))
       (a, a', b) <- funcLit (f x)
       return ((x,a), Cast x : a', b)
 
 class Apply f a where
    type Result f a
    fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()], Int)
-instance Apply (JT.Proxy f) () where
+instance Apply (Proxy f) () where
    {- Function is exhausted, start returning. -}
-   type Result (JT.Proxy f) () = JT.Proxy f
+   type Result (Proxy f) () = Proxy f
    fapply f _ = (f, [], 0)
 instance Apply fs () => Apply (f, fs) () where
    {- All actual arguments are applied, but the function
@@ -255,9 +274,10 @@ instance (f ~ a, Apply fs as)
    fapply f (a, as) = (f',  Cast a : asList, i)
       where (f', asList, i) = fapply (Cast f :: Expr fs) (as :: as)
 
+
 -- | Wraps result in all cases
-appExpr :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
-appExpr f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
+wrapCall :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
+wrapCall f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
    where (f', a', i) = fapply f a
          args = map (ex . intPref "a") [1..i]
          {- LATER TODO: argument integers are prefixed with "a".
@@ -267,15 +287,41 @@ appExpr f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
             the identifier generation machinery.
           -}  
 
-f -/ (a :: Expr a) = appExpr f (a, ())
+-- | 
+doCall f a = FuncCall f' (a' <> args)
+   where (f', a', i) = fapply f a
+         args = map (ex . intPref "a") [1..i]
 
-{- ** THE DREAM **
--}
+
+f -/ (a :: Expr a) = wrapCall f (a, ())
+
+{- ** THE DREAM ** -}
 test = let 
    in do
-   return1 <- newf' "ret1" $ \ (s :: Expr JT.String) ->
-      retrn (lit (1::Int) :: Expr JT.NumberI)
+   return1
+      -- :: Expr (Arguments (Expr JT.String -> M JT.NumberI ()))
+      :: Expr (Expr JT.String, Proxy JT.NumberI)
+      <- newf' "ret1" $ \ (s :: Expr JT.String) ->
+         retrn (lit (1::Int) :: Expr JT.NumberI)
    addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
       retrn $ a .+ b
-   -- retrn $ appExpr addArgs ({-lit (2::Int),-} (lit (2::Int), ()))
+   bare $ addArgs `a2` (lit (2::Int), lit (3::Int)) -- , (lit (2::Int), ()))
+
    retrn $ addArgs -/ lit (2::Int) -/ lit (3::Int) -- , (lit (2::Int), ()))
+
+f `a1` a = doCall f (a,())
+f `a2` (a,b) = doCall f (a,(b,()))
+f `a3` (a,b,c) = doCall f (a,(b,(c,())))
+f `a4` (a,b,c,d) = doCall f (a,(b,(c,(d,()))))
+f `a5` (a,b,c,d,e) = doCall f (a,(b,(c,(d,(e,())))))
+
+data FA a b = FA (Expr a, Proxy b)
+instance Category FA where
+   id = u
+   f . g = u
+
+{- -}
+
+
+{-
+-}

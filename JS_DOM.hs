@@ -32,16 +32,18 @@ onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 onload = ex "window" !. "onload"
 
 
-
-
 on :: (Event event, ToOn event)
    => Expr Tag                       -- When this element
    -> event                          --   .. has this event
-   -> Expr (Expr event, JT.Proxy ()) --   .. then do this.
+   -> Expr (Expr event, Proxy ()) --   .. then do this.
    -> M r ()
-on el eventType fexpr = do
-   (el !. Name (toOn eventType)) .= fexpr
+on el eventType fident = do
+   (el !. Name (toOn eventType)) .= fident
 
+on' el eventType fexpr = do
+   fdef <- func fexpr -- (no inermediate variable)
+   on el eventType fdef
+   -- (el !. Name (toOn eventType)) .= fdef
 
 -- * Finding elements
 
@@ -93,6 +95,20 @@ createHtml tr = FuncDef [] . eval $ case tr of
       retrn t
    TextNode txt -> retrn $ docCall "createTextNode" txt
 
+
+-- *** Text input
+
+-- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
+cursorPosition e = do
+      start <- new $ e !. "selectionStart"
+      end <- new $ e !. "selectionEnd"
+      new $ ternary (start .== end) (Cast start) (Cast Null)
+   {- ^ Get caret position from textarea/input type=text
+      
+      IE not implemented, see here for how:
+         http://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates
+
+   -}
 
 
 -- ** CSS

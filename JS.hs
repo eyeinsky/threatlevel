@@ -43,6 +43,10 @@ module JS
    , for, forin
    , ifelse, ifonly
    , ternary
+   
+   -- | Typed functions
+   , a1, a2, a3, a4, a5 -- apply typed function to tuple-arguments
+   , (-/)
 
    -- | Defined variables
    , arguments

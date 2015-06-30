@@ -2,6 +2,7 @@ module JS_Types where
 
 import qualified Prelude2 as P
 import Prelude2 hiding (Bool(..), String, Eq)
+import Data.Proxy
 import Text.Exts
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -57,7 +58,6 @@ instance U a TypeOf
 -- instance E Number where ev (Number a) = tshow a
 -- instance E Bool   where ev x = T.toLower $ tshow x
 
-data Proxy a = Proxy
 plus  = Proxy :: Proxy Plus
 minus = Proxy :: Proxy Minus
 mult  = Proxy :: Proxy Mult
