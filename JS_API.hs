@@ -20,6 +20,8 @@ length as = as !. "length"
 last :: Expr (Array (Expr a)) -> Expr a
 last as = as .! (JS_API.length as .- ulit 1)
 
+-- arrRemove e arr = do  arr !. "indexOf"
+
 -- * Date
 
 now = ex "Date" !. "now"
@@ -47,6 +49,10 @@ split str sep = call1 (str !. "split") sep
 parseFloat a = call1 (ex "parseFloat") a
 
 nearestInt n = call1 (ex "Math" !. "round") n
+
+min a b = ternary (a .< b) a b
+
+max a b = ternary (a .> b) a b
 
 -- * DOM/Event
 
@@ -101,11 +107,12 @@ doGet' a b c = do
 
 ajaxExpr meth uri data_ callback = do
    xhr <- new $ ex "new XMLHttpRequest()"
-   wrap <- newf $ \(ret :: Expr ()) -> do
-      text <- new $ xhr !. "responseText"
-      json <- new $ fromJSON text
-      bare $ call1 callback json
-   xhr !. "onload" .= Cast wrap
+   ifonly (callback .!== Undefined) $ do
+      wrap <- newf $ \(ret :: Expr ()) -> do
+         text <- new $ xhr !. "responseText"
+         json <- new $ fromJSON text
+         bare $ call1 callback json
+      xhr !. "onload" .= Cast wrap
    bare (call (xhr !. "open") [meth, uri, ulit True]) 
    bare $ call1 (xhr !. "send") data_
 

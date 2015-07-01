@@ -172,6 +172,7 @@ ex txt = EName $ Name txt
 (!-) a b = Arr a (ulit b)
 
 infixr 8 .=
+(.=) :: Expr a -> Expr b -> M r ()
 lhs .= rhs = tell [ Def lhs rhs ]
 
 a .+= b = a .= (a .+ b)
