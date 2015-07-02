@@ -40,15 +40,17 @@ library
         Common
    -- other-extensions:    
    build-depends:       base
-                      , text
-                      , hs-minu, text-format-hs
-                      , mtl, lens
-                      , containers, unordered-containers
-                      , bytestring
-                      , lens, network, wai, case-insensitive, http-types, blaze-builder
-                      , blaze-html, aeson, network-simple
-                      , template-haskell
+                      , text, bytestring
+                      , hs-minu
+                      , text-format-hs
+                      , mtl, lens, containers, unordered-containers, template-haskell
+                      , network, network-simple
+                      , lens, case-insensitive
+                      , wai, http-types, mime-types
+                      , blaze-builder, blaze-html
+                      , aeson
                       , warp
+                      
    -- hs-source-dirs:      
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows

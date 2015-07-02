@@ -14,7 +14,7 @@ import Network.Wai ( Response, responseBuilder, responseFile
                    , pathInfo, queryString, requestHeaders, requestBody
                    , requestMethod
                    )
-import Network.Wai.Internal (Response(ResponseBuilder))
+import Network.Wai.Internal (Response(..))
 import Network.HTTP.Types (
      ok200, hContentType, hCacheControl, hCookie, queryToQueryText, parseQuery, RequestHeaders, methodGet, urlEncode
    , hServer, status303, status404, status503, QueryText)
@@ -26,6 +26,7 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 
+import Network.Mime as Mime
 
 
 import Data.Aeson as JSON
@@ -51,6 +52,10 @@ data RespAction where
    Html     :: E.Html -> E.Html -> RespAction
    JSON     :: ToJSON a => a -> RespAction 
    Redirect :: T.Text -> RespAction
+   DiskFile :: T.Text -> RespAction
+
+toResp :: RespAction -> Resp
+toResp ra = Resp ([], ra)
 
 addHeader :: Hdr.Header -> Resp -> Resp
 addHeader c (Resp (hs, resp)) = Resp (c : hs, resp)
@@ -79,8 +84,9 @@ postpendBody a (Resp (hs, ra)) = Resp (hs, ra')
 toWai (Resp (hs, ra)) = waiAddHeaders (map Hdr.cc hs) $ case ra of
    Html hh hb -> waiBs [ utf8textHdr "html" ] . renderHtml
             $ E.docType >> E.head hh >> E.body hb
-   JSON json    -> waiBs [ jsh ] $ encode json
-   Redirect url -> waiRedir $ url
+   JSON json     -> waiBs [ jsh ] $ encode json
+   Redirect url  -> waiRedir url
+   DiskFile path -> waiSendFile path
    where jsh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
 
 
@@ -89,15 +95,16 @@ waiBs hs bs = responseBuilder ok200 hs' bs'
    where hs' = map Hdr.cc hs
          bs' = fromLazyByteString bs
 
-waiAddHeaders hs (ResponseBuilder st hdrs builder) =
-   ResponseBuilder st (hs <> hdrs) builder
+waiAddHeaders hs r = case r of
+   ResponseBuilder st hdrs builder -> ResponseBuilder st (hs <> hdrs) builder
+   ResponseFile st hdrs path mFilePart -> ResponseFile st (hs <> hdrs) path mFilePart
 
 waiRedir :: T.Text -> Response
 waiRedir url = responseBuilder status303 (("Location", url') : []) (fromLazyByteString $ "")
    where url' = TE.encodeUtf8 url
 
 waiSendFile path = responseFile ok200 [htmlUtf8 path False] (T.unpack path) Nothing
-htmlUtf8 fn bool = u -- (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
+htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
 
 {-
 sendEmbed assoc path = lookup path assoc

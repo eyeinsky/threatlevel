@@ -224,12 +224,16 @@ newf     = new    <=< func
 newf' n  = new' n <=< func
 
 
--- | Returns a function definition Expr
+-- | Create function, getting state and reader from enclosing monad.
 func :: Function a => a -> M parent (Expr (Arguments a))
 func f = funcPrim <$> ask <*> get <*> pure f
 
 
+-- | Create function, starting from empty state and reader
+funcPure :: Function a => a -> Expr (Arguments a)
+funcPure = funcPrim def def
 
+-- | Create function from a literal: provide JSM state and reader
 funcPrim :: Function a => R -> S -> a -> Expr (Arguments a)
 funcPrim r s fexp = FuncDef args code
    where (type_, args, code) = fst . fst $ runM r s $ funcLit fexp
