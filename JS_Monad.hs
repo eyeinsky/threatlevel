@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS_Monad
    (
@@ -54,7 +55,25 @@ module JS_Monad
    where
 
 import Prelude2 hiding ((.-), for)
+=======
+{-
+TODO
+   * defining a function with literal shouldnt run in monad
+
+      I.e '\ e -> retrn e' should return a 'Expr (Expr x, Proxy x)'
+      rather than the 'M ...' that it does in the 'Function' class.
+      I think I did it that way due to generating the formal args in
+      the monad, but I think these can be arbitrary as they don't
+      overwrite variables in outer scopes.
+      
+-}
+module JS_Monad where
+
+import Prelude2 hiding ((.-), (&))
+>>>>>>> 11fe5c235be010cabef0b208fa3dbe7a03eedad8
 import Text.Exts
+import Control.Lens hiding ((.=))
+import qualified Control.Lens as L
 
 import Data.Default
 
@@ -73,247 +92,300 @@ import Control.Monad.Identity
 
 import JS_Syntax hiding (S)
 import qualified JS_Syntax as JS
+import qualified JS_Types  as JT
+import JS_Ops_Untyped
+import Common
 
 import Web_Client_Browser
-import qualified Web_CSS as CSS
-import Web_HTML
 
-type Text = JS.S
+import Debug.Trace
 
-type W = Code
-type R = Browser
-data S = S {
-     counter :: Int
-   , nameds :: S.Set Text
-   }
+--
+-- Construction
+--
+
+declareLenses [d|
+   type W r = Code r
+   type R = (Browser, Bool {- allow explicit names -})
+   data S = S {
+        counter :: Int
+      , nameds :: S.Set Text
+      }
+   |]
+
 instance Default S where def = S 0 S.empty
 defS = def :: S
-instance Default R where def = Unknown
+instance Default R where def = (Unknown, True)
 
-type M = WriterT W (StateT S (ReaderT R Identity))
+type M r = WriterT (W r) (StateT S (ReaderT R Identity))
 
 
-runM :: R -> S -> M a -> ((a, W), S)
-runM b s = id . rd . st . wr
+runM :: R -> S -> M r a -> ((a, W r), S)
+runM r s = id . rd . st . wr
    where id = runIdentity
          st = flip runStateT s
          wr = runWriterT
-         rd = flip runReaderT b
+         rd = flip runReaderT r
 
-run :: M a -> ((a, W), S)
+run :: M r a -> ((a, W r), S)
 run = runM def def 
 runDef = runM def def 
 
-eval :: M a -> W
+eval :: M r a -> W r
 eval    = snd . fst . run
 eval' b = snd . fst . runM b def
 
--- | Start from n with var numbers
-evalN :: Int -> M a -> W
-evalN    n = snd . fst . runM def (def { counter = n }) -- (n, IM.empty)
-evalN' b n = snd . fst . runM b   (def { counter = n })
+evalN :: Int -> M r a -> W r
+evalN    n = snd . fst . runM def (def & counter .~ n) -- (n, IM.empty)
+evalN' b n = snd . fst . runM b   (def & counter .~ n)
 
-exec :: M a -> a
+exec :: M r a -> a
 exec = fst . fst . run
 
-pr :: M a -> IO ()
-pr = TLIO.putStrLn . ev . eval
+browser = asks fst
 
-browsers f = ask >>= f
+--
+-- Core
+--
 
-type Var = Expr'
-
-data Var' a where
-   Term :: Expr' -> Var' ()
-   Func :: f -> Var' f
-
-v2v = int2name
-int2name i = Name $ T.pack $ 'v' : show i
-int2var = EName . int2name
-
-pushExpr :: Expr' -> M Int
-pushExpr e = do
-   s <- get
-   let i = counter s -- m = u -- IM.insert i e m)
-   put (s { counter = i+1})
-   return i
-
-pushNamedExpr :: Text -> Expr' -> M Name
+pushExpr :: Expr a -> M r Int
+pushExpr _ = counter <<%= (+1)
+pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
-   modify $ \s -> s { nameds = S.insert n (nameds s) }
-   return $ Name n
+   modify (nameds %~ S.insert n)
+   return n
 
 define name expr = tell [ VarDef name [] expr ]
 
-new :: Expr' -> M Expr'
-new e = do
-   name <- v2v <$> pushExpr e
-   define name e
-   return $ EName name
+int2text = intPref "v"
+intPref p i = p <> tshow i
 
+newMaker f e = do
+   name <- Name . either int2text id <$> f e
+   define name $ Cast e
+   return $ Cast $ EName name
 
-{- | Evaluate JSM code to Code aka W aka [Statement]
-     It doesn't actually write anything, just run
-     a JSM code into its value starting from the
-     next available name (Int), so that it wont overwrite
-     any previously defined variables. -}
-mkCode :: M a -> M W
-mkCode m = evalN' <$> ask <*> next <*> pure m
-   where next = (+1) <$> gets counter
+new :: Expr a -> M r (Expr a)
+new e = newMaker (fmap Left . pushExpr) e
+
+new' :: Text -> Expr a -> M r (Expr a)
+new' n e = bool ignore name =<< asks snd
+   where
+      name = newMaker (fmap Right . pushNamedExpr n) e
+      ignore = new e
+
+{- | Evaluate JSM code to Code aka W r aka [Statement]
+     It doesn't actually write anything, just runs
+     a JSM code into its code value starting from the
+     next available name (Int) -- therefore not
+     overwriting any previously defined variables. -}
+mkCode :: M sub a -> M parent (W sub)
+mkCode mcode = evalN' <$> ask <*> nextIdent <*> pure mcode
+   where nextIdent = (+1) <$> gets (^.counter)
+
+bare :: Expr a -> M r ()
+bare e  = tell [ BareExpr e ]
+
+block    = new    <=< blockExpr 
+block' n = new' n <=< blockExpr
+
 
 --
--- 
+-- Control structure 
 --
 
-bare e = tell [ BareExpr e ]; bare :: Expr' -> M ()
-newf m = new =<< func m 
-newf' n m = do
-   var <- new =<< func m
-   ex n .= var
-   return var
-
-newl l = new $ lit l
-
-named :: Text -> Expr' -> M Expr'
-named n e = do
-   name <- pushNamedExpr n e
-   define name e
-   return $ EName name
-namedF n m = named n =<<$ func m
-
-ternary :: Expr' -> Expr' -> Expr' -> Expr'
+ternary :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
 ternary = Ternary
 
+-- ifmelse :: Expr JT.Bool -> M r a -> M r (a) -> M r a
 ifmelse cond true mFalse = do
    trueCode <- mkCode true
    mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
    tell [ IfElse cond trueCode mElseCode ]
 
-ifelse :: Expr' -> M a -> M b -> M ()
+-- ifelse :: Expr JT.Bool -> M r a -> M r a -> M r a
 ifelse c t e = ifmelse c t (Just e)
 ifonly c t   = ifmelse c t Nothing
 
-retrn :: Expr' -> M ()
-retrn e = tell $ [ Return e ]
+retrn :: Expr a -> M a ()
+retrn e = tell $ [ Return $ Cast e ]
 
-ex str = EName $ Name str
+untype = Cast :: Expr a -> Expr ()
 
-(!.) :: Expr' -> Name -> Expr'
-(!.) expr attr = EAttr $ Attr expr attr
+--
+--
+--
+
+pr :: M r a -> IO ()
+pr = TLIO.putStrLn . ev . eval
+
+ex txt = EName $ Name txt
+
+(!.) :: Expr a -> Name -> Expr b
+(!.) expr attr = EAttr $ Attr (Cast expr) attr
+
+
 (.!) expr key  = Arr expr key
 
-(!-) a b = Arr a (lit b)
-
+(!-) :: ToULiteral b => Expr a -> b -> Expr c -- TODO add types
+(!-) a b = Arr a (ulit b)
 
 infixr 8 .=
+(.=) :: Expr a -> Expr b -> M r ()
 lhs .= rhs = tell [ Def lhs rhs ]
 
+a .+= b = a .= (a .+ b)
+a .-= b = a .= (a .- b)
+a .*= b = a .= (a .* b)
+a ./= b = a .= (a ./ b)
 
 -- ** Functions
 
--- | Takes func body, writes Code to main writer,
---   returns Var, where the func got bound.
-func :: M a -> M Expr'
-func = fmap FuncExpr . mkCode
+-- *** Untyped
 
-arg n = Arr "arguments" (lit n)
+blockExpr :: M r a -> M r (Expr r)
+blockExpr = fmap (FuncDef []) . mkCode
+-- ^ Writes argument 'M r a' to writer and returns a callable name
 
-call :: Expr' -> [Expr'] -> Expr'
-call f as = FuncCall f as
+call :: Expr a -> [Expr b] -> Expr c
+call  f as = FuncCall f as
 
 call0 f = FuncCall f []
 call1 f a = FuncCall f [a]
+arg n = Arr "arguments" (lit n)
 
-e1 .== e2 = Op $ OpBinary  Eq e1 e2
-e1 .=== e2 = Op $ OpBinary  Eq e1 e2
-e1 .!= e2 = Op $ OpBinary NEq e1 e2
-e1 .!== e2 = Op $ OpBinary NEq e1 e2
+-- *** Typed
+tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
+tcall f as = TypedFCall f as
 
-e1 .&& e2 = Op $ OpBinary And e1 e2
-e1 .|| e2 = Op $ OpBinary Or e1 e2
 
-e1 .< e2  = Op $ OpBinary Lt e1 e2
-e1 .> e2  = Op $ OpBinary Gt e1 e2
-e1 .<= e2 = Op $ OpBinary LEt e1 e2
-e1 .>= e2 = Op $ OpBinary GEt e1 e2
 
-e1 .+ e2 = Op $ OpBinary BPlus  e1 e2
-e1 .- e2 = Op $ OpBinary BMinus e1 e2
-e1 .* e2 = Op $ OpBinary Mult e1 e2
-e1 ./ e2 = Op $ OpBinary Div e1 e2
-
-for :: Expr' -> M a -> M ()
+for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
 
 forin expr f = do
-   i <- (+1) <$> gets counter  
-   tell [ ForIn (int2name i) expr [ BareExpr . call1 f $ int2var i ] ]
+   i <- (+1) <$> gets (^.counter)
+   tell [ ForIn (Name $ int2text i) expr [ BareExpr . call1 f $ ex $ int2text i ] ]
 
 rawStm = BareExpr . rawExpr
 rawExpr = Raw
 
 
--- * Taken but renameable JS names
+-- * Predefined names
 
 arguments = ex "arguments"
 
--- * DOM
 
-window = ex "window"
-document = ex "document"
-location = window !. "location"
-domElem x = call1 (document !. "getElementById") $ lit x
+-- * Typing machinery for functions
+
+newf     = new    <=< func
+newf' n  = new' n <=< func
 
 
--- onloadIs :: Code -> Statement
-onloadIs code = onload .= FuncExpr code
+-- | Create function, getting state and reader from enclosing monad.
+func :: Function a => a -> M parent (Expr (Arguments a))
+func f = funcPrim <$> ask <*> get <*> pure f
 
-onload = ex "window" !. "onload"
 
-tagById str = FuncCall "$" [ lit $ "#" <> str] 
-zById = tagById 
-tagById' expr =  FuncCall "$" [ expr ]
-mkZ expr = FuncCall "$" [ expr ]
-zepto expr = FuncCall "$" [ expr ]
+-- | Create function, starting from empty state and reader
+funcPure :: Function a => a -> Expr (Arguments a)
+funcPure = funcPrim def def
 
-mkTag str = FuncCall "$" [ lit $ sur "<" ">" str ]
-
-on el ev jsm = do
-   code <- mkCode jsm 
-   bare $ call (el !. "on") [ f ev, FuncExpr code ]
-   where
-      f = lit . T.toLower . tshow 
+-- | Create function from a literal: provide JSM state and reader
+funcPrim :: Function a => R -> S -> a -> Expr (Arguments a)
+funcPrim r s fexp = FuncDef args code
+   where (type_, args, code) = fst . fst $ runM r s $ funcLit fexp
 
 
 
--- ** DOM API
+-- | The 'Function' class turns function literals into typed
+-- functions.
+class Function a where
+   type Arguments a
+   type Final a
+   funcLit :: a -> M self (Arguments a, [Expr ()], Code (Final a))
+instance Function (M r a) where
+   type Arguments (M r a) = Proxy r
+   type Final (M r a) = r
+   funcLit f = (Proxy, [], ) <$> mkCode f
+instance (Function b) => Function (Expr a -> b) where
+   type Arguments (Expr a -> b) = (Expr a, Arguments b)
+   type Final     (Expr a -> b) = Final b
+   funcLit f = do
+      x <- ex . int2text <$> (counter <<%= (+1))
+      (a, a', b) <- funcLit (f x)
+      return ((x,a), Cast x : a', b)
 
-class FindBy a where
-   findBy :: a -> JS.Expr' -- JS.Expr Element
-instance FindBy CSS.Id where
-   findBy (CSS.Id t) = docCall "getElementById" t
-instance FindBy CSS.Class where
-   findBy (CSS.Class a) = docCall "getElementsByClassName" a
-instance FindBy CSS.TagName where
-   findBy (CSS.TagName a) = docCall "getElementsByTagName" a
-
-docCall f a = call1 (document !. f) (lit a)
-
-
-createElement :: TagName -> JS.Expr'
-createElement tn = docCall "createElement" $ unTagName tn
-
--- creates the expr to create the tree, returns top
-treeCreateExpr :: HTML -> JS.Expr'
-treeCreateExpr tr = FuncExpr . eval $ case tr of 
-   TagNode tn mid cls ns -> do
-      t <- new $ createElement tn
-      maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
-      when (not . null $ cls) $ 
-         t !. "className" .= lit (TL.unwords $ map unClass cls) 
-      retrn t
-   TextNode txt -> retrn $ docCall "createTextNode" txt
+class Apply f a where
+   type Result f a
+   fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()], Int)
+instance Apply (Proxy f) () where
+   {- Function is exhausted, start returning. -}
+   type Result (Proxy f) () = Proxy f
+   fapply f _ = (f, [], 0)
+instance Apply fs () => Apply (f, fs) () where
+   {- All actual arguments are applied, but the function
+      is not fully saturated. Count the remaining arguments
+      into an Int. -}
+   type Result (f, fs) () = (f, fs)
+   fapply f _ = (f, [], 1+i)
+      where (_,_,i) = fapply (Cast f :: Expr fs) ()
+instance (f ~ a, Apply fs as)
+   => Apply (Expr f, fs) (Expr a, as) where
+   {- More of both formal and actual arguments to apply. -}
+   type Result (Expr f, fs) (Expr a, as) = Result fs as
+   fapply f (a, as) = (f',  Cast a : asList, i)
+      where (f', asList, i) = fapply (Cast f :: Expr fs) (as :: as)
 
 
+-- | Wraps result in all cases
+wrapCall :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
+wrapCall f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
+   where (f', a', i) = fapply f a
+         args = map (ex . intPref "a") [1..i]
+         {- LATER TODO: argument integers are prefixed with "a".
+            Though this doesn't interfere with my "v" prefixes
+            generated from the 'M r a', then this could be a
+            possible source of unsafety if I should ever change
+            the identifier generation machinery.
+          -}  
 
+-- | 
+doCall f a = FuncCall f' (a' <> args)
+   where (f', a', i) = fapply f a
+         args = map (ex . intPref "a") [1..i]
+
+
+f -/ (a :: Expr a) = wrapCall f (a, ())
+
+{- ** THE DREAM ** -}
+test = let 
+   in do
+   return1
+      -- :: Expr (Arguments (Expr JT.String -> M JT.NumberI ()))
+      :: Expr (Expr JT.String, Proxy JT.NumberI)
+      <- newf' "ret1" $ \ (s :: Expr JT.String) ->
+         retrn (lit (1::Int) :: Expr JT.NumberI)
+   addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
+      retrn $ a .+ b
+   bare $ addArgs `a2` (lit (2::Int), lit (3::Int)) -- , (lit (2::Int), ()))
+
+   retrn $ addArgs -/ lit (2::Int) -/ lit (3::Int) -- , (lit (2::Int), ()))
+
+f `a1` a = doCall f (a,())
+f `a2` (a,b) = doCall f (a,(b,()))
+f `a3` (a,b,c) = doCall f (a,(b,(c,())))
+f `a4` (a,b,c,d) = doCall f (a,(b,(c,(d,()))))
+f `a5` (a,b,c,d,e) = doCall f (a,(b,(c,(d,(e,())))))
+
+data FA a b = FA (Expr a, Proxy b)
+instance Category FA where
+   id = u
+   f . g = u
+
+{- -}
+
+
+{-
+-}

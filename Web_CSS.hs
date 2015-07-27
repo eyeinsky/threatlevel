@@ -81,6 +81,12 @@ data Value
    | Percent Double
    | Em Double
    | Px Int
+
+   | ViewportHeight  Double
+   | ViewportWidth   Double
+   | ViewportMin     Double
+   | ViewportMax     Double
+
    | Time Double
 
    | ColorHex Word32
@@ -90,6 +96,11 @@ data Value
 prc i = Percent i
 px i = Px i
 em i = Em i
+vw i   = ViewportHeight i
+vh i   = ViewportWidth  i
+vmin i = ViewportMin  i
+vmax i = ViewportMax  i
+
 
 hex a     = ColorHex a
 rgb a b c = ColorRGB a b c
@@ -107,9 +118,15 @@ instance Print Value where
       Px a -> prs a <> "px"
       Time a -> prs a <> "s"
 
+      ViewportWidth  a -> prs a <> "vw"
+      ViewportHeight a -> prs a <> "vh"
+      ViewportMin    a -> prs a <> "vmin"
+      ViewportMax    a -> prs a <> "vmax"
+
+
       ColorHex w32 -> "#" <> hex w32
       ColorRGB a b c -> format "rgb({},{},{})" (a,b,c)
-      ColorRGBA a b c d -> format "rgb({},{},{}, {})" (a,b,c, a)
+      ColorRGBA a b c d -> format "rgba({},{},{}, {})" (a,b,c,d)
       where hex a = TL.pack $ showHex a ""
 
 

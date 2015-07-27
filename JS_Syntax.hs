@@ -1,6 +1,11 @@
-module JS_Syntax where
+module JS_Syntax 
+   ( module JS_Syntax
+   , UOp(..), BOp(..)
+   )
+   where
 
 import Prelude2 hiding (True, False)
+import Prelude (Float, fromRational, toRational)
 import Text.Exts
 
 import Prelude (fromIntegral)
@@ -9,97 +14,96 @@ import Data.Either
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
--- import Common
+import qualified JS_Types as JT
+import JS_Types (UOp(..), BOp(..))
+import Common
 
-type S = T.Text
-type Code = [Statement]
+type Code a = [ Statement a  ]
 
-data Statement
-   = FuncDef Name FormalArgs Code
-   | Var Name
-   | VarDef Name [Name] Expr' -- a = [b = c =] expr
-   | AttrDef Attr Expr' -- TODO multiple attrs
-   | Def Expr' Expr'
-   | BareExpr Expr'
-   | IfElse Expr' Code (Maybe Code)
-   | For Statement Expr'  Statement  Code
-      -- init      cond  post       body
-   | ForIn Name Expr' Code
+-- X=implemented as function, therefore b /= c
+data Statement a where
+   FuncDefStm  :: Name -> FormalArgs -> Code a -> Statement b
+   Var      :: Name -> Statement a
+   VarDef   :: Name -> [Name] -> Expr a -> Statement b -- a = [b = c =] expr
+   AttrDef  :: Attr -> Expr a -> Statement b -- TODO multiple attrs
+   Def      :: Expr a -> Expr b -> Statement c
+   BareExpr :: Expr a -> Statement b
+   IfElse   :: Expr b -> Code r -> Maybe (Code r) -> Statement r
+   For      :: Statement a -> Expr b -> Statement c -> Code d{-X-} -> Statement e
+            -- init           cond      post           body
+   ForIn    :: Name -> Expr a -> Code b{-X-} -> Statement c
 
-   | TryCatch Code Code
-   | Return Expr'
+   TryCatch :: Code r -> Code r -> Statement r
+   Return   :: Expr a -> Statement a
 
-type Expr' = Expr ()
+
+
+
 data Expr a where
-   Par       :: Expr a           -> Expr a
-   EName     :: Name           -> Expr a -- name
-   EAttr     :: Attr           -> Expr a -- expr.name
-   Arr       :: Expr a -> Expr a   -> Expr a -- expr[expr]
-   Literal   :: Literal        -> Expr a -- lit
-   Op        :: OpExpr         -> Expr a -- expr + expr
-   FuncExpr  :: Code           -> Expr a -- fuction() { code }
-   FuncCall  :: Expr a -> [Expr a] -> Expr a -- expr(*expr)
-   Ternary   :: Expr a -> Expr a -> Expr a -> Expr a
-   Regex     :: S -> S         -> Expr a
+   Cast      :: Expr a              -> Expr b
+   Par       :: Expr a              -> Expr a
+   EName     :: Name                -> Expr a -- name
+   EAttr     :: Attr                -> Expr a -- expr.name
+   Arr       :: Expr a -> Expr b    -> Expr c -- expr[expr]
 
+   -- untyped
+   ULit      :: ULiteral            -> Expr a 
+   Op        :: OpExpr  a           -> Expr a -- expr `op` expr
+
+   -- typed
+   Literal   :: Literal a => a      -> Expr a
+   BOp       :: E (Proxy o) => BOpExpr t o -> Expr t -- expr + expr
+   UOp       :: UOpExpr t o         -> Expr t -- expr + expr
+
+   -- untyped
+   FuncCall  :: Expr a -> [Expr b]  -> Expr c -- TODO expr(*expr)
+
+   -- typed
+   FuncDef    :: [Expr a] -> Code b -> Expr c
+   TypedFDef  :: Args a => a -> Code b -> Expr c
+   TypedFCall :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
+
+   Ternary   :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
    Null      :: Expr a
    Undefined :: Expr a
-   True      :: Expr a
-   False     :: Expr a
-
-   Raw       :: S -> Expr a -- inject raw js code
+   Raw       :: Text -> Expr a -- inject raw js code
 
 
+-- ** Operators 
 
-data OpExpr
-   = OpBinary BOp Expr' Expr'
-   | OpUnary UOp Expr'
+-- *** Untyped
 
-data UOp = UMinus | UPlus | TypeOf
+data OpExpr a where
+   OpBinary :: BOp -> Expr a -> Expr b -> OpExpr c
+   OpUnary :: UOp -> Expr a -> OpExpr b
 
-data BOp
-   = BMinus | BPlus | Mult | Div
-   | Eq | NEq | EEq | NEEq
-   | And | Or
-   | Gt | Lt
-   | GEt | LEt
+-- *** Typed operators
 
-data Literal
-   = String S
-   | Double Double
-   | Int    Integer
-   | Array  [ Expr' ]
-   | Object [ (Either Name Expr', Expr') ]
+data BOpExpr t o where
+   BOE :: JT.O t o => Proxy o -> Expr t -> Expr t -> BOpExpr (JT.D t o) o
+data UOpExpr t o where
+   UOE :: JT.U t o => Expr t -> UOpExpr t o
 
-data FormalArgs = FA [S]
-
-data Name = Name S
-
-data Attr = Attr Expr' Name
+instance E (Proxy o) => E (BOpExpr a o) where
+   ev (BOE p a b) = ev a <> ev p <> ev b
+instance E (Proxy o) => E (UOpExpr a o) where
+   ev (UOE a) = ev (Proxy :: Proxy o) <> ev a
 
 
-deriving instance Show Statement
-deriving instance Show Expr'
-deriving instance Show OpExpr
-deriving instance Show UOp
-deriving instance Show BOp
-deriving instance Show Literal
--- deriving instance Show PropDef
-deriving instance Show FormalArgs
-deriving instance Show Name
-deriving instance Show Attr
 
+data FormalArgs = FA [Text]
+
+data Name = Name Text
+
+data Attr = forall a. Attr (Expr a) Name
 
 
 
 -- * AST to JavaScript text
 
-class E a where
-   ev :: a -> T.Text
-
-instance E Code where
+instance E (Code a) where
    ev li = T.intercalate ";\n" $ map ev li
-instance E Statement where
+instance E (Statement a) where
    ev stm = case stm of
       AttrDef attr exp -> ev attr =: ev exp
       Var name -> "var " <> ev name
@@ -121,38 +125,49 @@ instance E Statement where
       where 
          a =: b = a <> " = " <> b
          eq = " = "
-instance E Expr' where
+
+instance E (Expr a) where
    ev expr = case expr of
-      Par   expr -> par $ ev expr
       EName name -> ev name
       Arr arrExpr ixExpr -> ev arrExpr <> ang (ev ixExpr)
       EAttr attr -> ev attr
       Literal lit -> ev lit
+      ULit lit -> ev lit
       Op opExpr -> ev opExpr
-      FuncExpr code -> "function() {\n" <> ev code <> ";\n}"
-      FuncCall name exprs -> ev name <> par (uncomma $ map ev exprs)
+      BOp expr -> ev expr
+      -- UOp expr -> ev expr
+     
+      FuncCall name exprs -> ev name <> unargs exprs
+
+      FuncDef as code -> "function" <> unargs as <> uncode code
+      TypedFCall f as -> par (ev f) <> unargs (args as)
+      -- DELME TypedFDef as code -> "function" <> unargs (args as) <> uncode code
+
       Ternary b t f -> par (ev b <> "?" <> ev t <> ":" <> ev f)
-      Regex pat mod -> sur "/" "/" pat <> mod
 
       Null -> "null"
       Undefined -> "undefined"
-      True -> "true"
-      False -> "false"
 
-      Raw stm -> stm
+      -- meta
+      Par expr -> par $ ev expr -- parenthesis around
+      Raw stm -> stm -- raw js text
+      Cast e -> ev e -- change type
 
+      where
+         unargs = par . uncomma . map ev
+         uncode code = curly (ev code <> ";")
 
 col (k, v) = either ev ev k <> ": " <> ev v
 
 
-instance E OpExpr where
+instance E (OpExpr a) where
    ev o = case o of
       OpBinary op e1 e2 -> ev e1 <> ev op <> ev e2
       OpUnary op e -> error "web:JS_Syntax.hs:E OpUnary"
 instance E BOp where
    ev op = case op of
-      BMinus -> "-"
-      BPlus -> "+"
+      Minus -> "-"
+      Plus -> "+"
       Mult -> "*"
       Div -> "/"
       Eq   -> "=="
@@ -171,42 +186,107 @@ instance E Attr where
 
 instance E Name where
    ev (Name s) = s
-instance E Literal where
-   ev x = case x of
-      String s -> q'' s
-      Double s -> tshow s
-      Int    s -> tshow s
-      Array  li -> ang $ uncomma $ map ev li
-      Object li -> curly $ uncomma $ map col li
-   -- ev (Object s) = show s
 
 
+-- ** Literals
 
--- * AST creation convenience
+-- *** Typed Literals
 
-class    ToLit a where toLit :: a -> Literal
-instance ToLit Int      where toLit v = Int $ toInteger v
-instance ToLit Integer  where toLit v = Int v
-instance ToLit Double   where toLit v = Double v
-instance ToLit S        where toLit v = String v
-instance ToLit String   where toLit v = String $ T.pack v
-instance ToLit TL.Text  where toLit v = String $ TL.toStrict v
-instance ToLit a => ToLit [(a, Expr')] where
-   toLit li = Object $ map f li
-      where f (a,b) = (Right . lit $ a, b)
+instance E JT.Bool   where ev (JT.Bool a) = T.toLower $ tshow a
+instance E JT.Number where ev (JT.Number a) = tshow a
+instance E JT.NumberI where ev (JT.NumberI a) = tshow a
+instance E JT.String where ev (JT.String a) = q'' a
+instance E JT.Object where ev (JT.Object) = u
+instance E JT.Regex where ev (JT.Regex pat mod) = sur "/" "/" pat <> mod
 
-instance ToLit [ Expr' ] where
-   toLit = Array
+class    E a => Literal a where
+instance Literal JT.Bool where
+instance Literal JT.Number where
+instance Literal JT.NumberI where
+instance Literal JT.String where
+instance Literal JT.Object where
+instance Literal JT.Regex where
+-- instance E a => Literal (JT.Array a) where
 
-lit :: ToLit a => a -> Expr'
-lit = Literal . toLit
+class    ToLiteral a        where
+   type Dest a
+   lit :: a -> Expr (Dest a)
+instance ToLiteral Bool where
+   type Dest Bool = JT.Bool
+   lit v = Literal $ JT.Bool v
+instance ToLiteral T.Text where
+   type Dest T.Text = JT.String
+   lit v = Literal $ JT.String v
+instance ToLiteral TL.Text  where
+   type Dest TL.Text = JT.String
+   lit v = lit $ TL.toStrict v
+instance ToLiteral String where
+   type Dest String = JT.String
+   lit v = lit $ T.pack v
+instance ToLiteral Int where
+   type Dest Int = JT.NumberI
+   lit v = Literal $ JT.NumberI $ toInteger v
+instance ToLiteral Integer where
+   type Dest Integer = JT.NumberI
+   lit v = Literal $ JT.NumberI v
+instance ToLiteral Double where
+   type Dest Double = JT.Number
+   lit v = Literal $ JT.Number v
+instance ToLiteral Float where
+   type Dest Float = JT.Number
+   lit v = Literal $ JT.Number $ fromRational $ toRational v
 
-attr :: Expr' -> Name -> Expr'
+
+--- *** Untyped literals
+
+data ULiteral
+   = ULString T.Text
+   | ULDouble Double
+   | ULInteger Integer
+   | ULBool Bool
+   | ULArray [Expr ()]
+   | ULObject [(Either Name (Expr ()), Expr ())]
+
+instance E ULiteral where
+   ev ul = case ul of
+      ULString text -> q'' text
+      ULDouble dbl -> tshow dbl
+      ULInteger i -> tshow i
+      ULBool b -> T.toLower $ tshow b
+      ULArray li -> ang $ uncomma $ map ev li
+      ULObject obj -> curly $ uncomma . map f $ obj
+         where f (e,expr) = either ev ev e <> ":" <> ev expr 
+
+class    ToULiteral a       where uliteral :: a -> ULiteral
+instance ToULiteral Int     where uliteral = ULInteger . toInteger
+instance ToULiteral Integer where uliteral = ULInteger 
+instance ToULiteral Bool    where uliteral = ULBool
+instance ToULiteral T.Text  where uliteral = ULString
+instance ToULiteral TL.Text where uliteral = uliteral . TL.toStrict
+instance ToULiteral String  where uliteral = uliteral . T.pack
+instance ToULiteral [ Expr a ] where
+   uliteral = ULArray . map Cast
+instance ToULiteral a => ToULiteral [(a, Expr b)] where
+   uliteral li = ULObject $ map f li
+      where f (a,b) = (Right . ulit $ a, Cast b)
+
+ulit = ULit . uliteral :: ToULiteral a => a -> Expr b
+
+
+attr :: Expr a -> Name -> Expr b
 attr base attname = EAttr $ Attr base attname
 
 instance IsString Name where
    fromString s = Name $ T.pack s
-instance IsString Expr' where
+instance IsString (Expr a) where
    fromString s = EName $ fromString s 
 
-plus a b = Op $ OpBinary BPlus a b
+cast :: Expr a -> Expr ()
+cast x = Cast x
+
+
+-- transform (Expr a, (Expr b, .. to 
+class Args a      where args :: a   -> [ Expr () ]
+instance Args (Expr a, ())  where args (e, ()) = [ Cast e  ]
+instance Args (b, c)
+   => Args (Expr a, (b, c)) where args (e, t)  = Cast e : args t
