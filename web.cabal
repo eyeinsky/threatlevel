@@ -24,7 +24,7 @@ library
       , Web_HTML
    -- other-modules:       
    -- other-extensions:    
-   build-depends:       base >=4.6 && <4.7
+   build-depends:       base
                       , text
                       , hs-minu, text-format-hs
                       , mtl

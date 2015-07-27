@@ -53,7 +53,7 @@ module JS_Monad
    )
    where
 
-import Prelude2 hiding ((.-))
+import Prelude2 hiding ((.-), for)
 import Text.Exts
 
 import Data.Default
