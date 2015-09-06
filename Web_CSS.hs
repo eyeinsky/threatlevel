@@ -63,7 +63,7 @@ instance Print Pseudo where pr (Pseudo a) = ":" <> a
 -- tag, id and class in HTML
 
 
-instance Print TagName    where pr (TagName    a) =        a
+instance Print TagName where pr (TagName a) = a
 instance Print Id     where pr (Id     a) = "#" <> a
 instance Print Class  where pr (Class  a) = "." <> a
 
@@ -108,7 +108,7 @@ rgba a b c d = ColorRGBA a b c d
 
 str = Word
 
-instance Print Value where 
+instance Print Value where
    pr a = case a of
       Word a -> a
       String a -> pr (Comment "long strings unimplemented")
@@ -156,13 +156,13 @@ prs x = tlshow x
 -- * Convenience
 
 class SelectorFrom a where selFrom :: a -> Selector
-instance SelectorFrom Selector where 
+instance SelectorFrom Selector where
    selFrom a = a
-instance SelectorFrom TagName where 
+instance SelectorFrom TagName where
    selFrom a = Selector (Just a) Nothing [] []
-instance SelectorFrom Class where 
+instance SelectorFrom Class where
    selFrom a = Selector Nothing Nothing [a] []
-instance SelectorFrom Id where 
+instance SelectorFrom Id where
    selFrom a = Selector Nothing (Just a) [] []
 instance SelectorFrom Pseudo where
    selFrom a = Selector Nothing Nothing [] [a]
@@ -203,7 +203,7 @@ test = do
    rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2") $ do
       prop "jee" $ hex 5
       prop "background-color" $ hex 7
-      
+
 toRules :: RM a -> [Rule]
 toRules = snd . runRM
 
@@ -213,6 +213,6 @@ toRules = snd . runRM
 resetCSS = do
    rule (TagName "body") $ nopad >> nomarg
    rule (TagName "div") $ nopad >> nomarg
-   where 
+   where
       nopad = prop "padding" $ px 0
       nomarg = prop "margin" $ px 0

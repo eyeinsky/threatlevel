@@ -1,12 +1,11 @@
 module HTTP_URL where
 
-import Prelude2 hiding (null)
+import Prelude2 hiding (null, un)
 import qualified Prelude2 as P
 import Text.Format
 
 import HTTP_Common
 import Data.Word (Word8, Word16)
--- import Control.Lens hiding (un, (&))
 
 data URL = URL {
      proto :: Proto
@@ -26,7 +25,6 @@ data Path = Path [T]
 data Params = Params [(T,T)]
 data Fragment = Fragment T
 
-
 {- Although called ToPayload, the method converts these for
    a payload to an HTTP Request and not for anything else
    -- but URI is more than that.
@@ -34,7 +32,7 @@ data Fragment = Fragment T
 
 instance ToPayload URL where
    toPayload (URL proto host port@ (Port pn) path params fragment) =
-      concat [r proto, r host, r port, r path, r params, r fragment]
+      HTTP_Common.concat [r proto, r host, r port, r path, r params, r fragment]
       where r = toPayload
 
 instance ToPayload Proto where
@@ -59,6 +57,3 @@ instance ToPayload Params where
 instance ToPayload Fragment where
    toPayload (Fragment a) = null a ? "" $ expl
       where expl = "#" <> a
-
-
--- makeLenses ''URL

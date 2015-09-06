@@ -1,4 +1,4 @@
-module Web 
+module Web
    ( module Web_CSS
    , module Web_HTML
    , module Web_Client_Browser

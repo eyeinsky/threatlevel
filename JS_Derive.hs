@@ -14,7 +14,7 @@ myDeriveJS mbOpts typeName = do
    js <- deriveForType typeName
    runIO $ putStrLn $ pprint js
    return (aesonToFrom <> js)
-   
+
 
 deriveForType
    :: Name     -- ^ Name of the type
@@ -31,9 +31,9 @@ deriveForType tyName = go =<< reify tyName
          x -> error "need a TyConI!"
 
       error x = do
-         reportError $ x 
+         reportError $ x
          return u
-      
+
 f123 xs f g = case xs of
    _ : _ : _ -> g xs
    x : []    -> f x
@@ -51,13 +51,13 @@ multiCon dc = case dc of
       NormalC name st -> case st of
          _ : _ : _ -> funD fn [ dtClause (Just name) True    (length st) ]
          t : _ -> do
-            arg <- newName "a" 
-            funD fn [ clause [varP arg] (normalB 
+            arg <- newName "a"
+            funD fn [ clause [varP arg] (normalB
                  [| J.ulit [ $(mkTag name), $(mkContents $ varE arg) ] |]) [] ]
          _ -> let empty = [| J.ULit (J.ULArray []) |]
-            in funD fn [ clause [] (normalB 
+            in funD fn [ clause [] (normalB
                  [| J.ulit [ $(mkTag name), $(mkContents empty) ] |]) [] ]
-   where fn = fname dc 
+   where fn = fname dc
 
 
 
@@ -74,7 +74,7 @@ singleCon dc = case dc of
 
 
 -- * Helpers
-   
+
 recClause :: Maybe Name -> Bool -> [String] -> ClauseQ
 recClause mTag ifcontents xs = do
    names <- mapM newName xs
@@ -92,7 +92,7 @@ dtClause mTag ifcontents n = do
    lhs names (mkBody mTag ifcontents $ nameCast<$>names)
 
 lhs names body = clause (map varP names) body []
-         
+
 
 mkBody :: Maybe Name -> Bool -> [ExpQ] -> Q Body
 mkBody mb inContents li = normalB $ appE [|J.ulit|] $ listE $ maybe li
@@ -127,12 +127,12 @@ vstName (a,_,_) = nameBase a
 
 fname = prefix . getName
 
-getName c = case c of 
+getName c = case c of
    RecC name _ -> name
    NormalC name _ -> name
 
 newType p = VarT <$> newName p
 
 constType n t = go n
-   where 
+   where
       go n = AppT (AppT ArrowT t) . go (n - 1)

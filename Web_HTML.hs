@@ -8,7 +8,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 
 import qualified Data.HashMap.Strict as HM
-import Control.Lens
+
+-- * Base types
 
 data TagName = TagName { unTagName :: TL.Text }
 data Id      = Id { unId :: TL.Text }
@@ -16,8 +17,6 @@ data Class   = Class { unClass :: TL.Text }
 deriving instance Show TagName
 deriving instance Show Id
 deriving instance Show Class
-
-
 
 declareLenses [d|
    data HTML
@@ -34,14 +33,18 @@ declareLenses [d|
 instance IsString HTML where
    fromString str = TextNode $ TL.pack str
 
-tag str = TagNode (TagName str) Nothing [] HM.empty []
-
+-- | Stubs
 data Tag
 data Attr
 data Window
 data Document
 data Location
 
+-- ** Shorthands
+
+tag str = TagNode (TagName str) Nothing [] HM.empty []
+
+-- * Events
 
 class Show a => Event a where
 instance Event MouseEvent
@@ -50,25 +53,6 @@ instance Event HTMLFrameObjectEvent
 instance Event HTMLFormEvent
 instance Event Progress
 instance Event Touch
-
-class Show a => ToOn a where
-   toOn :: a -> T.Text
-   toOn = ("on"<>) . T.toLower . tshow
-
-instance ToOn MouseEvent 
-instance ToOn KeyboardEvent
-instance ToOn HTMLFrameObjectEvent
-instance ToOn HTMLFormEvent
-
-deriving instance Show KeyboardEvent
-deriving instance Show MouseEvent
-deriving instance Show HTMLFrameObjectEvent
-deriving instance Show HTMLFormEvent
-deriving instance Show Progress
-deriving instance Show Touch
-
-
-
 
 data MouseEvent
    = Click
@@ -86,7 +70,7 @@ data MouseEvent
    | Drop
    | DragEnd
 
-data KeyboardEvent 
+data KeyboardEvent
    = KeyUp
    | KeyDown
    | KeyPress
@@ -101,13 +85,12 @@ data HTMLFrameObjectEvent
    | Scroll
 
 data HTMLFormEvent
-   = Select 
+   = Select
    | Change
    | Submit
    | Reset
    | Focus
    | Blur
-
 
 
 -- No "on" prefixed attributes for html elements these events:
@@ -136,7 +119,6 @@ data Progress
    | Load
    | LoadEnd
 
-
 data Touch
    = TouchStart
    | TouchEnd
@@ -144,3 +126,19 @@ data Touch
    | TouchEnter
    | TouchLeave
    | TouchCansel
+
+deriving instance Show KeyboardEvent
+deriving instance Show MouseEvent
+deriving instance Show HTMLFrameObjectEvent
+deriving instance Show HTMLFormEvent
+deriving instance Show Progress
+deriving instance Show Touch
+
+-- | Make 'on$event' attribute
+class Show a => ToOn a where
+   toOn :: a -> T.Text
+   toOn = ("on"<>) . T.toLower . tshow
+instance ToOn MouseEvent
+instance ToOn KeyboardEvent
+instance ToOn HTMLFrameObjectEvent
+instance ToOn HTMLFormEvent

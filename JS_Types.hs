@@ -48,9 +48,9 @@ instance O Number NEEq  where type D Number NEEq = Bool
 instance U Number UPlus  where -- type D Number UPlus = Number
 instance U Number UMinus where -- type D Number UMinus = Number
 
-instance O String Plus  where type D String Plus = String 
+instance O String Plus  where type D String Plus = String
 
-instance U a TypeOf 
+instance U a TypeOf
 
 
 
@@ -67,9 +67,9 @@ neq   = Proxy :: Proxy NEq
 eeq   = Proxy :: Proxy EEq
 neeq  = Proxy :: Proxy NEEq
 and   = Proxy :: Proxy And
-or    = Proxy :: Proxy Or 
-gt    = Proxy :: Proxy Gt 
-lt    = Proxy :: Proxy Lt 
+or    = Proxy :: Proxy Or
+gt    = Proxy :: Proxy Gt
+lt    = Proxy :: Proxy Lt
 gte   = Proxy :: Proxy GEt
 lte   = Proxy :: Proxy LEt
 instance E (Proxy Plus) where ev _ = "+"

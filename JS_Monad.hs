@@ -1,27 +1,28 @@
-<<<<<<< HEAD
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS_Monad
    (
    -- | JSM meta
      M, runM, eval, eval', pr, S(S), def
-   
+
    -- | JSM primitives
-   , new, newf, newf', newl, named, namedF
+   , new, new', newf, newf' --, {-newl,-} named, namedF
+   , a1, a2
    , func, call, call0, call1, bare, arg
    , retrn
    , lit
    , ex
-   , browsers
+   , browser -- s
+   , block
 
 
    -- | JS reexports
    , Code
-   , Expr(Undefined, Null, True, False)
-   , Expr'
+   , Expr(Undefined, Null) -- , True, False)
+   -- , Expr'
    , E(..) -- , ev
    , rawStm, rawExpr
 
-   -- | Attribute and array index
+   -- | Attribute and array indexing
    , (!.), (.!),  {- shorthand: -} (!-)
 
    -- | Operators
@@ -38,42 +39,12 @@ module JS_Monad
 
    -- | Defined variables
    , arguments
-
-   -- | DOM objects
-   , window, location
-   , domElem
-   , tagById, tagById'
-   , on
-   , findBy
-
-   -- | DOM objects -> Event
-   , KeyboardEvent(..), onload
-
-   -- | Zepto
-   , zepto, zById, mkZ
    )
    where
 
-import Prelude2 hiding ((.-), for)
-=======
-{-
-TODO
-   * defining a function with literal shouldnt run in monad
+import Prelude2 hiding ((.-), for, (.=), (.>))
 
-      I.e '\ e -> retrn e' should return a 'Expr (Expr x, Proxy x)'
-      rather than the 'M ...' that it does in the 'Function' class.
-      I think I did it that way due to generating the formal args in
-      the monad, but I think these can be arbitrary as they don't
-      overwrite variables in outer scopes.
-      
--}
-module JS_Monad where
-
-import Prelude2 hiding ((.-), (&))
->>>>>>> 11fe5c235be010cabef0b208fa3dbe7a03eedad8
 import Text.Exts
-import Control.Lens hiding ((.=))
-import qualified Control.Lens as L
 
 import Data.Default
 
@@ -95,19 +66,15 @@ import qualified JS_Syntax as JS
 import qualified JS_Types  as JT
 import JS_Ops_Untyped
 import Common
-import Lexic
+import IdentifierSource
 
 import Web_Client_Browser
 
-import Debug.Trace
-
---
--- Construction
---
+-- * Construction
 
 declareLenses [d|
    type W r = Code r
-   type R = (Browser, Bool {- allow explicit names -})
+   type R = (Browser, Bool {- allow explicit variable names -})
    type Idents = [String]
    data S = S {
         counter :: Int
@@ -116,12 +83,11 @@ declareLenses [d|
       }
    |]
 
-instance Default S where def = S 0 S.empty alphabetSrc
+instance Default S where def = S 0 S.empty jsIdentifierSource
 defS = def :: S
 instance Default R where def = (Unknown, True)
 
 type M r = WriterT (W r) (StateT S (ReaderT R Identity))
-
 
 runM :: R -> S -> M r a -> ((a, W r), S)
 runM r s = id . rd . st . wr
@@ -131,8 +97,8 @@ runM r s = id . rd . st . wr
          rd = flip runReaderT r
 
 run :: M r a -> ((a, W r), S)
-run = runM def def 
-runDef = runM def def 
+run = runM def def
+runDef = runM def def
 
 eval :: M r a -> W r
 eval    = snd . fst . run
@@ -147,9 +113,7 @@ exec = fst . fst . run
 
 browser = asks fst
 
---
--- Core
---
+-- * Core
 
 next :: M r Name
 next = Name . T.pack . head <$> (idents <<%= tail)
@@ -162,20 +126,10 @@ bind expr name = do
    return $ Cast $ EName name
    where define name expr = tell [ VarDef name [] expr ]
 
-
 pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
    modify (nameds %~ S.insert n)
    return n
-
-
-
-{- OLD /
-new2 e = bind e . Name .  int2text =<< pushExpr e
-int2text = intPref "v"
-pushExpr :: Expr a -> M r Int
-pushExpr _ = counter <<%= (+1)
--}
 
 new' :: Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks snd
@@ -190,18 +144,14 @@ new' n e = bool ignore name =<< asks snd
      overwriting any previously defined variables. -}
 mkCode :: M sub a -> M parent (W sub)
 mkCode mcode = fromNext <$> ask <*> get <*> pure mcode
-   -- where nextIdent = (+1) <$> gets (^.counter)
 
 bare :: Expr a -> M r ()
 bare e  = tell [ BareExpr e ]
 
-block    = new    <=< blockExpr 
+block    = new    <=< blockExpr
 block' n = new' n <=< blockExpr
 
-
---
--- Control structure 
---
+-- * Control structures
 
 ternary :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
 ternary = Ternary
@@ -220,10 +170,6 @@ retrn :: Expr a -> M a ()
 retrn e = tell $ [ Return $ Cast e ]
 
 untype = Cast :: Expr a -> Expr ()
-
---
---
---
 
 pr :: M r a -> IO ()
 pr = TLIO.putStrLn . ev . eval
@@ -267,8 +213,6 @@ arg n = Arr "arguments" (lit n)
 tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
 tcall f as = TypedFCall f as
 
-
-
 for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
@@ -280,22 +224,18 @@ forin expr f = do
 rawStm = BareExpr . rawExpr
 rawExpr = Raw
 
-
 -- * Predefined names
 
 arguments = ex "arguments"
-
 
 -- * Typing machinery for functions
 
 newf     = new    <=< func
 newf' n  = new' n <=< func
 
-
 -- | Create function, getting state and reader from enclosing monad.
 func :: Function a => a -> M parent (Expr (Arguments a))
 func f = funcPrim <$> ask <*> get <*> pure f
-
 
 -- | Create function, starting from empty state and reader
 funcPure :: Function a => a -> Expr (Arguments a)
@@ -305,8 +245,6 @@ funcPure = funcPrim def def
 funcPrim :: Function a => R -> S -> a -> Expr (Arguments a)
 funcPrim r s fexp = FuncDef args code
    where (type_, args, code) = fst . fst $ runM r s $ funcLit fexp
-
-
 
 -- | The 'Function' class turns function literals into typed
 -- functions.
@@ -347,15 +285,13 @@ instance (f ~ a, Apply fs as)
    fapply f (a, as) = (f',  Cast a : asList, i)
       where (f', asList, i) = fapply (Cast f :: Expr fs) (as :: as)
 
-
 -- | Wraps result in all cases
 wrapCall :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
 wrapCall f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
    where (f', a', i) = fapply f a
          args = map (ex . intPref "_") [1..i]
-         {- LATER TODO: have typed source of prefixes -}  
+         {- LATER TODO: have typed source of prefixes -}
 
--- | 
 doCall f a = FuncCall f' (a' <> args)
    where (f', a', i) = fapply f a
          args = map (ex . intPref "a") [1..i]
@@ -365,18 +301,17 @@ intPref p i = p <> tshow i
 f -/ (a :: Expr a) = wrapCall f (a, ())
 
 {- ** THE DREAM ** -}
-test = let 
+test = let
    in do
-   return1
-      -- :: Expr (Arguments (Expr JT.String -> M JT.NumberI ()))
-      :: Expr (Expr JT.String, Proxy JT.NumberI)
+   return1 :: Expr (Expr JT.String, Proxy JT.NumberI)
       <- newf' "ret1" $ \ (s :: Expr JT.String) ->
          retrn (lit (1::Int) :: Expr JT.NumberI)
    addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
       retrn $ a .+ b
-   bare $ addArgs `a2` (lit (2::Int), lit (3::Int)) -- , (lit (2::Int), ()))
 
-   retrn $ addArgs -/ lit (2::Int) -/ lit (3::Int) -- , (lit (2::Int), ()))
+   bare $ addArgs `a2` (lit (2::Int), lit (3::Int))
+   -- bare $ addArgs -/ lit ("string" :: String) -/ lit (3::Int)     -- errors due to wrong type of argument
+   -- bare $ addArgs -/ lit (2::Int) -/ lit (3::Int) -/ lit (4::Int) -- errors due to type mismatch (caused by too many arguments)
 
 f `a1` a = doCall f (a,())
 f `a2` (a,b) = doCall f (a,(b,()))
@@ -388,9 +323,3 @@ data FA a b = FA (Expr a, Proxy b)
 instance Category FA where
    id = u
    f . g = u
-
-{- -}
-
-
-{-
--}

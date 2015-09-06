@@ -1,6 +1,6 @@
 module HTTP_Common where
 
-import Prelude2
+import Prelude2 hiding (un)
 
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as TIO

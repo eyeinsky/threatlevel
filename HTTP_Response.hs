@@ -47,10 +47,10 @@ import           HTTP_URL
 newtype Resp = Resp { unResp :: ([Hdr.Header], RespAction) }
 
 
--- stuff that differs
+-- | Typed response
 data RespAction where
    Html     :: E.Html -> E.Html -> RespAction
-   JSON     :: ToJSON a => a -> RespAction 
+   JSON     :: ToJSON a => a -> RespAction
    Redirect :: T.Text -> RespAction
    DiskFile :: T.Text -> RespAction
 
@@ -75,7 +75,7 @@ addHead a (Resp (hs, ra)) = Resp (hs, ra')
 
 prependBody a (Resp (hs, ra)) = Resp (hs, ra')
    where ra' = case ra of Html h b -> Html h (a>>b); _ -> ra
-postpendBody a (Resp (hs, ra)) = Resp (hs, ra')
+appendBody a (Resp (hs, ra)) = Resp (hs, ra')
    where ra' = case ra of Html h b -> Html h (b>>a); _ -> ra
 
 
@@ -112,7 +112,7 @@ sendEmbed assoc path = lookup path assoc
       u -- (notFoundPage tee)
       (responseBuilder ok200 [(hContentType, Mime.defaultMimeLookup fn)]
       . BB.fromByteString)
-   where fn = T.reverse . T.takeWhile ('/' /=) . T.reverse $ path 
+   where fn = T.reverse . T.takeWhile ('/' /=) . T.reverse $ path
 
 err msg = maybe (returnHtmlPage msg)
 
@@ -180,7 +180,7 @@ parseHeaders bs = pairs
          g = TLE.decodeUtf8 . BL.fromStrict
          f (b1,b2) = hdr (Hdr.Custom (g b1)) (g b2)
          pairs = map (f . br) rows
-         
+
          tokenise x y = h : if B.null t
                then []
                else tokenise x (B.drop (B.length x) t)
@@ -201,7 +201,7 @@ instance BodyAs (Maybe JSON.Object) where
    parseBody bs = JSON.decode (BL.fromStrict bs)
 
 
--- * Instances 
+-- * Instances
 
 deriving instance Show b => Show (ResponseR b)
 -- deriving instance Show (Request b)
@@ -221,3 +221,14 @@ deriving instance Eq Port
 deriving instance Eq Path
 deriving instance Eq Params
 deriving instance Eq Fragment
+
+-- * Helpers
+
+-- ** Return response in monad
+
+htmlBody   b = return . utf8ct "html" $ Html "" b :: Monad m => m Resp
+textBody   b = return . utf8ct "html" $ Html "" b :: Monad m => m Resp
+htmlPage h b = return . utf8ct "html" $ Html h  b :: Monad m => m Resp
+redirect url = return . redirectResp $ url        :: Monad m => m Resp
+file path = return . toResp $ DiskFile path :: Monad m => m Resp
+redirectResp url = utf8ct "html" $ Redirect url :: Resp

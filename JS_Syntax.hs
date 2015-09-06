@@ -1,4 +1,4 @@
-module JS_Syntax 
+module JS_Syntax
    ( module JS_Syntax
    , UOp(..), BOp(..)
    )
@@ -18,9 +18,8 @@ import qualified JS_Types as JT
 import JS_Types (UOp(..), BOp(..))
 import Common
 
-type Code a = [ Statement a  ]
+type Code a = [Statement a]
 
--- X=implemented as function, therefore b /= c
 data Statement a where
    FuncDefStm  :: Name -> FormalArgs -> Code a -> Statement b
    Var      :: Name -> Statement a
@@ -29,47 +28,43 @@ data Statement a where
    Def      :: Expr a -> Expr b -> Statement c
    BareExpr :: Expr a -> Statement b
    IfElse   :: Expr b -> Code r -> Maybe (Code r) -> Statement r
-   For      :: Statement a -> Expr b -> Statement c -> Code d{-X-} -> Statement e
+   For      :: Statement a -> Expr b -> Statement c -> Code d{-X-} -> Statement e -- NOTE: X = implemented as function, therefore b /= c
             -- init           cond      post           body
    ForIn    :: Name -> Expr a -> Code b{-X-} -> Statement c
 
    TryCatch :: Code r -> Code r -> Statement r
    Return   :: Expr a -> Statement a
 
-
-
-
 data Expr a where
    Cast      :: Expr a              -> Expr b
-   Par       :: Expr a              -> Expr a
+   Raw       :: Text                -> Expr a -- inject raw js code
+   Par       :: Expr a              -> Expr a -- parenthesis
    EName     :: Name                -> Expr a -- name
    EAttr     :: Attr                -> Expr a -- expr.name
    Arr       :: Expr a -> Expr b    -> Expr c -- expr[expr]
-
    -- untyped
-   ULit      :: ULiteral            -> Expr a 
-   Op        :: OpExpr  a           -> Expr a -- expr `op` expr
-
+   ULit      :: ULiteral            -> Expr a -- 1
+   Op        :: OpExpr  a           -> Expr a -- expr + expr
    -- typed
-   Literal   :: Literal a => a      -> Expr a
+   Literal   :: Literal a => a             -> Expr a -- 1
    BOp       :: E (Proxy o) => BOpExpr t o -> Expr t -- expr + expr
-   UOp       :: UOpExpr t o         -> Expr t -- expr + expr
-
+   UOp       :: UOpExpr t o                -> Expr t -- expr + expr
    -- untyped
-   FuncCall  :: Expr a -> [Expr b]  -> Expr c -- TODO expr(*expr)
-
+   FuncCall  :: Expr a -> [Expr b]  -> Expr c -- func(*expr)
    -- typed
-   FuncDef    :: [Expr a] -> Code b -> Expr c
+   FuncDef    :: [Expr a] -> Code b    -> Expr c
    TypedFDef  :: Args a => a -> Code b -> Expr c
    TypedFCall :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
 
    Ternary   :: Expr JT.Bool -> Expr a -> Expr a -> Expr a
    Null      :: Expr a
    Undefined :: Expr a
-   Raw       :: Text -> Expr a -- inject raw js code
 
+data FormalArgs = FA [Text]
+data Name = Name Text
+data Attr = forall a. Attr (Expr a) Name
 
--- ** Operators 
+-- ** Operators
 
 -- *** Untyped
 
@@ -90,16 +85,7 @@ instance E (Proxy o) => E (UOpExpr a o) where
    ev (UOE a) = ev (Proxy :: Proxy o) <> ev a
 
 
-
-data FormalArgs = FA [Text]
-
-data Name = Name Text
-
-data Attr = forall a. Attr (Expr a) Name
-
-
-
--- * AST to JavaScript text
+-- * Print AST to JavaScript
 
 instance E (Code a) where
    ev li = T.intercalate ";\n" $ map ev li
@@ -110,7 +96,7 @@ instance E (Statement a) where
       VarDef n ns exp -> ("var " <> ev n) =: (T.intercalate eq (map ev ns) <> ev exp)
       Def e1 e2 -> ev e1 =: ev e2
       BareExpr expr -> ev expr
-      
+
       For init cond post conts -> "for"
          <> (par . unsemi) [ev init, ev cond, ev post]
          <> curly (ev conts)
@@ -122,7 +108,7 @@ instance E (Statement a) where
       IfElse c tc mec -> "if" <> par (ev c)
          <> curly (ev tc) <> maybe "" (("else" <>) . curly . ev) mec
       Return expr -> "return " <> ev expr
-      where 
+      where
          a =: b = a <> " = " <> b
          eq = " = "
 
@@ -136,7 +122,7 @@ instance E (Expr a) where
       Op opExpr -> ev opExpr
       BOp expr -> ev expr
       -- UOp expr -> ev expr
-     
+
       FuncCall name exprs -> ev name <> unargs exprs
 
       FuncDef as code -> "function" <> unargs as <> uncode code
@@ -163,7 +149,7 @@ col (k, v) = either ev ev k <> ": " <> ev v
 instance E (OpExpr a) where
    ev o = case o of
       OpBinary op e1 e2 -> ev e1 <> ev op <> ev e2
-      OpUnary op e -> error "web:JS_Syntax.hs:E OpUnary"
+      OpUnary op e -> error "web:JS_Syntax.hs:E OpUnary not implemented"
 instance E BOp where
    ev op = case op of
       Minus -> "-"
@@ -236,7 +222,6 @@ instance ToLiteral Float where
    type Dest Float = JT.Number
    lit v = Literal $ JT.Number $ fromRational $ toRational v
 
-
 --- *** Untyped literals
 
 data ULiteral
@@ -255,11 +240,11 @@ instance E ULiteral where
       ULBool b -> T.toLower $ tshow b
       ULArray li -> ang $ uncomma $ map ev li
       ULObject obj -> curly $ uncomma . map f $ obj
-         where f (e,expr) = either ev ev e <> ":" <> ev expr 
+         where f (e,expr) = either ev ev e <> ":" <> ev expr
 
 class    ToULiteral a       where uliteral :: a -> ULiteral
 instance ToULiteral Int     where uliteral = ULInteger . toInteger
-instance ToULiteral Integer where uliteral = ULInteger 
+instance ToULiteral Integer where uliteral = ULInteger
 instance ToULiteral Bool    where uliteral = ULBool
 instance ToULiteral T.Text  where uliteral = ULString
 instance ToULiteral TL.Text where uliteral = uliteral . TL.toStrict
@@ -279,13 +264,13 @@ attr base attname = EAttr $ Attr base attname
 instance IsString Name where
    fromString s = Name $ T.pack s
 instance IsString (Expr a) where
-   fromString s = EName $ fromString s 
+   fromString s = EName $ fromString s
 
 cast :: Expr a -> Expr ()
 cast x = Cast x
 
 
--- transform (Expr a, (Expr b, .. to 
+-- transform (Expr a, (Expr b, .. to
 class Args a      where args :: a   -> [ Expr () ]
 instance Args (Expr a, ())  where args (e, ()) = [ Cast e  ]
 instance Args (b, c)

@@ -6,14 +6,12 @@ import qualified Network.Simple.TCP as NS
 import qualified Network.Socket.ByteString as N
 import qualified Network.Socket as S
 
-
 import           HTTP_Common
 import           HTTP_URL
 import           HTTP_Response
 
 import           HTTP_Netw
 import qualified HTTP_Header as H
-
 
 -- * Request
 
@@ -28,7 +26,7 @@ perform req = let
       mResp <- NS.recv soc 10000
       return (parseResponse $ fromJust mResp)
 
-data Request b where 
+data Request b where
    GET     :: Common -> Request b
    POST    :: Common -> Body -> Request b
    HEAD    :: Common         -> Request () -- no body returned
@@ -60,7 +58,7 @@ instance ToPayload Common where
          f g x = toPayload $ g x
 
 instance ToPayload (Request b) where
-   toPayload req = case req of 
+   toPayload req = case req of
       GET    c   -> mk "GET"    c Nothing
       POST   c b -> mk "POST"   c (Just b)
       HEAD   c   -> mk "HEAD"   c Nothing
@@ -76,6 +74,3 @@ newtype Body = Body T deriving (Show, Eq)
 
 instance ToPayload Body where
    toPayload (Body t) = t
-   
-
-

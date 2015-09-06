@@ -1,6 +1,6 @@
 module HTTP_Netw where
 
-import Prelude2 hiding (unlines)
+import Prelude2 hiding (unlines, un, (&))
 import Data.Word (Word8, Word16)
 
 import qualified Data.Text.Lazy as T
@@ -18,7 +18,6 @@ import qualified Network.Socket as S
 
 -- aeson
 import qualified Data.Aeson as JSON
-import Control.Lens hiding (un, (&))
 
 import Text.Format
 

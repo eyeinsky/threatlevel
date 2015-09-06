@@ -1,6 +1,6 @@
 module JS_API where
 
-import Prelude2 hiding ((.-))
+import Prelude2 hiding ((.-), (.=), (.>))
 import JS_Types
 import qualified JS_Types as T
 import JS_Syntax
@@ -42,7 +42,7 @@ toString :: Expr a -> Expr T.String
 toString obj = call0 (obj !. "toString")
 
 split :: Expr T.String -> Expr T.String -> Expr (T.Array T.String)
-split str sep = call1 (str !. "split") sep 
+split str sep = call1 (str !. "split") sep
 
 -- * Number
 
@@ -113,7 +113,7 @@ ajaxExpr meth uri data_ callback = do
          json <- new $ fromJSON text
          bare $ call1 callback json
       xhr !. "onload" .= Cast wrap
-   bare (call (xhr !. "open") [meth, uri, ulit True]) 
+   bare (call (xhr !. "open") [meth, uri, ulit True])
    bare $ call1 (xhr !. "send") data_
 
 

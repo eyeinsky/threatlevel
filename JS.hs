@@ -1,13 +1,13 @@
 module JS
-   ( 
-   
+   (
+
    -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
    -- | JSM meta
-     M, S, runM, eval, eval', run, pr, def, Text
-   
+     M, S, runM, eval, eval', {-run,-} pr, def, Text
+
    -- | JSM primitives
-   , new, new'
-   , block, block', blockExpr
+   , new -- , new'
+   , block -- , block', blockExpr
    , newf , newf' , func
    , call, call0, call1, bare, arg
 
@@ -15,15 +15,15 @@ module JS
    , lit, ulit
    , ex
    , browser
-   , untype
+   -- , untype
 
    -- | JS_Syntax reexports
    , Code
    , Expr(Undefined, Null, Par, Literal, ULit, Cast) -- , True, False)
    , E(..)
-   , rawStm, rawExpr 
+   , rawStm, rawExpr
    , ULiteral(..)
-   
+
    -- | JS_Types reexports
    , JT.String(..), JT.Number(..), JT.Array(..), JT.Object(..), JT.Bool(..)
    , JT.Regex(..), JT.NumberI
@@ -37,16 +37,16 @@ module JS
    , (.&&), (.||)
    , (.<), (.>), (.<=), (.>=)
    , (.+), (.-), (.*), (./)
-   , (.+=), (.-=), (.*=), (./=)
+   -- , (.+=), (.-=), (.*=), (./=)
 
    -- | Control flow
    , for, forin
    , ifelse, ifonly
    , ternary
-   
+
    -- | Typed functions
-   , a1, a2, a3, a4, a5 -- apply typed function to tuple-arguments
-   , (-/)
+   -- , a1, a2, a3, a4, a5 -- apply typed function to tuple-arguments
+   -- , (-/)
 
    -- | Defined variables
    , arguments
@@ -71,7 +71,7 @@ module JS
    )
    where
 
-import Prelude2 hiding ((.-), for)
+import Prelude2 hiding ((.-), for, (.=), (.>))
 
 import Data.Default
 import Common

@@ -2,7 +2,7 @@ module Web_Client_Browser where
 
 import Prelude2
 
-import qualified Data.Char 
+import qualified Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B
@@ -15,12 +15,12 @@ import qualified Data.ByteString as B
 -}
 
 parseBrowser :: B.ByteString -> Browser
-parseBrowser v 
-   | f "Internet Explorer"      = IE 
+parseBrowser v
+   | f "Internet Explorer"      = IE
    | f "Firefox"                = Firefox
    | f "Chrome" || f "Chromium" = Chrome
    | otherwise                  = Unknown
-   where 
+   where
       enc = TE.decodeUtf8 v
       f x = let len = T.length x
          in T.tails enc

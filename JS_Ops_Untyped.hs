@@ -1,6 +1,6 @@
 module JS_Ops_Untyped where
 
-import Prelude2
+import Prelude2 hiding ((.>))
 import JS_Types
 import JS_Syntax
 -- ** Operators

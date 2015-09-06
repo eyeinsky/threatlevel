@@ -6,14 +6,14 @@ TODO
       - need to look what headers are (ASCII)
       - body can definitely be BS
 -}
-module HTTP 
+module HTTP
    (
      module HTTP_Header
    , module HTTP_URL
    , module HTTP_Netw
    , module HTTP_Request
    , module HTTP_Response
-   , module HTTP_Util  
+   , module HTTP_Util
    )
    where
 

@@ -1,6 +1,6 @@
 module JS_DOM where
 
-import Prelude2
+import Prelude2 hiding ((.=))
 import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -28,7 +28,7 @@ location = window !. "location"
 onloadIs :: Code () -> M r ()
 onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
--- onload :: Expr 
+-- onload :: Expr
 onload = ex "window" !. "onload"
 
 
@@ -63,7 +63,7 @@ instance FindBy (Expr CSS.Class) where
 docCall' f a = call1 (document !. f) a
 docCall f a = docCall' f (ulit a)
 
--- | 
+-- |
 findUnder :: FindBy a => Expr Tag -> a -> Expr Tag
 findUnder e a = u
 
@@ -84,13 +84,13 @@ createElement tn = docCall "createElement" $ unTagName tn
 
 -- creates the expr to create the tree, returns top
 createHtml :: HTML -> JS.Expr Tag
-createHtml tr = FuncDef [] . eval $ case tr of 
+createHtml tr = FuncDef [] . eval $ case tr of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
       forM_ (HM.toList attrs) $ \ (k,v) -> t !. Name (TL.toStrict k) .= ulit v
-      when (not . null $ cls) $ 
-         t !. "className" .= lit (TL.unwords $ map unClass cls) 
+      when (not . null $ cls) $
+         t !. "className" .= lit (TL.unwords $ map unClass cls)
       mapM_ (bare . appendChild t . call0 . createHtml) children
       retrn t
    TextNode txt -> retrn $ docCall "createTextNode" txt
@@ -104,7 +104,7 @@ cursorPosition e = do
       end <- new $ e !. "selectionEnd"
       new $ ternary (start .== end) (Cast start) (Cast Null)
    {- ^ Get caret position from textarea/input type=text
-      
+
       IE not implemented, see here for how:
          http://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates
 

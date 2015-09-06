@@ -20,11 +20,10 @@ import qualified Cookie as C
 newtype Header = Header (HeaderName, T)
 hdr a b = Header (a, b)
 
-
 {-
 data ResponseHeader = ResponseHeader {
-     
-   , 
+
+   ,
    }
 -}
 
@@ -119,7 +118,7 @@ headerMap =
    ]
 p a b = (b,a)
 
--- 
+--
 accHtml = "text/html"
 
 deriving instance Show HeaderName
@@ -166,7 +165,7 @@ data RequestHeaderName where
 
 instance ToPayload RequestHeader where
    toPayload = flip find map . fst . _unRequestHeader
-      where 
+      where
          map = [
               p "Accept"               Accept
             , p "Accept-Charset"       AcceptCharset
