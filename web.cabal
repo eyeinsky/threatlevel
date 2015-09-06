@@ -38,6 +38,7 @@ library
 
    other-modules:       
         Common
+      , Lexic
    -- other-extensions:    
    build-depends:       base
                       , text, bytestring

@@ -36,6 +36,7 @@ import qualified JS_Syntax as JS
 import qualified JS_Types  as JT
 import JS_Ops_Untyped
 import Common
+import Lexic
 
 import Web_Client_Browser
 
@@ -48,13 +49,15 @@ import Debug.Trace
 declareLenses [d|
    type W r = Code r
    type R = (Browser, Bool {- allow explicit names -})
+   type Idents = [String]
    data S = S {
         counter :: Int
       , nameds :: S.Set Text
+      , idents :: Idents
       }
    |]
 
-instance Default S where def = S 0 S.empty
+instance Default S where def = S 0 S.empty alphabetSrc
 defS = def :: S
 instance Default R where def = (Unknown, True)
 
@@ -76,9 +79,9 @@ eval :: M r a -> W r
 eval    = snd . fst . run
 eval' b = snd . fst . runM b def
 
-evalN :: Int -> M r a -> W r
-evalN    n = snd . fst . runM def (def & counter .~ n) -- (n, IM.empty)
-evalN' b n = snd . fst . runM b   (def & counter .~ n)
+-- evalN :: Int -> M r a -> W r
+-- evalN    n = snd . fst . runM def (def & counter .~ n) -- (n, IM.empty)
+fromNext b s = snd . fst . runM b   (s & idents %~ tail)
 
 exec :: M r a -> a
 exec = fst . fst . run
@@ -89,30 +92,36 @@ browser = asks fst
 -- Core
 --
 
-pushExpr :: Expr a -> M r Int
-pushExpr _ = counter <<%= (+1)
+next :: M r Name
+next = Name . T.pack . head <$> (idents <<%= tail)
+
+new :: Expr a -> M r (Expr a)
+new e = bind e =<< next
+
+bind expr name = do
+   define name $ Cast expr
+   return $ Cast $ EName name
+   where define name expr = tell [ VarDef name [] expr ]
+
+
 pushNamedExpr :: Text -> Expr a -> M r Text
 pushNamedExpr n e = do
    modify (nameds %~ S.insert n)
    return n
 
-define name expr = tell [ VarDef name [] expr ]
 
+
+{- OLD /
+new2 e = bind e . Name .  int2text =<< pushExpr e
 int2text = intPref "v"
-intPref p i = p <> tshow i
-
-newMaker f e = do
-   name <- Name . either int2text id <$> f e
-   define name $ Cast e
-   return $ Cast $ EName name
-
-new :: Expr a -> M r (Expr a)
-new e = newMaker (fmap Left . pushExpr) e
+pushExpr :: Expr a -> M r Int
+pushExpr _ = counter <<%= (+1)
+-}
 
 new' :: Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks snd
    where
-      name = newMaker (fmap Right . pushNamedExpr n) e
+      name = bind e . Name =<< pushNamedExpr n e
       ignore = new e
 
 {- | Evaluate JSM code to Code aka W r aka [Statement]
@@ -121,8 +130,8 @@ new' n e = bool ignore name =<< asks snd
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
 mkCode :: M sub a -> M parent (W sub)
-mkCode mcode = evalN' <$> ask <*> nextIdent <*> pure mcode
-   where nextIdent = (+1) <$> gets (^.counter)
+mkCode mcode = fromNext <$> ask <*> get <*> pure mcode
+   -- where nextIdent = (+1) <$> gets (^.counter)
 
 bare :: Expr a -> M r ()
 bare e  = tell [ BareExpr e ]
@@ -206,8 +215,8 @@ for cond code = tell . (:[]) . f =<< mkCode code
    where f = For (rawStm "") cond (rawStm "")
 
 forin expr f = do
-   i <- (+1) <$> gets (^.counter)
-   tell [ ForIn (Name $ int2text i) expr [ BareExpr . call1 f $ ex $ int2text i ] ]
+   name <- next -- (+1) <$> gets (^.counter)
+   tell [ ForIn name expr [ BareExpr . call1 f $ EName name ] ]
 
 rawStm = BareExpr . rawExpr
 rawExpr = Raw
@@ -254,7 +263,7 @@ instance (Function b) => Function (Expr a -> b) where
    type Arguments (Expr a -> b) = (Expr a, Arguments b)
    type Final     (Expr a -> b) = Final b
    funcLit f = do
-      x <- ex . int2text <$> (counter <<%= (+1))
+      x <- EName <$> next
       (a, a', b) <- funcLit (f x)
       return ((x,a), Cast x : a', b)
 
@@ -284,19 +293,15 @@ instance (f ~ a, Apply fs as)
 wrapCall :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
 wrapCall f a = FuncDef args [ Return $ FuncCall f' (a' <> args) ]
    where (f', a', i) = fapply f a
-         args = map (ex . intPref "a") [1..i]
-         {- LATER TODO: argument integers are prefixed with "a".
-            Though this doesn't interfere with my "v" prefixes
-            generated from the 'M r a', then this could be a
-            possible source of unsafety if I should ever change
-            the identifier generation machinery.
-          -}  
+         args = map (ex . intPref "_") [1..i]
+         {- LATER TODO: have typed source of prefixes -}  
 
 -- | 
 doCall f a = FuncCall f' (a' <> args)
    where (f', a', i) = fapply f a
          args = map (ex . intPref "a") [1..i]
 
+intPref p i = p <> tshow i
 
 f -/ (a :: Expr a) = wrapCall f (a, ())
 
