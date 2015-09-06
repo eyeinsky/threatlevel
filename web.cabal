@@ -41,6 +41,13 @@ library
       , Lexic
    -- other-extensions:    
    build-depends:       base
+<<<<<<< HEAD
+                      , text
+                      , hs-minu, text-format-hs
+                      , mtl
+                      , containers
+                      , bytestring
+=======
                       , text, bytestring
                       , hs-minu
                       , text-format-hs
@@ -52,6 +59,7 @@ library
                       , aeson
                       , warp
                       
+>>>>>>> 11fe5c235be010cabef0b208fa3dbe7a03eedad8
    -- hs-source-dirs:      
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
                      , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows

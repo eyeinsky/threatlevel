@@ -1,3 +1,61 @@
+<<<<<<< HEAD
+{-# LANGUAGE ExtendedDefaultRules #-}
+module JS_Monad
+   (
+   -- | JSM meta
+     M, runM, eval, eval', pr, S(S), def
+   
+   -- | JSM primitives
+   , new, newf, newf', newl, named, namedF
+   , func, call, call0, call1, bare, arg
+   , retrn
+   , lit
+   , ex
+   , browsers
+
+
+   -- | JS reexports
+   , Code
+   , Expr(Undefined, Null, True, False)
+   , Expr'
+   , E(..) -- , ev
+   , rawStm, rawExpr
+
+   -- | Attribute and array index
+   , (!.), (.!),  {- shorthand: -} (!-)
+
+   -- | Operators
+   , (.=)
+   , (.==), (.!=), (.===), (.!==)
+   , (.&&), (.||)
+   , (.<), (.>), (.<=), (.>=)
+   , (.+), (.-), (.*), (./)
+
+   -- | Control flow
+   , for, forin
+   , ifelse, ifonly
+   , ternary
+
+   -- | Defined variables
+   , arguments
+
+   -- | DOM objects
+   , window, location
+   , domElem
+   , tagById, tagById'
+   , on
+   , findBy
+
+   -- | DOM objects -> Event
+   , KeyboardEvent(..), onload
+
+   -- | Zepto
+   , zepto, zById, mkZ
+   )
+   where
+
+import Prelude2 hiding ((.-), for)
+=======
 {-
 TODO
    * defining a function with literal shouldnt run in monad
@@ -12,6 +70,7 @@ TODO
 module JS_Monad where
 
 import Prelude2 hiding ((.-), (&))
+>>>>>>> 11fe5c235be010cabef0b208fa3dbe7a03eedad8
 import Text.Exts
 import Control.Lens hiding ((.=))
 import qualified Control.Lens as L
