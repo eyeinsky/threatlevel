@@ -51,6 +51,7 @@ library
                       , blaze-builder, blaze-html
                       , aeson
                       , warp
+                      , tagged
 
    -- hs-source-dirs:
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
