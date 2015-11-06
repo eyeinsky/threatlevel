@@ -3,7 +3,7 @@ module JS
 
    -- test, module JS_Monad, module Control.Monad.Writer, module Control.Monad.State, module Control.Monad.Reader, module Control.Monad.Identity,
    -- | JSM meta
-     M, S, runM, eval, eval', {-run,-} pr, def, Text
+     M, S, runM, eval, eval', {-run,-} pr, def, Text, runPrint
 
    -- | JSM primitives
    , new -- , new'

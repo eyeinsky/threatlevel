@@ -1,5 +1,6 @@
 module JS_Syntax
    ( module JS_Syntax
+   , module Common
    , UOp(..), BOp(..)
    )
    where
@@ -14,6 +15,8 @@ import Data.Either
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
+import Control.Monad.Reader
+
 import qualified JS_Types as JT
 import JS_Types (UOp(..), BOp(..))
 import Common
@@ -21,7 +24,7 @@ import Common
 type Code a = [Statement a]
 
 data Statement a where
-   FuncDefStm  :: Name -> FormalArgs -> Code a -> Statement b
+   FuncDefStm :: Name -> FormalArgs -> Code a -> Statement b
    Var      :: Name -> Statement a
    VarDef   :: Name -> [Name] -> Expr a -> Statement b -- a = [b = c =] expr
    AttrDef  :: Attr -> Expr a -> Statement b -- TODO multiple attrs
@@ -86,6 +89,9 @@ instance E (Proxy o) => E (UOpExpr a o) where
 
 -- * Print AST to JavaScript
 
+instance E (Code a) where
+   ev li = T.unlines <$> uncode li
+
 instance E (Statement a) where
    ev stm = case stm of
       AttrDef attr exp -> ev attr =: ev exp
@@ -93,32 +99,30 @@ instance E (Statement a) where
       VarDef n ns exp -> (pure "var " <+> ev n) =: ((T.intercalate eq <$> mapM ev ns) <+> ev exp)
       Def e1 e2 -> ev e1 =: ev e2
       BareExpr expr -> ev expr
-      For init cond post conts
-         -> mseq [ pure "for"
-                 , par . unsemi <$> sequence [ev init, ev cond, ev post]
-                 , curly <$> ev conts
-                 ]
-      ForIn name expr code
-         -> mseq [ pure "for"
-                 , par <$> ev (Var name)
-                 , pure " in "
-                 , ev expr
-                 , curly <$> ev code
-                 , pure ";"]
-      IfElse cond true mbElse ->
-             pure "if"
-         <+> (par <$> ev cond)
-         <+> (curly <$> ev true)
-         <+> maybe (pure "") (\else_ -> ("else" <>) . curly <$> ev else_) mbElse
+      For init cond post conts -> mseq
+         [ pure "for"
+         , par . unsemi <$> sequence [ev init, ev cond, ev post]
+         , curlyCode conts
+         ]
+      ForIn name expr code -> mseq
+         [ pure "for"
+         , par <$> mseq
+             [ ev (Var name)
+             , pure " in "
+             , ev expr
+             ]
+         , curlyCode code
+         ]
+      IfElse cond true mbElse -> mseq
+         [ pure "if"
+         , par <$> ev cond
+         , curlyCode true
+         , maybe (pure "") (\else_ -> ("else" <>) <$> curlyCode else_) mbElse
+         ]
       Return expr -> pure "return " <+> ev expr
       where
-         a =: b = a <+> pure " = " <+> b
+         a =: b = a <+> pure eq <+> b
          eq = " = "
-
-
-
-instance E (Code a) where
-   ev li = T.intercalate ";\n" <$> mapM ev li
 
 instance E (Expr a) where
    ev expr = case expr of
@@ -131,7 +135,12 @@ instance E (Expr a) where
       BOp expr -> ev expr
       -- UOp expr -> ev expr
       FuncCall name exprs -> ev name <+> unargs exprs
-      FuncDef as code -> mseq [pure "function", unargs as, uncode code]
+      FuncDef as code -> mseq
+         [ pure "function"
+         , unargs as
+         , pure " "
+         , curlyCode code
+         ]
       TypedFCall f as -> (par <$> ev f) <+> (unargs $ args as)
       -- DELME TypedFDef as code -> "function" <> unargs (args as) <> uncode code
       Ternary b t f -> par <$> mseq [ev b, pure "?", ev t, pure ":", ev f]
@@ -141,9 +150,8 @@ instance E (Expr a) where
       Par expr -> par <$> ev expr -- parenthesis around
       Raw stm -> pure stm -- raw js text
       Cast e -> ev e -- change type
-      where
-         unargs li = par . uncomma <$> mapM ev li
-         uncode code = curly <$> (ev code <+> pure ";")
+
+unargs li = par . uncomma <$> mapM ev li
 
 instance E (OpExpr a) where
    ev o = case o of
@@ -270,8 +278,25 @@ instance Args (b, c)
 
 -- * Helpers
 
+-- | Put printed code in curly braces, code in braces is indented.
+curlyCode :: Code a -> ER T.Text
+curlyCode code = do
+   stms :: [T.Text] <- indentCode code
+   indent <- flip T.replicate " " <$> ask
+   return $ "{\n"
+         <> T.intercalate "\n" stms
+         <> "\n" <> indent <> "}"
+   where
+      indentCode = withReader (+2) . uncode
+
+uncode :: Code a -> ER [T.Text]
+uncode code = do
+   indent <- flip T.replicate " " <$> ask
+   stms :: [T.Text] <- mapM ev code
+   return $ map (fmtStm indent) stms
+
+fmtStm indent stm = indent <> stm <> ";"
+
 inf i a b = a <> i <> b
 a <+> b = (<>) <$> a <*> b
 col (k, v) = inf ": " <$> either ev ev k <*> ev v
-
-
