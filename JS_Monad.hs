@@ -172,7 +172,7 @@ retrn e = tell $ [ Return $ Cast e ]
 untype = Cast :: Expr a -> Expr ()
 
 pr :: M r a -> IO ()
-pr = TLIO.putStrLn . ev . eval
+pr = TLIO.putStrLn . runPrint . ev . eval
 
 ex txt = EName $ Name txt
 
