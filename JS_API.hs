@@ -62,8 +62,6 @@ focus e = call0 (e !. "focus")
 -- blur :: Expr Tag -> M r ()
 blur e = call0 (e !. "blur")
 
-
-
 -- | Get char from keyboard event
 eventKey event = do -- from: http://unixpapa.com/js/key.html
    retrn $ let
@@ -116,21 +114,15 @@ ajaxExpr meth uri data_ callback = do
    bare (call (xhr !. "open") [meth, uri, ulit True])
    bare $ call1 (xhr !. "send") data_
 
-
-
 -- * Modal dialogs
 
 alert x = bare $ call1 (ex "alert") x
 
--- prompt
-
--- ?
-
-
-
 -- ** Consoleobject/debugging
 
 consoleLog args = bare $ call (ex "console" !. "log") args
+
+consoleError args = bare $ call (ex "console" !. "error") args
 
 debug var expr = do
    ex var .= expr
