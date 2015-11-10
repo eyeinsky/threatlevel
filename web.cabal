@@ -64,3 +64,29 @@ library
                      , NamedFieldPuns
                      , FunctionalDependencies
    default-language:    Haskell2010
+
+test-suite test
+  default-language:    Haskell2010
+  default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
+                     , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows
+                     , OverloadedStrings, ExtendedDefaultRules, NoMonomorphismRestriction
+                     , FlexibleInstances, FlexibleContexts, GADTs, MultiParamTypeClasses
+                     , DeriveDataTypeable, TemplateHaskell, QuasiQuotes, DeriveGeneric, DefaultSignatures
+                     , BangPatterns, TypeFamilies, StandaloneDeriving
+                     , DataKinds, PolyKinds, GeneralizedNewtypeDeriving
+                     , NamedFieldPuns
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests
+  main-is:             test.hs
+  build-depends:       base
+                      , text, bytestring
+                      , hs-minu
+                      , text-format-hs
+                      , mtl, lens, containers, unordered-containers, template-haskell
+                      , network, network-simple
+                      , lens, case-insensitive
+                      , wai, http-types, mime-types
+                      , blaze-builder, blaze-html
+                      , aeson
+                      , warp
+                      , tagged

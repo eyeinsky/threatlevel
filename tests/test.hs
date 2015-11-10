@@ -1,5 +1,11 @@
+module Main where
+
+import Prelude2
+import qualified JS_Types as JT
 import JS_Monad
-{- ** THE DREAM ** -}
+
+main = putStr "Tests!"
+
 test = let
    in do
    return1 :: Expr (Expr JT.String, Proxy JT.NumberI)
