@@ -300,26 +300,8 @@ intPref p i = p <> tshow i
 
 f -/ (a :: Expr a) = wrapCall f (a, ())
 
-{- ** THE DREAM ** -}
-test = let
-   in do
-   return1 :: Expr (Expr JT.String, Proxy JT.NumberI)
-      <- newf' "ret1" $ \ (s :: Expr JT.String) ->
-         retrn (lit (1::Int) :: Expr JT.NumberI)
-   addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
-      retrn $ a .+ b
-
-   bare $ addArgs `a2` (lit (2::Int), lit (3::Int))
-   -- bare $ addArgs -/ lit ("string" :: String) -/ lit (3::Int)     -- errors due to wrong type of argument
-   -- bare $ addArgs -/ lit (2::Int) -/ lit (3::Int) -/ lit (4::Int) -- errors due to type mismatch (caused by too many arguments)
-
 f `a1` a = doCall f (a,())
 f `a2` (a,b) = doCall f (a,(b,()))
 f `a3` (a,b,c) = doCall f (a,(b,(c,())))
 f `a4` (a,b,c,d) = doCall f (a,(b,(c,(d,()))))
 f `a5` (a,b,c,d,e) = doCall f (a,(b,(c,(d,(e,())))))
-
-data FA a b = FA (Expr a, Proxy b)
-instance Category FA where
-   id = u
-   f . g = u
