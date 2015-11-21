@@ -6,10 +6,11 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 
-import JS_Syntax as JS
-import JS_Monad
-import qualified JS_Types as JT
-import JS_Ops_Untyped
+import JS.Syntax as JS
+import JS.Monad
+import qualified JS.Types as JT
+import JS.API
+import JS.Ops_Untyped
 import Web_CSS as CSS
 import Web_HTML
 
@@ -116,3 +117,48 @@ cursorPosition e = do
 cssAttr e k v = e !. "style" !. k .= v
 addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) cls
 remClass cls el = bare $ call1 (el !. "classList" !. "remove") cls
+
+-- * From JS_API
+
+-- ** XMLHttpRequest (Ajax)
+
+-- Expr URL -> data -> (\ x -> M y z) -> M a b
+-- doPost' a b c = call ajaxExpr ["post", a, b, c]
+doPost' a b c = do
+   aj <- newf $ ajaxExpr
+   bare $ call aj [ulit "POST", a, b, c]
+doGet' a b c = do
+   aj <- newf $ ajaxExpr
+   bare $ call aj [ulit "GET", a, b, c]
+
+ajaxExpr meth uri data_ callback = do
+   xhr <- new $ ex "new XMLHttpRequest()"
+   ifonly (callback .!== Undefined) $ do
+      wrap <- newf $ \(ret :: Expr ()) -> do
+         text <- new $ xhr !. "responseText"
+         json <- new $ fromJSON text
+         bare $ call1 callback json
+      xhr !. "onload" .= Cast wrap
+   bare (call (xhr !. "open") [meth, uri, ulit True])
+   bare $ call1 (xhr !. "send") data_
+
+-- ** DOM/Event
+
+-- focus :: Expr Tag -> Expr M r ()
+focus e = call0 (e !. "focus")
+
+-- blur :: Expr Tag -> M r ()
+blur e = call0 (e !. "blur")
+
+-- | Get char from keyboard event
+eventKey event = do -- from: http://unixpapa.com/js/key.html
+   retrn $ let
+         which = event !. "which" -- :: Expr J.Number
+         from arg = call (ex "String" !. "fromCharCode") [ arg ]
+         -- from which or keyCode
+      in ternary (which .== ex "null")
+      (from $ event !. "keyCode" ) -- old IE
+      (ternary
+         (  (which .!= ulit 0 :: Expr JT.Bool)
+        .&& event !. "charCode" .!= ulit 0
+        ) (from which {-all others-}) Null)

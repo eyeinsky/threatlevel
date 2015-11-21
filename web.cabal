@@ -17,15 +17,7 @@ cabal-version:       >=1.10
 
 library
    exposed-modules:
-        JS_Syntax
-      , JS_Types
-      , JS_Ops_Untyped
-      , JS_Monad
-      , JS_DOM
-      , JS_API
-      , JS
-      , JS_Derive
-      , Web_Client_Browser
+        JS_DOM
       , Web_CSS
       , Web_HTML
       , Web
@@ -35,23 +27,20 @@ library
       , HTTP_URL
       , Cookie
       , Warp_Helpers
-
-   other-modules:
-        Common
-      , IdentifierSource
-   -- other-extensions:
    build-depends:       base
                       , text, bytestring
                       , hs-minu
                       , text-format-hs
-                      , mtl, lens, containers, unordered-containers, template-haskell
+                      , mtl, containers, unordered-containers, template-haskell
                       , network, network-simple
-                      , lens, case-insensitive
+                      , case-insensitive
                       , wai, http-types, mime-types
                       , blaze-builder, blaze-html
                       , aeson
                       , warp
                       , tagged
+                      , web-browser
+                      , web-js
 
    -- hs-source-dirs:
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances
