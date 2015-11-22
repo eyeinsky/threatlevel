@@ -18,6 +18,7 @@ cabal-version:       >=1.10
 library
    exposed-modules:
         JS_DOM
+      , JS_Blaze
       , Web_CSS
       , Web_HTML
       , Web
