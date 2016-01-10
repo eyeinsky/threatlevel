@@ -30,13 +30,16 @@ data Fragment = Fragment T
    -- but URI is more than that.
    -}
 
+protoSep = "://"
+portSep = ":"
+
 instance ToPayload URL where
    toPayload (URL proto host port@ (Port pn) path params fragment) =
-      HTTP_Common.concat [r proto, r host, r port, r path, r params, r fragment]
+      HTTP_Common.concat [r proto, protoSep, r host, portSep, r port, r path, r params, r fragment]
       where r = toPayload
 
 instance ToPayload Proto where
-   toPayload (Proto a) = a <> "://"
+   toPayload (Proto a) = a
 
 instance ToPayload Host where
    toPayload h = case h of
@@ -44,8 +47,7 @@ instance ToPayload Host where
       IP4 a b c d -> format "{}.{}.{}.{}" (a,b,c,d)
 
 instance ToPayload Port where
-   toPayload (Port w16) = w16 == 80 ? "" $ expl
-      where expl = ":" <> pack (show w16)
+   toPayload (Port w16) = w16 == 80 ? "" $ pack (show w16)
 
 instance ToPayload Path where
    toPayload (Path p) = "/" <> un "/" p -- toPayload for Request => hast to start with /
