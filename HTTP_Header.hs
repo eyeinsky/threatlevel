@@ -198,6 +198,6 @@ instance ToPayload C.Cookie where
    toPayload = C.cookieString
 
 cookie' a b c d e = Header (SetCookie, toPayload $ C.Cookie a b c d e)
-mkC k v = cookie' k v "typorg.dev" [] ""
-delC k  = cookie' k "deleted" "typorg.dev" [] "Thu, 01-Jan-1970 00:00:01 GMT"
+mkC k v = cookie' k v "" [] ""
+delC k  = cookie' k "deleted" "" [] "Thu, 01-Jan-1970 00:00:01 GMT"
 
