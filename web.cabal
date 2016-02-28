@@ -25,6 +25,7 @@ library
       , HTTP_Common
       , HTTP_Header
       , HTTP_Response
+      , HTTP_Response_InlineFile
       , HTTP_URL
       , Cookie
       , Warp_Helpers
@@ -42,6 +43,7 @@ library
                       , tagged
                       , web-browser
                       , web-js
+                      , file-embed
 
    -- hs-source-dirs:
    default-extensions:  NoImplicitPrelude, TupleSections, TypeSynonymInstances

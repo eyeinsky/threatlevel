@@ -22,11 +22,13 @@ import           Blaze.ByteString.Builder.ByteString (fromLazyByteString)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString      as B
+import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 
 import Network.Mime as Mime
+import Data.FileEmbed
 
 
 import Data.Aeson as JSON
@@ -53,6 +55,7 @@ data RespAction where
    JSON     :: ToJSON a => a -> RespAction
    Redirect :: T.Text -> RespAction
    DiskFile :: T.Text -> RespAction
+   InlineFile :: Hdr.Header -> B.ByteString -> RespAction
 
 toResp :: RespAction -> Resp
 toResp ra = Resp ([], ra)
@@ -82,18 +85,23 @@ appendBody a (Resp (hs, ra)) = Resp (hs, ra')
 -- * Conversion to Wai/Warp
 
 toWai (Resp (hs, ra)) = waiAddHeaders (map Hdr.cc hs) $ case ra of
-   Html hh hb -> waiBs [ utf8textHdr "html" ] . renderHtml
+   Html hh hb -> waiLbs [ utf8textHdr "html" ] . renderHtml
             $ E.docType >> E.head hh >> E.body hb
-   JSON json     -> waiBs [ jsh ] $ encode json
+   JSON json     -> waiLbs [ jsh ] $ encode json
    Redirect url  -> waiRedir url
    DiskFile path -> waiSendFile path
+   InlineFile ct content -> waiBs [ct] content
    where jsh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
 
 
-waiBs :: [ Hdr.Header ] -> LBS.ByteString -> Response
-waiBs hs bs = responseBuilder ok200 hs' bs'
+waiLbs :: [ Hdr.Header ] -> LBS.ByteString -> Response
+waiLbs hs bs = responseBuilder ok200 hs' bs'
    where hs' = map Hdr.cc hs
          bs' = fromLazyByteString bs
+
+waiBs :: [ Hdr.Header ] -> B.ByteString -> Response
+waiBs hs bs = responseBuilder ok200 hs' $ BB.byteString bs
+   where hs' = map Hdr.cc hs
 
 waiAddHeaders hs r = case r of
    ResponseBuilder st hdrs builder -> ResponseBuilder st (hs <> hdrs) builder
@@ -231,4 +239,5 @@ textBody   b = return . utf8ct "html" $ Html "" b :: Monad m => m Resp
 htmlPage h b = return . utf8ct "html" $ Html h  b :: Monad m => m Resp
 redirect url = return . redirectResp $ url        :: Monad m => m Resp
 file path = return . toResp $ DiskFile path :: Monad m => m Resp
+inlineFile file = return . toResp $ file :: Monad m => m Resp
 redirectResp url = utf8ct "html" $ Redirect url :: Resp
