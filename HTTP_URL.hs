@@ -9,9 +9,7 @@ import Data.Word (Word8, Word16)
 
 data URL = URL {
      proto :: Proto
-   {-user:pass@ :: Authority -}
-   , host :: Host
-   , port :: Port
+   , authority :: Authority
    , path :: Path
    , params :: Params
    , fragment :: Fragment }
@@ -25,6 +23,13 @@ data Path = Path [T]
 data Params = Params [(T,T)]
 data Fragment = Fragment T
 
+data Authority = Authority {
+     authentication :: Maybe (T, T)
+   , host :: Host
+   , port :: Port
+   }
+
+
 {- Although called ToPayload, the method converts these for
    a payload to an HTTP Request and not for anything else
    -- but URI is more than that.
@@ -34,9 +39,15 @@ protoSep = "://"
 portSep = ":"
 
 instance ToPayload URL where
-   toPayload (URL proto host port@ (Port pn) path params fragment) =
-      HTTP_Common.concat [r proto, protoSep, r host, portSep, r port, r path, r params, r fragment]
+   toPayload (URL proto authority path params fragment) =
+      HTTP_Common.concat [r proto, protoSep, r authority, r path, r params, r fragment]
       where r = toPayload
+
+instance ToPayload Authority where
+   toPayload (Authority authentication host port@ (Port pn)) =
+      HTTP_Common.concat [maybe "" mkAuth authentication, r host, portSep, r port]
+      where r = toPayload
+            mkAuth (u, p) = u <> ":" <> p <> "@"
 
 instance ToPayload Proto where
    toPayload (Proto a) = a

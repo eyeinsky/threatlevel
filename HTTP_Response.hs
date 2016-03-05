@@ -214,6 +214,7 @@ instance BodyAs (Maybe JSON.Object) where
 deriving instance Show b => Show (ResponseR b)
 -- deriving instance Show (Request b)
 deriving instance Show URL
+deriving instance Show Authority
 deriving instance Show Proto
 deriving instance Show Host
 deriving instance Show Port
@@ -223,6 +224,7 @@ deriving instance Show Fragment
 
 -- deriving instance Eq (Request b)
 deriving instance Eq URL
+deriving instance Eq Authority
 deriving instance Eq Proto
 deriving instance Eq Host
 deriving instance Eq Port
