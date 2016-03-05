@@ -21,8 +21,8 @@ import qualified Data.Aeson as JSON
 
 import Text.Format
 
-import HTTP_URL
 import HTTP_Common
+import URL
 
 -- * Networking
 

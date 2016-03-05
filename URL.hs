@@ -1,4 +1,4 @@
-module HTTP_URL where
+module URL where
 
 import Prelude2 hiding (null, un)
 import qualified Prelude2 as P

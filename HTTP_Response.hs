@@ -40,7 +40,7 @@ import qualified HTTP_Header as Hdr
 
 
 import HTTP_Common
-import           HTTP_URL
+import URL
 
 -- * Send
 

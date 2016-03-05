@@ -7,11 +7,10 @@ import qualified Network.Socket.ByteString as N
 import qualified Network.Socket as S
 
 import           HTTP_Common
-import           HTTP_URL
-import           HTTP_Response
-
-import           HTTP_Netw
 import qualified HTTP_Header as H
+import           HTTP_Netw
+import           HTTP_Response
+import           URL
 
 -- * Request
 
@@ -20,7 +19,7 @@ perform :: BodyAs b => Request b -> IO (ResponseR b)
 perform req = let
       u' = url req
       payload = toPayload' req
-      tcpto = TCPTo (u' & port) (u' & host)
+      tcpto = TCPTo (u' & authority & port) (u' & authority & host)
    in connect tcpto $ \(soc, remoteAddr) -> do
       _ <- send soc payload
       mResp <- NS.recv soc 10000
