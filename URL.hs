@@ -70,3 +70,25 @@ instance ToPayload Params where
 instance ToPayload Fragment where
    toPayload (Fragment a) = null a ? "" $ expl
       where expl = "#" <> a
+
+-- ** Instances
+
+deriving instance Eq URL
+deriving instance Eq Authority
+deriving instance Eq Proto
+deriving instance Eq Host
+deriving instance Eq Port
+deriving instance Eq Path
+deriving instance Eq Params
+deriving instance Eq Fragment
+
+deriving instance Ord Port
+
+deriving instance Show URL
+deriving instance Show Authority
+deriving instance Show Proto
+deriving instance Show Host
+deriving instance Show Port
+deriving instance Show Path
+deriving instance Show Params
+deriving instance Show Fragment
