@@ -45,9 +45,10 @@ instance ToPayload URL where
 
 instance ToPayload Authority where
    toPayload (Authority authentication host port@ (Port pn)) =
-      HTTP_Common.concat [maybe "" mkAuth authentication, r host, portSep, r port]
+      HTTP_Common.concat [maybe "" mkAuth authentication, r host, portPart]
       where r = toPayload
             mkAuth (u, p) = u <> ":" <> p <> "@"
+            portPart = if pn == 80 then "" else portSep <> r port
 
 instance ToPayload Proto where
    toPayload (Proto a) = a
