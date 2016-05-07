@@ -29,6 +29,8 @@ library
       , URL
       , Cookie
       , Warp_Helpers
+      -- shorthands
+      , Web.Blaze
    build-depends:       base
                       , text, bytestring
                       , hs-minu
@@ -56,6 +58,7 @@ library
                      , NamedFieldPuns
                      , FunctionalDependencies
    default-language:    Haskell2010
+
 
 test-suite test
   default-language:    Haskell2010
