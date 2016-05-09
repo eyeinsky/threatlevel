@@ -64,6 +64,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       let cls = CSS.Class $ "c" <> TL.pack (show c)
           (a, rules) = CSS.runRM $ CSS.rule cls decm
       tell $ mempty & cssCode .~ rules
+      c <- modify (cssCounter %~ (+ 1))
       return cls
 
 -- ** Helpers
