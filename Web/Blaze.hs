@@ -16,3 +16,4 @@ favicon adr = E.link
    E.! A.href (E.toValue adr)
 
 cls_ strs = A.class_ $ E.toValue $ TL.unwords $ map CSS.unClass strs
+id_ (CSS.Id t) = A.id $ E.toValue t

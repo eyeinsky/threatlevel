@@ -16,7 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-   exposed-modules:
+  exposed-modules:
         JS_DOM
       , JS_Blaze
       , Web_CSS
@@ -32,7 +32,8 @@ library
       , Warp_Helpers
       -- shorthands
       , Web.Blaze
-   build-depends:       base
+      , Web.Blaze.Bootstrap
+  build-depends:       base
                       , text, bytestring
                       , hs-minu
                       , text-format-hs
