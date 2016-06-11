@@ -72,6 +72,7 @@ class Monad m => MonadWeb m where
    js :: JS.M () a -> m a
    css :: CSS.DM () -> m CSS.Class
    cssRule :: CSS.SelectorFrom a => a -> CSS.DM () -> m ()
+   cssId :: CSS.DM () -> m CSS.Id
 
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
@@ -93,6 +94,13 @@ instance (Monad m) => MonadWeb (WebT m) where
           (a, rules) = CSS.runRM $ CSS.rule selector decm
       tell $ mempty & cssCode .~ rules
       return ()
+   cssId decm = WebT $ do
+      c <- gets (^.cssCounter)
+      let cls = CSS.Id $ "i" <> TL.pack (show c)
+          (a, rules) = CSS.runRM $ CSS.rule cls decm
+      tell $ mempty & cssCode .~ rules
+      c <- modify (cssCounter %~ (+ 1))
+      return cls
 
 -- ** Helpers
 
