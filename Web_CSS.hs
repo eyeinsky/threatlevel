@@ -216,3 +216,6 @@ resetCSS = do
    where
       nopad = prop "padding" $ px 0
       nomarg = prop "margin" $ px 0
+
+instance IsString Class where
+  fromString = Class . TL.pack
