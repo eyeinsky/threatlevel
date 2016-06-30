@@ -9,7 +9,9 @@ import qualified Text.Blaze.Html5            as E
 import qualified Web_CSS as CSS
 
 jsTag = E.script E.! A.type_ "text/javascript"
+jsUrl url = jsTag E.! A.src url $ ""
 cssTag = E.style E.! A.type_ "text/css"
+cssUrl path = E.link E.! A.type_ "text/css" E.! A.rel "stylesheet" E.! A.href (E.toValue path)
 favicon adr = E.link
    E.! A.rel "shortcut icon"
    E.! A.type_ "image/x-icon"
