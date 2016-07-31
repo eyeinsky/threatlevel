@@ -33,6 +33,7 @@ library
       , Cookie
       , Warp_Helpers
       -- shorthands
+      , Web.FRP
   build-depends:       base
                       , text, bytestring
                       , hs-minu
