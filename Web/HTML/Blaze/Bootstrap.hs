@@ -1,10 +1,10 @@
-module Web.Blaze.Bootstrap where
+module Web.HTML.Blaze.Bootstrap where
 
 import Prelude2
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Html5            as E
 
-import Web.Blaze
+import Web.HTML.Blaze
 
 crossorigin = E.customAttribute "crossorigin"
 integrity = E.customAttribute "integrity"

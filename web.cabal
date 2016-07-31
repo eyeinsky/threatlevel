@@ -19,8 +19,10 @@ library
   exposed-modules:
         JS.DOM
       , JS.Blaze
-      , Web_CSS
-      , Web_HTML
+      , Web.CSS
+      , Web.HTML.Core
+      , Web.HTML.Blaze
+      , Web.HTML.Blaze.Bootstrap
       , Web
       , Web.Monad
       , HTTP_Common
@@ -31,8 +33,6 @@ library
       , Cookie
       , Warp_Helpers
       -- shorthands
-      , Web.Blaze
-      , Web.Blaze.Bootstrap
   build-depends:       base
                       , text, bytestring
                       , hs-minu

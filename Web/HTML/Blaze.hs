@@ -1,4 +1,4 @@
-module Web.Blaze where
+module Web.HTML.Blaze where
 
 import Prelude
 import qualified Data.Text.Lazy as TL
@@ -6,7 +6,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Html5            as E
 
-import qualified Web_CSS as CSS
+import qualified Web.CSS as CSS
 
 jsTag = E.script E.! A.type_ "text/javascript"
 jsUrl url = jsTag E.! A.src url $ ""
