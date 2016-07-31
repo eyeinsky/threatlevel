@@ -1,14 +1,12 @@
-module JS_DOM where
+module JS.DOM where
 
-import Prelude2 hiding ((.=))
+import Prelude2 hiding ((.=), Bool)
 import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 
-import JS.Syntax as JS
 import JS.Monad
-import qualified JS.Types as JT
 import JS.API
 import JS.Ops_Untyped
 import Web_CSS as CSS
@@ -49,7 +47,7 @@ on' el eventType fexpr = do
 -- * Finding elements
 
 -- | The global find
-class    FindBy a where findBy :: a -> JS.Expr Tag
+class    FindBy a where findBy :: a -> Expr Tag
 instance FindBy CSS.Id where
    findBy (CSS.Id t) = docCall "getElementById" t
 instance FindBy CSS.Class where
@@ -80,11 +78,11 @@ remove e = bare $ call0 (e !. "remove")
 
 setInnerHTML e x = e !. "innerHTML" .= x
 
-createElement :: TagName -> JS.Expr Tag
+createElement :: TagName -> Expr Tag
 createElement tn = docCall "createElement" $ unTagName tn
 
 -- creates the expr to create the tree, returns top
-createHtml :: HTML -> JS.Expr Tag
+createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ case tr of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
@@ -159,6 +157,6 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
       in ternary (which .== ex "null")
       (from $ event !. "keyCode" ) -- old IE
       (ternary
-         (  (which .!= ulit 0 :: Expr JT.Bool)
+         (  (which .!= ulit 0)
         .&& event !. "charCode" .!= ulit 0
         ) (from which {-all others-}) Null)

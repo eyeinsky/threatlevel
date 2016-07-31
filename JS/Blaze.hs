@@ -1,19 +1,19 @@
-module JS_Blaze () where
+module JS.Blaze () where
 
 import Prelude2
 import qualified Text.Blaze.Html5 as E
-import qualified JS as J
+import JS
 
-_ASTtoText = J.runRender . J.ev
-instance E.ToValue (J.Expr a) where
+_ASTtoText = runRender . ev
+instance E.ToValue (Expr a) where
    toValue = E.toValue . _ASTtoText
    preEscapedToValue = E.preEscapedToValue . _ASTtoText
-instance E.ToValue (J.Code a) where
+instance E.ToValue (Code a) where
    toValue = E.toValue . _ASTtoText
    preEscapedToValue = E.preEscapedToValue . _ASTtoText
-instance E.ToMarkup (J.Expr a) where
+instance E.ToMarkup (Expr a) where
    toMarkup = E.toMarkup . _ASTtoText
    preEscapedToMarkup = E.preEscapedToMarkup . _ASTtoText
-instance E.ToMarkup (J.Code a) where
+instance E.ToMarkup (Code a) where
    toMarkup = E.toMarkup . _ASTtoText
    preEscapedToMarkup = E.preEscapedToMarkup . _ASTtoText
