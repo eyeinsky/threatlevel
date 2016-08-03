@@ -1,6 +1,6 @@
-module Web_CSS
-   ( module Web_CSS
-   , module Web_HTML
+module Web.CSS
+   ( module Web.CSS
+   , module Web.HTML.Core
    )
    where
 
@@ -20,7 +20,7 @@ import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import Web_HTML
+import Web.HTML.Core
 
 
 -- type T = T.Text

@@ -1,4 +1,4 @@
-module Web_HTML where
+module Web.HTML.Core where
 
 import Prelude2
 import Text.Exts

@@ -10,14 +10,13 @@ import qualified Text.Blaze.Html5            as E
 
 import HTTP_Response
 
-import qualified Web_CSS as CSS
+import qualified Web.CSS as CSS
 import qualified Web as W
 import qualified JS
-import qualified JS.Monad as JM
-import qualified JS_DOM as JD
-import qualified JS_Blaze
+import qualified JS.DOM as JD
+import qualified JS.Blaze
 
-import Web.Blaze
+import Web.HTML.Blaze
 
 
 -- ** Web monad

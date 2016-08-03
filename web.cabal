@@ -17,10 +17,12 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-        JS_DOM
-      , JS_Blaze
-      , Web_CSS
-      , Web_HTML
+        JS.DOM
+      , JS.Blaze
+      , Web.CSS
+      , Web.HTML.Core
+      , Web.HTML.Blaze
+      , Web.HTML.Blaze.Bootstrap
       , Web
       , Web.Monad
       , HTTP_Common
@@ -31,8 +33,7 @@ library
       , Cookie
       , Warp_Helpers
       -- shorthands
-      , Web.Blaze
-      , Web.Blaze.Bootstrap
+      , Web.FRP
   build-depends:       base
                       , text, bytestring
                       , hs-minu
