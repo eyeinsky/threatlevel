@@ -11,6 +11,7 @@ import JS.API
 import JS.Ops_Untyped
 import Web.CSS as CSS
 import Web.HTML.Core
+import Web.DOM.Event
 
 
 -- * Objects

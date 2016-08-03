@@ -20,6 +20,7 @@ library
         JS.DOM
       , JS.Blaze
       , Web.CSS
+      , Web.DOM.Event
       , Web.HTML.Core
       , Web.HTML.Blaze
       , Web.HTML.Blaze.Bootstrap
