@@ -1,4 +1,4 @@
-module HTTP_Netw where
+module HTTP.Netw where
 
 import Prelude2 hiding (unlines, un, (&))
 import Data.Word (Word8, Word16)
@@ -21,7 +21,7 @@ import qualified Data.Aeson as JSON
 
 import Text.Format
 
-import HTTP_Common
+import HTTP.Common
 import URL
 
 -- * Networking

@@ -1,4 +1,4 @@
-module HTTP_Request where
+module HTTP.Request where
 
 import Prelude2
 -- network, network-simple
@@ -6,10 +6,10 @@ import qualified Network.Simple.TCP as NS
 import qualified Network.Socket.ByteString as N
 import qualified Network.Socket as S
 
-import           HTTP_Common
-import qualified HTTP_Header as H
-import           HTTP_Netw
-import           HTTP_Response
+import           HTTP.Common
+import qualified HTTP.Header as H
+import           HTTP.Netw
+import           HTTP.Response
 import           URL
 
 -- * Request

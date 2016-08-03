@@ -1,9 +1,9 @@
-module HTTP_Util where
+module HTTP.Util where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
-import HTTP_Request
-import HTTP_Response
+import HTTP.Request
+import HTTP.Response
 import URL
 
 bareDomain dom = URL

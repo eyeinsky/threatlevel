@@ -1,4 +1,4 @@
-module HTTP_Response where
+module HTTP.Response where
 
 import Prelude2
 
@@ -33,13 +33,13 @@ import Data.FileEmbed
 
 import Data.Aeson as JSON
 
-import qualified HTTP_Header as Hdr
-import           HTTP_Header (hdr)
-import qualified HTTP_Header as H
-import qualified HTTP_Header as Hdr
+import qualified HTTP.Header as Hdr
+import           HTTP.Header (hdr)
+import qualified HTTP.Header as H
+import qualified HTTP.Header as Hdr
 
 
-import HTTP_Common
+import HTTP.Common
 import URL
 
 -- * Send
@@ -159,7 +159,7 @@ import Control.Lens hiding (un, (&))
 
 import Text.Format
 
-import           HTTP_Netw
+import           HTTP.Netw
 
 -}
 

@@ -25,10 +25,10 @@ library
       , Web.HTML.Blaze.Bootstrap
       , Web
       , Web.Monad
-      , HTTP_Common
-      , HTTP_Header
-      , HTTP_Response
-      , HTTP_Response_InlineFile
+      , HTTP.Common
+      , HTTP.Header
+      , HTTP.Response
+      , HTTP.Response.InlineFile
       , URL
       , Cookie
       , Warp_Helpers

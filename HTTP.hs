@@ -8,19 +8,19 @@ TODO
 -}
 module HTTP
    (
-     module HTTP_Header
-   , module HTTP_Netw
-   , module HTTP_Request
-   , module HTTP_Response
-   , module HTTP_Util
+     module HTTP.Header
+   , module HTTP.Netw
+   , module HTTP.Request
+   , module HTTP.Response
+   , module HTTP.Util
    , module URL
    )
    where
 
 
-import HTTP_Header
-import HTTP_Netw
-import HTTP_Request
-import HTTP_Response
-import HTTP_Util
+import HTTP.Header
+import HTTP.Netw
+import HTTP.Request
+import HTTP.Response
+import HTTP.Util
 import URL

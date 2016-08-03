@@ -8,7 +8,7 @@ import Control.Monad.RWS as RWS
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Html5            as E
 
-import HTTP_Response
+import HTTP.Response
 
 import qualified Web.CSS as CSS
 import qualified Web as W

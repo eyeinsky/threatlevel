@@ -4,7 +4,7 @@ import Prelude2 hiding (null, un)
 import qualified Prelude2 as P
 import Text.Format
 
-import HTTP_Common
+import HTTP.Common
 import Data.Word (Word8, Word16)
 
 data URL = URL {
@@ -40,12 +40,12 @@ portSep = ":"
 
 instance ToPayload URL where
    toPayload (URL proto authority path params fragment) =
-      HTTP_Common.concat [r proto, protoSep, r authority, r path, r params, r fragment]
+      HTTP.Common.concat [r proto, protoSep, r authority, r path, r params, r fragment]
       where r = toPayload
 
 instance ToPayload Authority where
    toPayload (Authority authentication host port@ (Port pn)) =
-      HTTP_Common.concat [maybe "" mkAuth authentication, r host, portPart]
+      HTTP.Common.concat [maybe "" mkAuth authentication, r host, portPart]
       where r = toPayload
             mkAuth (u, p) = u <> ":" <> p <> "@"
             portPart = if pn == 80 then "" else portSep <> r port

@@ -1,7 +1,7 @@
-module HTTP_Response_InlineFile where
+module HTTP.Response.InlineFile where
 
 import Prelude2
-import HTTP_Response
+import HTTP.Response
 import Data.FileEmbed
 import Data.Text as T
 import Data.Text.Lazy as TL
@@ -10,7 +10,7 @@ import Data.Text.Lazy.Encoding as TLE
 
 import Network.Mime as Mime
 import Network.HTTP.Types (hContentType)
-import qualified HTTP_Header as Hdr
+import qualified HTTP.Header as Hdr
 
 mkInlineFile path = let
       ct = [| Hdr.hdr Hdr.ContentType (TL.fromStrict $ TE.decodeUtf8 $ Mime.defaultMimeLookup $ T.pack path) |]

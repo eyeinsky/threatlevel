@@ -1,4 +1,4 @@
-module HTTP_Common where
+module HTTP.Common where
 
 import Prelude2 hiding (un)
 

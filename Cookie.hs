@@ -1,10 +1,9 @@
-
 module Cookie where
 
 import Prelude2 hiding (un)
 import Text.Format
 import qualified Data.Text.Lazy as TL
-import HTTP_Common
+import HTTP.Common
 
 data Cookie = Cookie
    { name    :: TL.Text

@@ -1,9 +1,9 @@
-module HTTP_Header where
+module HTTP.Header where
 
 import Prelude2 hiding (unlines, find)
 import Text.Format
 
-import HTTP_Common
+import HTTP.Common
 
 -- for conversion to Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Header as H

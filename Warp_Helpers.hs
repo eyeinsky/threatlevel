@@ -14,7 +14,7 @@ import Network.Wai -- (Response, Request, queryString, requestHeaders, pathInfo,
 import Network.Wai.Handler.Warp -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
 import Network.HTTP.Types
 
-import HTTP_Common
+import HTTP.Common
 import URL
 
 getRequestBody req = BL.fromChunks <$> loop
