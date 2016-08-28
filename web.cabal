@@ -17,10 +17,10 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-        JS.DOM
+        DOM.JS
       , JS.Blaze
       , Web.CSS
-      , Web.DOM.Event
+      , DOM.Event
       , Web.HTML.Core
       , Web.HTML.Blaze
       , Web.HTML.Blaze.Bootstrap

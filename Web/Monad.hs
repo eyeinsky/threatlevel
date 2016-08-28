@@ -13,7 +13,7 @@ import HTTP.Response
 import qualified Web.CSS as CSS
 import qualified Web as W
 import qualified JS
-import qualified JS.DOM as JD
+import qualified DOM.JS as JD
 import qualified JS.Blaze
 
 import Web.HTML.Blaze

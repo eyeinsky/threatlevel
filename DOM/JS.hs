@@ -1,4 +1,4 @@
-module JS.DOM where
+module DOM.JS where
 
 import Prelude2 hiding ((.=), Bool)
 import Text.Exts
@@ -11,7 +11,7 @@ import JS.API
 import JS.Ops_Untyped
 import Web.CSS as CSS
 import Web.HTML.Core
-import Web.DOM.Event
+import DOM.Event
 
 
 -- * Objects

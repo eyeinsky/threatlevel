@@ -1,4 +1,4 @@
-module Web.DOM.Event where
+module DOM.Event where
 
 import Prelude2
 import Text.Exts
