@@ -76,6 +76,10 @@ utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8"
 addHead a (Resp (hs, ra)) = Resp (hs, ra')
    where ra' = case ra of Html h b -> Html (h>>a) b; _ -> ra
 
+modBody :: (E.Html -> E.Html) -> Resp -> Resp
+modBody f (Resp (hs, ra)) = Resp (hs, ra')
+   where ra' = case ra of Html h b -> Html h (f b); _ -> ra
+
 prependBody a (Resp (hs, ra)) = Resp (hs, ra')
    where ra' = case ra of Html h b -> Html h (a>>b); _ -> ra
 appendBody a (Resp (hs, ra)) = Resp (hs, ra')
