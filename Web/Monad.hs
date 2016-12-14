@@ -66,6 +66,9 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
 runWebMT :: W.Browser -> State -> WebT m a -> m (a, State, Writer)
 runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
+type WebMonadResult m a = m (a, State, Writer)
+
+run :: W.Browser -> WebT m a -> WebMonadResult m a
 run r wm = RWS.runRWST (unWebT wm) r state
    where state = State JS.def 0
 
