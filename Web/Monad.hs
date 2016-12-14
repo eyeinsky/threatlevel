@@ -1,4 +1,8 @@
-module Web.Monad where
+module Web.Monad
+  ( MonadWeb(..)
+  , WebT, runWebMT, run, WebMonadResult
+  , jsCode, cssCode
+  ) where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
@@ -35,7 +39,7 @@ declareLenses [d|
       mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
    |]
 
-newtype WebT m a = WebT { runWebT :: RWS.RWST W.Browser Writer State m a }
+newtype WebT m a = WebT { unWebT :: RWS.RWST W.Browser Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
 -- newtype RWST r w s m a = RWST { runRWST :: r -> s -> m (a, s, w) }
@@ -60,9 +64,9 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
     return (a, ss, ww)
 
 runWebMT :: W.Browser -> State -> WebT m a -> m (a, State, Writer)
-runWebMT r s wm = RWS.runRWST (runWebT wm) r s
+runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
-run r wm = RWS.runRWST (runWebT wm) r state
+run r wm = RWS.runRWST (unWebT wm) r state
    where state = State JS.def 0
 
 -- ** MonadWeb
