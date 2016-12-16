@@ -42,7 +42,6 @@ declareLenses [d|
 newtype WebT m a = WebT { unWebT :: RWS.RWST W.Browser Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
--- newtype RWST r w s m a = RWST { runRWST :: r -> s -> m (a, s, w) }
 instance MonadReader r m => MonadReader r (WebT m) where
   ask   = lift ask
   local f (WebT (RWS.RWST g)) = WebT $ RWS.RWST $ \r s -> do
@@ -51,7 +50,7 @@ instance MonadReader r m => MonadReader r (WebT m) where
   reader = lift . reader
 
 instance MonadState s m => MonadState s (WebT m) where
-  state f = lift $ state f -- state :: (s -> (a, s)) -> m a
+  state f = lift $ state f
 
 instance MonadWriter w m => MonadWriter w (WebT m) where
   tell w = lift $ tell w
