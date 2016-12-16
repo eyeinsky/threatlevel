@@ -2,6 +2,8 @@ module Web.Monad
   ( MonadWeb(..)
   , WebT, runWebMT, run, WebMonadResult
   , jsCode, cssCode
+  , webToResponse
+  , webWai
   ) where
 
 import Prelude2
@@ -11,6 +13,7 @@ import Control.Monad.RWS as RWS
 
 import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Blaze.Html5            as E
+import Network.Wai
 
 import HTTP.Response
 
@@ -109,9 +112,16 @@ instance (Monad m) => MonadWeb (WebT m) where
 
 -- ** Helpers
 
+webWai :: Monad f => WebT f E.Html -> Request -> f Response
+webWai webm req = fmap toWai $ webToResponse browser webm
+  where
+    hdrs = requestHeaders req
+    browser = maybe W.Unknown W.parseBrowser . lookup "User-Agent" $ hdrs
+
+webToResponse :: Monad m => W.Browser -> WebT m E.Html -> m Resp
 webToResponse r m = do
-   (resp, _ {-states-}, Writer js css) <- run r m
-   let cssX = css <> CSS.toRules CSS.resetCSS
+   (resp, _, Writer js css) <- run r m
+   let reset = CSS.toRules CSS.resetCSS
+       addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> reset)
        addJs = addHead (jsTag $ E.toHtml js)
-       addCss = addHead (cssTag . E.toHtml . CSS.pr $ cssX)
    addHead (favicon "") . addCss . addJs <$> htmlBody resp
