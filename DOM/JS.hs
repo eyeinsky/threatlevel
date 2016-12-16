@@ -37,13 +37,12 @@ on :: (Event event, ToOn event)
    -> event                          --   .. has this event
    -> Expr (Expr event, Proxy ()) --   .. then do this.
    -> M r ()
-on el eventType fident = do
-   (el !. Name (toOn eventType)) .= fident
+on e t f = onEvent .= f
+  where onEvent = e !. Name (toOn t)
 
-on' el eventType fexpr = do
-   fdef <- func fexpr -- (no inermediate variable)
-   on el eventType fdef
-   -- (el !. Name (toOn eventType)) .= fdef
+on' e t f = do
+   fdef <- func f
+   on e t fdef
 
 -- * Finding elements
 
