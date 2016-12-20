@@ -27,6 +27,10 @@ library
     , Web.HTML.Blaze.Bootstrap
     , Web.HTML.Core
     , Web.Monad
+  other-modules:
+      Web.CSS.Internal
+    , Web.CSS.Shorthands
+    , Web.CSS.Shorthands.TH
   build-depends:
       base
     , aeson
