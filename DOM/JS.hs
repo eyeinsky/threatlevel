@@ -163,3 +163,11 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
          (  (which .!= ulit 0)
         .&& event !. "charCode" .!= ulit 0
         ) (from which {-all others-}) Null)
+
+preventDefault :: Event e => Expr e -> Expr ()
+preventDefault e = call0 (e !. "preventDefault")
+
+-- * Helpers
+
+onloadDo :: M b a -> M b ()
+onloadDo js = (onload .=) =<< block js
