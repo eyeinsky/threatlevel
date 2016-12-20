@@ -49,9 +49,13 @@ instance Print [Declaration] where
 
 -- ** Selector
 
-data Selector = Selector (Maybe TagName) (Maybe Id) [Class] [Pseudo]
+newtype Selector = Selector { unSelector :: [SimpleSelector] }
 instance Print Selector where
-   pr (Selector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
+  pr = TL.unwords . map pr . unSelector
+
+data SimpleSelector = SimpleSelector (Maybe TagName) (Maybe Id) [Class] [Pseudo]
+instance Print SimpleSelector where
+   pr (SimpleSelector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
       where f = map pr
             g = maybe "" pr
 
@@ -137,6 +141,7 @@ instance Print Comment where
 deriving instance Show Rule
 deriving instance Show Prelude
 deriving instance Show Selector
+deriving instance Show SimpleSelector
 deriving instance Show Declaration
 deriving instance Show Property
 deriving instance Show Value
@@ -156,15 +161,16 @@ prs x = tlshow x
 class SelectorFrom a where selFrom :: a -> Selector
 instance SelectorFrom Selector where
    selFrom a = a
+instance SelectorFrom SimpleSelector where
+   selFrom a = Selector [a]
 instance SelectorFrom TagName where
-   selFrom a = Selector (Just a) Nothing [] []
+   selFrom a = selFrom $ SimpleSelector (Just a) Nothing [] []
 instance SelectorFrom Class where
-   selFrom a = Selector Nothing Nothing [a] []
+   selFrom a = selFrom $ SimpleSelector Nothing Nothing [a] []
 instance SelectorFrom Id where
-   selFrom a = Selector Nothing (Just a) [] []
+   selFrom a = selFrom $ SimpleSelector Nothing (Just a) [] []
 instance SelectorFrom Pseudo where
-   selFrom a = Selector Nothing Nothing [] [a]
-
+   selFrom a = selFrom $ SimpleSelector Nothing Nothing [] [a]
 
 -- * Monad
 
@@ -178,16 +184,16 @@ type DM = WriterT [Declaration] Identity
 runDM = runIdentity . runWriterT :: DM a -> (a, [Declaration])
 execDM = snd . runDM :: DM a -> [Declaration]
 
-(-#) :: Selector -> TL.Text -> Selector
-Selector mt is cs ps -# str = Selector mt (Just (Id str)) cs ps
 
-(-.) :: Selector -> TL.Text -> Selector
-Selector mt is cs ps -. str = Selector mt is (Class str : cs) ps
+(-#) :: SimpleSelector -> TL.Text -> SimpleSelector
+SimpleSelector mt is cs ps -# str = SimpleSelector mt (Just (Id str)) cs ps
 
-(-:) :: Selector -> TL.Text -> Selector
-Selector mt is cs ps -: str = Selector mt is cs (Pseudo str : ps)
+(-.) :: SimpleSelector -> TL.Text -> SimpleSelector
+SimpleSelector mt is cs ps -. str = SimpleSelector mt is (Class str : cs) ps
 
-e = Selector Nothing Nothing [] []
+(-:) :: SimpleSelector -> TL.Text -> SimpleSelector
+SimpleSelector mt is cs ps -: str = SimpleSelector mt is cs (Pseudo str : ps)
+
 
 rule :: SelectorFrom a => a -> DM () -> RM ()
 rule s ds = tell $ [ Qualified (Selectors [selFrom s]) (runIdentity . execWriterT $ ds) ]
@@ -196,9 +202,13 @@ prop :: TL.Text -> Value -> DM ()
 prop p v = tell [ Declaration (Property p) v ]
 
 
+{-
+      -}
 test :: RM ()
-test = do
-   rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2") $ do
+test = let
+    e = SimpleSelector Nothing Nothing [] []
+  in do
+  rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2") $ do
       prop "jee" $ hex 5
       prop "background-color" $ hex 7
 
