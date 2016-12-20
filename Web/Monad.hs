@@ -2,8 +2,10 @@ module Web.Monad
   ( MonadWeb(..)
   , WebT, runWebMT, run, WebMonadResult
   , jsCode, cssCode
-  , webToResponse
-  , webWai
+
+  -- * Helpers
+  , webWai, webToResponse
+  , newId
   ) where
 
 import Prelude2
@@ -125,3 +127,5 @@ webToResponse r m = do
        addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> reset)
        addJs = addHead (jsTag $ E.toHtml js)
    addHead (favicon "") . addCss . addJs <$> htmlBody resp
+
+newId = cssId $ return ()
