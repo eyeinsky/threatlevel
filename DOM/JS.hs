@@ -28,9 +28,7 @@ location = window !. "location"
 onloadIs :: Code () -> M r ()
 onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
--- onload :: Expr
-onload = ex "window" !. "onload"
-
+onload = window !. "onload"
 
 on :: (Event event, ToOn event)
    => Expr Tag                       -- When this element
@@ -40,6 +38,11 @@ on :: (Event event, ToOn event)
 on e t f = onEvent .= f
   where onEvent = e !. Name (toOn t)
 
+on' :: (Arguments a ~ (Expr event, Proxy ()), Event event, ToOn event, Function a)
+  => Expr Tag
+  -> event
+  -> a
+  -> M parent ()
 on' e t f = do
    fdef <- func f
    on e t fdef

@@ -20,7 +20,7 @@ import Network.Wai
 import HTTP.Response
 
 import qualified Web.CSS as CSS
-import qualified Web as W
+import qualified Web.Browser as Br
 import qualified JS
 import qualified DOM.JS as JD
 import qualified JS.Blaze
@@ -44,7 +44,7 @@ declareLenses [d|
       mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
    |]
 
-newtype WebT m a = WebT { unWebT :: RWS.RWST W.Browser Writer State m a }
+newtype WebT m a = WebT { unWebT :: RWS.RWST Br.Browser Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
 instance MonadReader r m => MonadReader r (WebT m) where
@@ -67,12 +67,12 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
     pass $ return (a, f)
     return (a, ss, ww)
 
-runWebMT :: W.Browser -> State -> WebT m a -> m (a, State, Writer)
+runWebMT :: Br.Browser -> State -> WebT m a -> m (a, State, Writer)
 runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
 type WebMonadResult m a = m (a, State, Writer)
 
-run :: W.Browser -> WebT m a -> WebMonadResult m a
+run :: Br.Browser -> WebT m a -> WebMonadResult m a
 run r wm = RWS.runRWST (unWebT wm) r state
    where state = State JS.def 0
 
@@ -100,7 +100,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       c <- modify (cssCounter %~ (+ 1))
       return cls
    cssRule selectorLike decm = WebT $ do
-      let selector = W.selFrom selectorLike
+      let selector = CSS.selFrom selectorLike
           (a, rules) = CSS.runRM $ CSS.rule selector decm
       tell $ mempty & cssCode .~ rules
       return ()
@@ -118,14 +118,14 @@ webWai :: Monad f => WebT f E.Html -> Request -> f Response
 webWai webm req = fmap toWai $ webToResponse browser webm
   where
     hdrs = requestHeaders req
-    browser = maybe W.Unknown W.parseBrowser . lookup "User-Agent" $ hdrs
+    browser = maybe Br.Unknown Br.parseBrowser . lookup "User-Agent" $ hdrs
 
-webToResponse :: Monad m => W.Browser -> WebT m E.Html -> m Resp
+webToResponse :: Monad m => Br.Browser -> WebT m E.Html -> m Resp
 webToResponse r m = do
    (resp, _, Writer js css) <- run r m
    let reset = CSS.toRules CSS.resetCSS
        addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> reset)
        addJs = addHead (jsTag $ E.toHtml js)
-   addHead (favicon "") . addCss . addJs <$> htmlBody resp
+   addHead (favicon "data:,") . addCss . addJs <$> htmlBody resp
 
 newId = cssId $ return ()
