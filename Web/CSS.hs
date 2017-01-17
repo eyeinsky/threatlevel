@@ -2,6 +2,7 @@ module Web.CSS
   ( module Web.CSS.Internal
   , module Web.CSS.Shorthands
   , module Web.HTML.Core
+  , resetCSS
   ) where
 
 import Web.CSS.Internal
