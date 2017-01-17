@@ -218,13 +218,6 @@ toRules = snd . runRM
 
 -- Common
 
-resetCSS = do
-   rule (TagName "body") $ nopad >> nomarg
-   rule (TagName "div") $ nopad >> nomarg
-   where
-      nopad = prop "padding" $ px 0
-      nomarg = prop "margin" $ px 0
-
 instance IsString Class where
   fromString = Class . TL.pack
 
