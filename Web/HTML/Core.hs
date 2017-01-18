@@ -14,6 +14,8 @@ import qualified Data.HashMap.Strict as HM
 
 import Control.Monad.Writer
 
+import qualified JS
+
 -- * Base types
 
 data TagName = TagName { unTagName :: TL.Text }
@@ -41,6 +43,7 @@ declareLenses [d|
          , contents :: [HTML]
          }
       | TextNode TL.Text
+      | JSNode (JS.Expr DocumentFragment)
    |]
 
 instance IsString HTML where
@@ -68,6 +71,7 @@ render html = case html of
       attrs = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) "" as'
   TextNode tl -> escape tl
     where escape tl = tl
+  JSNode tl -> "error: Can't render browser js in back-end!"
 
 -- ** Monadic dsl
 
@@ -77,6 +81,8 @@ type Attribute = (TL.Text, TL.Text)
 
 text :: TL.Text -> HTMLM ()
 text tl = tell [TextNode tl]
+
+dyn expr = tell [JSNode (JS.Cast expr)]
 
 class Attributable a where
   (!) :: a -> Attribute -> a
