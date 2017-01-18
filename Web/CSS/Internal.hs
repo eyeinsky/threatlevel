@@ -59,7 +59,7 @@ instance Print SimpleSelector where
       where f = map pr
             g = maybe "" pr
 
-data Pseudo = Pseudo TL.Text
+data Pseudo = Pseudo TL.Text deriving (Eq)
 instance Print Pseudo where pr (Pseudo a) = ":" <> a
 
 -- tag, id and class in HTML
@@ -223,3 +223,12 @@ instance IsString Class where
 
 instance IsString Value where
   fromString = str . TL.pack
+
+addPseudo :: SelectorFrom a => TL.Text -> a -> Selector
+addPseudo p a = modifySelector f (selFrom a)
+  where
+    f (SimpleSelector mt mi cs ps) = SimpleSelector mt mi cs (nub $ Pseudo p : ps)
+
+
+modifySelector :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
+modifySelector f (Selector ss) = Selector (map f ss)
