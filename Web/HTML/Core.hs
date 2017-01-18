@@ -23,6 +23,14 @@ deriving instance Show TagName
 deriving instance Show Id
 deriving instance Show Class
 
+-- | Stubs
+data Tag
+data Attr
+data Window
+data Document
+data DocumentFragment
+data Location
+
 declareLenses [d|
    data HTML
       = TagNode {
@@ -40,13 +48,6 @@ instance IsString HTML where
 
 instance IsString (HTMLM ()) where
    fromString str = tell [fromString str]
-
--- | Stubs
-data Tag
-data Attr
-data Window
-data Document
-data Location
 
 -- ** Shorthands
 
