@@ -84,6 +84,9 @@ setInnerHTML e x = e !. "innerHTML" .= x
 createElement :: TagName -> Expr Tag
 createElement tn = docCall "createElement" $ unTagName tn
 
+createTextNode :: Expr a -> Expr b
+createTextNode txt = docCall' "createTextNode" txt
+
 -- creates the expr to create the tree, returns top
 createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ case tr of
@@ -95,8 +98,7 @@ createHtml tr = FuncDef [] . eval $ case tr of
          t !. "className" .= lit (TL.unwords $ map unClass cls)
       mapM_ (bare . appendChild t . call0 . createHtml) children
       retrn t
-   TextNode txt -> retrn $ docCall "createTextNode" txt
-
+   TextNode txt -> retrn $ createTextNode (ulit txt)
 
 -- *** Text input
 
