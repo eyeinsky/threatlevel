@@ -87,6 +87,9 @@ createElement tn = docCall "createElement" $ unTagName tn
 createTextNode :: Expr a -> Expr b
 createTextNode txt = docCall' "createTextNode" txt
 
+createDocumentFragment :: Expr DocumentFragment
+createDocumentFragment = call0 (document !. "createDocumentFragment")
+
 -- creates the expr to create the tree, returns top
 createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ case tr of
@@ -99,6 +102,16 @@ createHtml tr = FuncDef [] . eval $ case tr of
       mapM_ (bare . appendChild t . call0 . createHtml) children
       retrn t
    TextNode txt -> retrn $ createTextNode (ulit txt)
+   JSNode expr -> retrn (Cast expr)
+
+createHtmls :: HTMLM () -> Expr Tag
+createHtmls htmlm = FuncDef [] . eval $ do
+  f <- new $ createDocumentFragment
+  forM_ htmls $ \ html -> do
+    bare $ appendChild (Cast f) (call0 $ createHtml html)
+  retrn f
+  where
+    htmls = execWriter htmlm
 
 -- *** Text input
 
