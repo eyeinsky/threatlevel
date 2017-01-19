@@ -10,12 +10,6 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import Data.Word
 
--- Monad
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.Writer
-import Control.Monad.Identity
-
 import Web.HTML.Core
 
 -- * Print
@@ -121,24 +115,21 @@ instance Print [Declaration] where
 -- ** Selector
 
 data Selector where
-  Selector :: [SimpleSelector] -> Selector
   Simple :: SimpleSelector -> Selector
-  Combined :: SOp -> Selector -> Selector -> Selector
+  Combined :: SOp -> Selector -> SimpleSelector -> Selector
 
 data SOp = Descendant | Child | Sibling | GeneralSibling
-fff sop = case sop of
-  Descendant -> " "
-  Child -> ">"
-  Sibling -> "+"
-  GeneralSibling -> "~"
-
-unSelector (Selector li) = li
+instance Print SOp where
+  pr s = case s of
+    Descendant -> " "
+    Child -> ">"
+    Sibling -> "+"
+    GeneralSibling -> "~"
 
 instance Print Selector where
   pr s = case s of
-    Selector s -> TL.unwords . map pr $ s
     Simple ss -> pr ss
-    Combined o s s' -> fff o <> pr s <> pr s'
+    Combined op s s' -> pr s <> pr op <> pr s'
 
 -- ** Rule
 
@@ -157,7 +148,15 @@ data Prelude = Selectors [Selector]
 instance Print Prelude where
    pr (Selectors ss) = TL.intercalate "," $ map pr ss
 
--- * Instances
+-- ** Helpers
+
+mkRule :: Selector -> [Declaration] -> Rule
+mkRule s ds = Qualified (Selectors [s]) ds
+
+mkDeclaration :: TL.Text -> Value -> Declaration
+mkDeclaration p v = Declaration (Property p) v
+
+-- ** Instances
 
 deriving instance Show Rule
 deriving instance Show Prelude
@@ -171,14 +170,13 @@ deriving instance Show Comment
 
 deriving instance Show Pseudo
 
-
 -- * Convenience
 
 class SelectorFrom a where selFrom :: a -> Selector
 instance SelectorFrom Selector where
    selFrom a = a
 instance SelectorFrom SimpleSelector where
-   selFrom a = Selector [a]
+   selFrom a = Simple a
 instance SelectorFrom TagName where
    selFrom a = selFrom $ SimpleSelector (Just a) Nothing [] []
 instance SelectorFrom Class where
@@ -193,49 +191,3 @@ instance IsString Class where
 
 instance IsString Value where
   fromString = str . TL.pack
-
--- * Monad
-
-type RM = WriterT [Rule] Identity
-runRM :: RM a -> (a, [Rule])
-runRM = runIdentity . runWriterT
-
-type DM = WriterT [Declaration] Identity
-runDM :: DM a -> (a, [Declaration])
-runDM = runIdentity . runWriterT
-
-execDM :: DM a -> [Declaration]
-execDM = snd . runDM
-
-ruleMToText :: RM () -> TL.Text
-ruleMToText = TL.unlines . map pr . snd . runRM
-
-(-#) :: SimpleSelector -> TL.Text -> SimpleSelector
-SimpleSelector mt is cs ps -# str = SimpleSelector mt (Just (Id str)) cs ps
-
-(-.) :: SimpleSelector -> TL.Text -> SimpleSelector
-SimpleSelector mt is cs ps -. str = SimpleSelector mt is (Class str : cs) ps
-
-(-:) :: SimpleSelector -> TL.Text -> SimpleSelector
-SimpleSelector mt is cs ps -: str = SimpleSelector mt is cs (Pseudo str : ps)
-
-
-rule :: SelectorFrom a => a -> DM () -> RM ()
-rule s ds = tell $ [ mkRule (selFrom s) (runIdentity . execWriterT $ ds) ]
-
-mkRule :: Selector -> [Declaration] -> Rule
-mkRule s ds = Qualified (Selectors [s]) ds
-
-prop :: TL.Text -> Value -> DM ()
-prop p v = tell [ Declaration (Property p) v ]
-
-toRules :: RM a -> [Rule]
-toRules = snd . runRM
-
-addPseudo :: SelectorFrom a => TL.Text -> a -> Selector
-addPseudo p a = modifySelector f (selFrom a)
-  where
-    f (SimpleSelector mt mi cs ps) = SimpleSelector mt mi cs (nub $ Pseudo p : ps)
-
-modifySelector :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
-modifySelector f (Selector ss) = Selector (map f ss)

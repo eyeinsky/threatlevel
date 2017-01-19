@@ -1,5 +1,6 @@
 module Web.CSS
   ( module Web.CSS.Internal
+  , module Web.CSS.MonadOld
   , module Web.CSS.Shorthands
   , module Web.HTML.Core
   , resetCSS
@@ -9,9 +10,9 @@ module Web.CSS
 import Prelude
 
 import Web.CSS.Internal hiding
-  ( modifySelector, addPseoudo
-  , tag, maybeId, classes, pseudos
+  ( tag, maybeId, classes, pseudos
   )
+import Web.CSS.MonadOld
 import Web.CSS.Shorthands
 import Web.HTML.Core
 

@@ -2,6 +2,7 @@ module Web.CSS.Shorthands where
 
 import Prelude
 import Web.CSS.Internal
+import Web.CSS.MonadOld
 import Web.CSS.Shorthands.TH
 
 $(let

@@ -29,6 +29,7 @@ library
     , Web.Monad
   other-modules:
       Web.CSS.Internal
+    , Web.CSS.MonadOld
     , Web.CSS.Shorthands
     , Web.CSS.Shorthands.TH
     , Web.CSS.Example
