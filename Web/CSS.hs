@@ -8,7 +8,10 @@ module Web.CSS
 
 import Prelude
 
-import Web.CSS.Internal hiding (modifySelector, addPseoudo)
+import Web.CSS.Internal hiding
+  ( modifySelector, addPseoudo
+  , tag, maybeId, classes, pseudos
+  )
 import Web.CSS.Shorthands
 import Web.HTML.Core
 

@@ -18,51 +18,12 @@ import Control.Monad.Identity
 
 import Web.HTML.Core
 
+-- * Print
+
+class Print a where pr :: a -> TL.Text
+prs x = tlshow x
 
 -- * Syntax
-
-type CSS = [Rule]
-instance Print CSS where
-   pr li = TL.unlines $ map pr li
-data Rule
-   = Qualified Prelude [Declaration]
-   | At
-instance Print Rule where
-   pr r = case r of
-      Qualified p ds -> pr p <> curly (pr ds)
-      At -> pr (Comment "At rules not implemented..")
-
-
-data Prelude = Selectors [Selector]
-instance Print Prelude where
-   pr (Selectors ss) = TL.intercalate "," $ map pr ss
-
-
-data Declaration = Declaration Property Value
-instance Print Declaration where
-   pr (Declaration p v) = pr p <> ":" <> pr v
-instance Print [Declaration] where
-   pr ds = TL.concat $ map ((<>";") . pr) ds
-
-
--- ** Selector
-
-newtype Selector = Selector { unSelector :: [SimpleSelector] }
-instance Print Selector where
-  pr = TL.unwords . map pr . unSelector
-
-data SimpleSelector = SimpleSelector (Maybe TagName) (Maybe Id) [Class] [Pseudo]
-instance Print SimpleSelector where
-   pr (SimpleSelector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
-      where f = map pr
-            g = maybe "" pr
-
-data Pseudo = Pseudo TL.Text deriving (Eq)
-instance Print Pseudo where pr (Pseudo a) = ":" <> a
-instance Print TagName where pr (TagName a) = a
-instance Print Id     where pr (Id     a) = "#" <> a
-instance Print Class  where pr (Class  a) = "." <> a
-
 
 -- ** Declaration
 
@@ -122,15 +83,86 @@ instance Print Value where
       ColorRGBA a b c d -> format "rgba({},{},{}, {})" (a,b,c,d)
       where hex a = TL.pack $ showHex a ""
 
+-- ** Comment
+
 data Comment = Comment TL.Text
 instance Print Comment where
    pr (Comment a) = sur "/*" "*/" a
+
+-- ** Selector
+
+data Pseudo = Pseudo TL.Text deriving (Eq)
+instance Print Pseudo where pr (Pseudo a) = ":" <> a
+instance Print TagName where pr (TagName a) = a
+instance Print Id     where pr (Id     a) = "#" <> a
+instance Print Class  where pr (Class  a) = "." <> a
+
+declareFields [d|
+  data SimpleSelector = SimpleSelector
+    { simpleSelectorTag :: Maybe TagName -- -> SimpleSelector
+    , simpleSelectorMaybeId :: Maybe Id -- -> SimpleSelector
+    , simpleSelectorClasses :: [Class] -- -> SimpleSelector
+    , simpleSelectorPseudos :: [Pseudo] -- -> SimpleSelector
+    }
+  |]
+
+instance Print SimpleSelector where
+   pr (SimpleSelector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
+      where f = map pr
+            g = maybe "" pr
+
+
+data Declaration = Declaration Property Value
+instance Print Declaration where
+   pr (Declaration p v) = pr p <> ":" <> pr v
+instance Print [Declaration] where
+   pr ds = TL.concat $ map ((<>";") . pr) ds
+
+-- ** Selector
+
+data Selector where
+  Selector :: [SimpleSelector] -> Selector
+  Simple :: SimpleSelector -> Selector
+  Combined :: SOp -> Selector -> Selector -> Selector
+
+data SOp = Descendant | Child | Sibling | GeneralSibling
+fff sop = case sop of
+  Descendant -> " "
+  Child -> ">"
+  Sibling -> "+"
+  GeneralSibling -> "~"
+
+unSelector (Selector li) = li
+
+instance Print Selector where
+  pr s = case s of
+    Selector s -> TL.unwords . map pr $ s
+    Simple ss -> pr ss
+    Combined o s s' -> fff o <> pr s <> pr s'
+
+-- ** Rule
+
+type CSS = [Rule]
+instance Print CSS where
+   pr li = TL.unlines $ map pr li
+data Rule
+   = Qualified Prelude [Declaration]
+   | At
+instance Print Rule where
+   pr r = case r of
+      Qualified p ds -> pr p <> curly (pr ds)
+      At -> pr (Comment "At rules not implemented..")
+
+data Prelude = Selectors [Selector]
+instance Print Prelude where
+   pr (Selectors ss) = TL.intercalate "," $ map pr ss
 
 -- * Instances
 
 deriving instance Show Rule
 deriving instance Show Prelude
 deriving instance Show Selector
+deriving instance Show SOp
 deriving instance Show SimpleSelector
 deriving instance Show Declaration
 deriving instance Show Property
@@ -139,10 +171,6 @@ deriving instance Show Comment
 
 deriving instance Show Pseudo
 
--- * Print
-
-class Print a where pr :: a -> TL.Text
-prs x = tlshow x
 
 -- * Convenience
 
@@ -193,7 +221,10 @@ SimpleSelector mt is cs ps -: str = SimpleSelector mt is cs (Pseudo str : ps)
 
 
 rule :: SelectorFrom a => a -> DM () -> RM ()
-rule s ds = tell $ [ Qualified (Selectors [selFrom s]) (runIdentity . execWriterT $ ds) ]
+rule s ds = tell $ [ mkRule (selFrom s) (runIdentity . execWriterT $ ds) ]
+
+mkRule :: Selector -> [Declaration] -> Rule
+mkRule s ds = Qualified (Selectors [s]) ds
 
 prop :: TL.Text -> Value -> DM ()
 prop p v = tell [ Declaration (Property p) v ]
