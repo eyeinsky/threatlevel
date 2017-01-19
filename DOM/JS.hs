@@ -9,7 +9,7 @@ import qualified Data.HashMap.Strict as HM
 import JS.Monad
 import JS.API
 import JS.Ops_Untyped
-import Web.CSS as CSS
+import qualified Web.CSS as CSS
 import Web.HTML.Core
 import DOM.Event
 

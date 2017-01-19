@@ -5,7 +5,7 @@ module Web
    , module Web.Monad
    ) where
 
-import Web.CSS
+import Web.CSS hiding (run)
 import Web.HTML
 import Web.Browser
 import Web.Monad

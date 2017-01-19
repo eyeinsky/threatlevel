@@ -80,9 +80,9 @@ run r wm = RWS.runRWST (unWebT wm) r state
 
 class Monad m => MonadWeb m where
    js :: JS.M () a -> m a
-   css :: CSS.DM () -> m CSS.Class
-   cssRule :: CSS.SelectorFrom a => a -> CSS.DM () -> m ()
-   cssId :: CSS.DM () -> m CSS.Id
+   css :: CSS.M () -> m CSS.Class
+   cssRule :: CSS.SelectorFrom a => a -> CSS.M () -> m ()
+   cssId :: CSS.M () -> m CSS.Id
 
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
@@ -92,25 +92,17 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & jsCode .~ code
       modify' (jsCounter .~ s')
       return a
-   css decm = WebT $ do
-      c <- gets (^.cssCounter)
-      let cls = CSS.Class $ "c" <> TL.pack (show c)
-          (a, rules) = CSS.runRM $ CSS.rule cls decm
-      tell $ mempty & cssCode .~ rules
-      c <- modify (cssCounter %~ (+ 1))
-      return cls
-   cssRule selectorLike decm = WebT $ do
-      let selector = CSS.selFrom selectorLike
-          (a, rules) = CSS.runRM $ CSS.rule selector decm
-      tell $ mempty & cssCode .~ rules
-      return ()
-   cssId decm = WebT $ do
-      c <- gets (^.cssCounter)
-      let cls = CSS.Id $ "i" <> TL.pack (show c)
-          (a, rules) = CSS.runRM $ CSS.rule cls decm
-      tell $ mempty & cssCode .~ rules
-      c <- modify (cssCounter %~ (+ 1))
-      return cls
+   css m = WebT $ do
+      n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
+      let c = CSS.Class $ "c" <> TL.pack (show n)
+      tell $ mempty & cssCode .~ CSS.run c m
+      return c
+   cssRule sl m = WebT $ tell $ mempty & cssCode .~ CSS.run sl m
+   cssId m = WebT $ do
+      n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
+      let c = CSS.Id $ "i" <> TL.pack (show n)
+      tell $ mempty & cssCode .~ CSS.run c m
+      return c
 
 -- ** Helpers
 
