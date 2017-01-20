@@ -118,6 +118,6 @@ webToResponse r m = do
    (resp, _, Writer js css) <- run r m
    let addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> CSS.resetCSS)
        addJs = addHead (jsTag $ E.toHtml js)
-   addHead (favicon "data:,") . addCss . addJs <$> htmlBody resp
+   addHead (favicon "data:;base64,iVBORw0KGgo=") . addCss . addJs <$> htmlBody resp
 
 newId = cssId $ return ()
