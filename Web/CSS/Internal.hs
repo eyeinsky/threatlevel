@@ -10,6 +10,9 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import Data.Word
 
+import Control.Monad.Writer
+import Control.Monad.Identity
+
 import Web.HTML.Core
 
 -- * Print
@@ -191,3 +194,12 @@ instance IsString Class where
 
 instance IsString Value where
   fromString = str . TL.pack
+
+-- * Declaration monad
+
+type DM = WriterT [Declaration] Identity
+runDM :: DM a -> (a, [Declaration])
+runDM = runIdentity . runWriterT
+
+execDM :: DM a -> [Declaration]
+execDM = snd . runDM

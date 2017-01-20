@@ -42,13 +42,6 @@ type RM = WriterT [Rule] Identity
 runRM :: RM a -> (a, [Rule])
 runRM = runIdentity . runWriterT
 
-type DM = WriterT [Declaration] Identity
-runDM :: DM a -> (a, [Declaration])
-runDM = runIdentity . runWriterT
-
-execDM :: DM a -> [Declaration]
-execDM = snd . runDM
-
 ruleMToText :: RM () -> TL.Text
 ruleMToText = TL.unlines . map pr . snd . runRM
 
