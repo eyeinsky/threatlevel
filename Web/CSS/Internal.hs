@@ -34,6 +34,7 @@ data Value
    | Percent Double
    | Em Double
    | Px Int
+   | Int Int
 
    | ViewportHeight  Double
    | ViewportWidth   Double
@@ -68,6 +69,7 @@ instance Print Value where
       Percent a -> prs a <> "%"
       Em a -> prs a <> "em"
       Px a -> prs a <> "px"
+      Int a -> prs a
       Time a -> prs a <> "s"
 
       ViewportWidth  a -> prs a <> "vw"
@@ -195,6 +197,8 @@ instance IsString Class where
 instance IsString Value where
   fromString = str . TL.pack
 
+instance Num Value where
+  fromInteger = Int . fromInteger
 -- * Declaration monad
 
 type DM = WriterT [Declaration] Identity
