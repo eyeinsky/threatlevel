@@ -1,11 +1,19 @@
 module Web.CSS.Example where
 
-import Web.CSS
+import Prelude2
 
-test :: RM ()
-test = let
-    e = SimpleSelector Nothing Nothing [] []
-  in do
-  rule (e -# "id" -. "c1" -. "c2" -: "p1" -: "p2") $ do
-      prop "jee" $ hex 5
-      prop "background-color" $ hex 7
+import Web.CSS.Internal
+import Web.CSS.Monad
+import Web.CSS.Shorthands
+
+import Web.HTML
+
+test = do
+  prop "display" "flex"
+  display "level-1"
+  hover $ do
+    display "level-2"
+    hover $ do
+      display "level-3"
+
+testRun = pr $ run (TagName "body") test

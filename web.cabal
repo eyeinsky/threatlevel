@@ -29,7 +29,7 @@ library
     , Web.Monad
   other-modules:
       Web.CSS.Internal
-    , Web.CSS.MonadOld
+    , Web.CSS.Monad
     , Web.CSS.Shorthands
     , Web.CSS.Example
     , Web.HTML.Core

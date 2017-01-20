@@ -20,6 +20,7 @@ import Network.Wai
 import HTTP.Response
 
 import qualified Web.CSS as CSS
+import qualified Web.CSS.Monad as CSSM
 import qualified Web.Browser as Br
 import qualified JS
 import qualified DOM.JS as JD
@@ -80,9 +81,9 @@ run r wm = RWS.runRWST (unWebT wm) r state
 
 class Monad m => MonadWeb m where
    js :: JS.M () a -> m a
-   css :: CSS.M () -> m CSS.Class
-   cssRule :: CSS.SelectorFrom a => a -> CSS.M () -> m ()
-   cssId :: CSS.M () -> m CSS.Id
+   css :: CSSM.M () -> m CSS.Class
+   cssRule :: CSS.SelectorFrom a => a -> CSSM.M () -> m ()
+   cssId :: CSSM.M () -> m CSS.Id
 
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
@@ -95,13 +96,13 @@ instance (Monad m) => MonadWeb (WebT m) where
    css m = WebT $ do
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
       let c = CSS.Class $ "c" <> TL.pack (show n)
-      tell $ mempty & cssCode .~ CSS.run c m
+      tell $ mempty & cssCode .~ CSSM.run c m
       return c
-   cssRule sl m = WebT $ tell $ mempty & cssCode .~ CSS.run sl m
+   cssRule sl m = WebT $ tell $ mempty & cssCode .~ CSSM.run sl m
    cssId m = WebT $ do
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
       let c = CSS.Id $ "i" <> TL.pack (show n)
-      tell $ mempty & cssCode .~ CSS.run c m
+      tell $ mempty & cssCode .~ CSSM.run c m
       return c
 
 -- ** Helpers
@@ -115,8 +116,7 @@ webWai webm req = fmap toWai $ webToResponse browser webm
 webToResponse :: Monad m => Br.Browser -> WebT m E.Html -> m Resp
 webToResponse r m = do
    (resp, _, Writer js css) <- run r m
-   let reset = CSS.toRules CSS.resetCSS
-       addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> reset)
+   let addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> CSS.resetCSS)
        addJs = addHead (jsTag $ E.toHtml js)
    addHead (favicon "data:,") . addCss . addJs <$> htmlBody resp
 

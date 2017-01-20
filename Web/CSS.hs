@@ -1,33 +1,30 @@
 module Web.CSS
   ( module Web.CSS.Internal
-  , module Web.CSS.MonadOld
   , module Web.CSS.Shorthands
   , module Web.HTML.Core
   , resetCSS
   , setBoxSizing
   ) where
 
-import Prelude
+import Prelude2
 
 import Web.CSS.Internal hiding
   ( tag, maybeId, classes, pseudos
   )
-import Web.CSS.MonadOld
+import Web.CSS.Monad
 import Web.CSS.Shorthands
 import Web.HTML.Core
 
-resetCSS = do
-   rule (TagName "body") $ nopad >> nomarg
-   rule (TagName "div") $ nopad >> nomarg
+resetCSS :: [Rule]
+resetCSS = run (TagName "body") no <> run (TagName "div") no
    where
-      nopad = prop "padding" $ px 0
-      nomarg = prop "margin" $ px 0
+      no = do
+        prop "padding" $ px 0
+        prop "margin" $ px 0
 
-setBoxSizing = do
-  rule (TagName "html") $ boxSizing "border-box"
-  inherit any
-  inherit $ before any
-  inherit $ after any
+setBoxSizing :: [Rule]
+setBoxSizing = run (TagName "html") (boxSizing "border-box") <> run any inherit
   where
-    inherit s = rule s $ boxSizing "inherit"
+    forAny = inherit >> before inherit >> after inherit
+    inherit = boxSizing "inherit"
     any = selFrom $ TagName "*"
