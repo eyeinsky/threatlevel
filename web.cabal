@@ -31,7 +31,6 @@ library
       Web.CSS.Internal
     , Web.CSS.MonadOld
     , Web.CSS.Shorthands
-    , Web.CSS.Shorthands.TH
     , Web.CSS.Example
     , Web.HTML.Core
     , Web.HTML.Shorthands
