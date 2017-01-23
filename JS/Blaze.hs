@@ -4,7 +4,7 @@ import Prelude2
 import qualified Text.Blaze.Html5 as E
 import JS
 
-_ASTtoText = runRender . ev
+_ASTtoText = runRender . renderM
 instance E.ToValue (Expr a) where
    toValue = E.toValue . _ASTtoText
    preEscapedToValue = E.preEscapedToValue . _ASTtoText
