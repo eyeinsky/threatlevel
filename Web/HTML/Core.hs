@@ -3,7 +3,7 @@ module Web.HTML.Core
   , execWriter
   ) where
 
-import Prelude2 hiding (div, span, elem)
+import Prelude2 hiding (div, span, elem, id)
 import Text.Exts
 import Data.String
 
@@ -58,26 +58,31 @@ tag str = TagNode (TagName str) Nothing [] HM.empty []
 
 render :: HTML -> TL.Text
 render html = case html of
-  TagNode n mId cs as htmls ->
-       "<"
-       <> unTagName n
-       <> (HM.null as' ? "" $ attrs)
-    <> ">"
-    <> TL.concat (map render htmls)
-    <> "</" <> unTagName n <> ">"
+  TagNode n mId cs as htmls -> "<" <> tag <> attrs2str as' <> rest
     where
-      as' = HM.union as (maybe HM.empty (HM.singleton "id" . unId) mId)
-      q v = "'" <> v <> "'"
-      attrs = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) "" as'
+      tag = unTagName n
+      rest = case htmls of
+        _ : _ -> let sub = TL.concat (map render htmls)
+          in ">" <> sub <> "</" <> tag <> ">"
+        _ -> "/>"
+      as' = HM.unions [as, id,  classes]
+      id = maybe HM.empty (HM.singleton "id" . unId) mId
+      classes = null cs ? HM.empty $ HM.singleton "class" $ TL.unwords $ map unClass cs
   TextNode tl -> escape tl
     where escape tl = tl
   JSNode tl -> "error: Can't render browser js in back-end!"
+  where
+    attrs2str = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) ""
+    q v = "'" <> v <> "'"
 
 -- ** Monadic dsl
 
 type HTMLM = Writer [HTML] -- Identity
 
-type Attribute = (TL.Text, TL.Text)
+data Attribute
+  = Custom TL.Text TL.Text
+  | AttrClass [Class]
+  | AttrId Id
 
 text :: TL.Text -> HTMLM ()
 text tl = tell [TextNode tl]
@@ -88,15 +93,18 @@ class Attributable a where
   (!) :: a -> Attribute -> a
 
 instance Attributable HTML where
-  (!) a (k, v) = a & attrs %~ (HM.insert k v)
+  (!) a attr = case attr of
+    AttrClass cs -> a & classes %~ (cs <>)
+    AttrId id' -> a & id .~ Just id'
+    Custom k v -> a & attrs %~ (HM.insert k v)
 
 instance Attributable (HTMLM ()) where
-  (!) a attr@ (k, v) = case execWriter a of
+  (!) a attr = case execWriter a of
     e : rest -> tell (e ! attr : rest)
     _ -> return ()
 
 instance Attributable (HTMLM () -> HTMLM ()) where
-  (!) a attr@ (k, v) = case execWriter (a $ return ()) of
+  (!) a attr = case execWriter (a $ return ()) of
     e : rest -> \ x -> let
         ct = execWriter x
         e' = e ! attr & contents .~ ct

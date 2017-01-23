@@ -22,6 +22,7 @@ library
     , Warp_Helpers
     , Web
     , Web.CSS
+    , Web.SVG
     , Web.FRP
     , Web.HTML.Blaze
     , Web.HTML.Blaze.Bootstrap
@@ -34,6 +35,9 @@ library
     , Web.CSS.Example
     , Web.HTML.Core
     , Web.HTML.Shorthands
+    , Web.SVG.Elements
+    , Web.SVG.Attributes
+    , TH
   build-depends:
       base
     , aeson
