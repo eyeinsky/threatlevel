@@ -1,8 +1,8 @@
 module DOM.Event where
 
 import Prelude2
-import Text.Exts
-import qualified Data.Text as T
+import Render
+
 
 class Show a => Event a where
 instance Event MouseEvent
@@ -94,8 +94,8 @@ deriving instance Show Touch
 
 -- | Make 'on$event' attribute
 class Show a => ToOn a where
-   toOn :: a -> T.Text
-   toOn = ("on"<>) . T.toLower . tshow
+   toOn :: a -> Text
+   toOn = ("on"<>) . toLower . tshow
 instance ToOn MouseEvent
 instance ToOn KeyboardEvent
 instance ToOn HTMLFrameObjectEvent

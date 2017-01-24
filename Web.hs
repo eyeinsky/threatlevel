@@ -3,9 +3,11 @@ module Web
    , module Web.HTML
    , module Web.Browser
    , module Web.Monad
+   , module Render
    ) where
 
 import Web.CSS hiding (run)
 import Web.HTML
 import Web.Browser
 import Web.Monad
+import Render

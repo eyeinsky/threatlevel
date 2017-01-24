@@ -56,25 +56,6 @@ instance IsString (HTMLM ()) where
 
 tag str = TagNode (TagName str) Nothing [] HM.empty []
 
-render :: HTML -> TL.Text
-render html = case html of
-  TagNode n mId cs as htmls -> "<" <> tag <> attrs2str as' <> rest
-    where
-      tag = unTagName n
-      rest = case htmls of
-        _ : _ -> let sub = TL.concat (map render htmls)
-          in ">" <> sub <> "</" <> tag <> ">"
-        _ -> "/>"
-      as' = HM.unions [as, id,  classes]
-      id = maybe HM.empty (HM.singleton "id" . unId) mId
-      classes = null cs ? HM.empty $ HM.singleton "class" $ TL.unwords $ map unClass cs
-  TextNode tl -> escape tl
-    where escape tl = tl
-  JSNode tl -> "error: Can't render browser js in back-end!"
-  where
-    attrs2str = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) ""
-    q v = "'" <> v <> "'"
-
 -- ** Monadic dsl
 
 type HTMLM = Writer [HTML] -- Identity

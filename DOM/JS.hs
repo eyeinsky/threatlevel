@@ -96,7 +96,7 @@ createHtml tr = FuncDef [] . eval $ case tr of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
-      forM_ (HM.toList attrs) $ \ (k,v) -> t !. Name (TL.toStrict k) .= ulit v
+      forM_ (HM.toList attrs) $ \ (k,v) -> t !. Name k .= ulit v
       when (not . null $ cls) $
          t !. "className" .= lit (TL.unwords $ map unClass cls)
       mapM_ (bare . appendChild t . call0 . createHtml) children
