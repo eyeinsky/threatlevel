@@ -7,6 +7,7 @@ import Web.CSS.Monad
 import Web.CSS.Shorthands
 
 import Web.HTML
+import Render
 
 test = do
   prop "display" "flex"
@@ -16,4 +17,4 @@ test = do
     hover $ do
       display "level-3"
 
-testRun = pr $ run (TagName "body") test
+testRun = render $ run (TagName "body") test

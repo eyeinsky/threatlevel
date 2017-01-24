@@ -5,6 +5,7 @@ import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
+import Control.Monad.Writer (execWriter)
 
 import JS.Monad
 import JS.API

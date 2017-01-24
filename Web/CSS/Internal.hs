@@ -1,8 +1,7 @@
 module Web.CSS.Internal where
 
-import Prelude2
+import Prelude2 hiding (unlines, intercalate, concat)
 import Text.Format
-import Text.Exts
 
 import Numeric (showHex)
 import qualified Data.Text as T
@@ -13,19 +12,15 @@ import Data.Word
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import Web.HTML.Core
-
--- * Print
-
-class Print a where pr :: a -> TL.Text
-prs x = tlshow x
+import Web.HTML.Core hiding (Value)
+import Render
 
 -- * Syntax
 
 -- ** Declaration
 
 data Property = Property TL.Text
-instance Print Property where pr (Property a) = a
+instance Render Property where renderM (Property a) = pure a
 
 data Value
    = Word TL.Text
@@ -61,61 +56,64 @@ rgba a b c d = ColorRGBA a b c d
 
 str = Word
 
-instance Print Value where
-   pr a = case a of
-      Word a -> a
-      String a -> pr (Comment "long strings unimplemented")
+instance Render Value where
+   renderM a = case a of
+      Word a -> pure a
+      String a -> renderM (Comment "long strings unimplemented")
 
-      Percent a -> prs a <> "%"
-      Em a -> prs a <> "em"
-      Px a -> prs a <> "px"
-      Int a -> prs a
-      Time a -> prs a <> "s"
+      Percent a -> pure $ tshow a <> "%"
+      Em a -> pure $ p a <> "em"
+      Px a -> pure $ p a <> "px"
+      Int a -> pure $ p a
+      Time a -> pure $ p a <> "s"
 
-      ViewportWidth  a -> prs a <> "vw"
-      ViewportHeight a -> prs a <> "vh"
-      ViewportMin    a -> prs a <> "vmin"
-      ViewportMax    a -> prs a <> "vmax"
+      ViewportWidth  a -> pure $ p a <> "vw"
+      ViewportHeight a -> pure $ p a <> "vh"
+      ViewportMin    a -> pure $ p a <> "vmin"
+      ViewportMax    a -> pure $ p a <> "vmax"
 
-      ColorHex w32 -> "#" <> hex w32
-      ColorRGB a b c -> format "rgb({},{},{})" (a,b,c)
-      ColorRGBA a b c d -> format "rgba({},{},{}, {})" (a,b,c,d)
-      where hex a = TL.pack $ showHex a ""
+      ColorHex w32 -> pure $ "#" <> hex w32
+      ColorRGB a b c -> pure $ format "rgb({},{},{})" (a,b,c)
+      ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
+      where
+        hex a = TL.pack $ showHex a ""
+        p = tshow
 
 -- ** Comment
 
 data Comment = Comment TL.Text
-instance Print Comment where
-   pr (Comment a) = sur "/*" "*/" a
+instance Render Comment where
+   renderM (Comment a) = pure $ sur "/*" "*/" a
 
 -- ** Selector
 
 data Pseudo = Pseudo TL.Text deriving (Eq)
-instance Print Pseudo where pr (Pseudo a) = ":" <> a
-instance Print TagName where pr (TagName a) = a
-instance Print Id     where pr (Id     a) = "#" <> a
-instance Print Class  where pr (Class  a) = "." <> a
+instance Render Pseudo where renderM (Pseudo a) = pure $ ":" <> a
+instance Render TagName where renderM (TagName a) = pure a
+instance Render Id     where renderM (Id     a) = pure $ "#" <> a
+instance Render Class  where renderM (Class  a) = pure $ "." <> a
 
 declareFields [d|
   data SimpleSelector = SimpleSelector
-    { simpleSelectorTag :: Maybe TagName -- -> SimpleSelector
-    , simpleSelectorMaybeId :: Maybe Id -- -> SimpleSelector
-    , simpleSelectorClasses :: [Class] -- -> SimpleSelector
-    , simpleSelectorPseudos :: [Pseudo] -- -> SimpleSelector
+    { simpleSelectorTag :: Maybe TagName
+    , simpleSelectorMaybeId :: Maybe Id
+    , simpleSelectorClasses :: [Class]
+    , simpleSelectorPseudos :: [Pseudo]
     }
   |]
 
-instance Print SimpleSelector where
-   pr (SimpleSelector mt mi cs ps) = g mt <> g mi <> TL.concat (f cs <> f ps)
-      where f = map pr
-            g = maybe "" pr
+instance Render SimpleSelector where
+   renderM (SimpleSelector mt mi cs ps)
+     = g mt <+> g mi <+> (concat <$> (f cs <+> f ps))
+      where f = mapM renderM
+            g = maybe (pure "") renderM
 
 
 data Declaration = Declaration Property Value
-instance Print Declaration where
-   pr (Declaration p v) = pr p <> ":" <> pr v
-instance Print [Declaration] where
-   pr ds = TL.concat $ map ((<>";") . pr) ds
+instance Render Declaration where
+   renderM (Declaration p v) = mseq [renderM p, pure ":", renderM v]
+instance Render [Declaration] where
+   renderM ds = concat . map (<> ";") <$> mapM renderM ds
 
 -- ** Selector
 
@@ -124,34 +122,34 @@ data Selector where
   Combined :: SOp -> Selector -> SimpleSelector -> Selector
 
 data SOp = Descendant | Child | Sibling | GeneralSibling
-instance Print SOp where
-  pr s = case s of
+instance Render SOp where
+  renderM s = pure $ case s of
     Descendant -> " "
     Child -> ">"
     Sibling -> "+"
     GeneralSibling -> "~"
 
-instance Print Selector where
-  pr s = case s of
-    Simple ss -> pr ss
-    Combined op s s' -> pr s <> pr op <> pr s'
+instance Render Selector where
+  renderM s = case s of
+    Simple ss -> renderM ss
+    Combined op s s' -> renderM s <+> renderM op <+> renderM s'
 
 -- ** Rule
 
 type CSS = [Rule]
-instance Print CSS where
-   pr li = TL.unlines $ map pr li
+instance Render CSS where
+   renderM li = unlines <$> mapM renderM li
 data Rule
    = Qualified Prelude [Declaration]
    | At
-instance Print Rule where
-   pr r = case r of
-      Qualified p ds -> pr p <> curly (pr ds)
-      At -> pr (Comment "At rules not implemented..")
+instance Render Rule where
+   renderM r = case r of
+      Qualified p ds -> renderM p <+> (curly <$> (renderM ds))
+      At -> renderM (Comment "At rules not implemented..")
 
 data Prelude = Selectors [Selector]
-instance Print Prelude where
-   pr (Selectors ss) = TL.intercalate "," $ map pr ss
+instance Render Prelude where
+   renderM (Selectors ss) = intercalate "," <$> mapM renderM ss
 
 -- ** Helpers
 

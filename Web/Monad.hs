@@ -27,7 +27,7 @@ import qualified DOM.JS as JD
 import qualified JS.Blaze
 
 import Web.HTML.Blaze
-
+import Render
 
 -- ** Web monad
 
@@ -116,7 +116,7 @@ webWai webm req = fmap toWai $ webToResponse browser webm
 webToResponse :: Monad m => Br.Browser -> WebT m E.Html -> m Resp
 webToResponse r m = do
    (resp, _, Writer js css) <- run r m
-   let addCss = addHead (cssTag . E.toHtml . CSS.pr $ css <> CSS.resetCSS)
+   let addCss = addHead (cssTag . E.toHtml . render $ css <> CSS.resetCSS)
        addJs = addHead (jsTag $ E.toHtml js)
    addHead (favicon "data:;base64,iVBORw0KGgo=") . addCss . addJs <$> htmlBody resp
 

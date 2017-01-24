@@ -1,15 +1,9 @@
-module Web.HTML.Core
-  ( module Web.HTML.Core
-  , execWriter
-  ) where
+module Web.HTML.Core where
 
 import Prelude2 hiding (div, span, elem, id)
-import Text.Exts
 import Data.String
-
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-
 import qualified Data.HashMap.Strict as HM
 
 import Control.Monad.Writer

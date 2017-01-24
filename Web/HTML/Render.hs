@@ -4,6 +4,7 @@ import Prelude2 hiding (concat, unwords)
 import qualified Data.HashMap.Strict as HM
 import Web.HTML.Core
 import Render
+import Control.Monad.Writer (execWriter)
 
 instance Render HTML where
   renderM html = pure $ case html of
@@ -24,5 +25,8 @@ instance Render HTML where
       attrs2str = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) ""
       q v = "'" <> v <> "'"
 
+instance Render [HTML] where
+  renderM = pure . concat . map render
+
 instance Render (HTMLM ()) where
-  renderM htmlm = pure . concat . map render . execWriter $ htmlm
+  renderM htmlm = pure . render . execWriter $ htmlm
