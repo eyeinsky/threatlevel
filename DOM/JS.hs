@@ -37,7 +37,7 @@ on :: (Event event, ToOn event)
    -> Expr (Expr event, Proxy ()) --   .. then do this.
    -> M r ()
 on e t f = onEvent .= f
-  where onEvent = e !. Name (toOn t)
+  where onEvent = e !. toOn t
 
 on' :: (Arguments a ~ (Expr event, Proxy ()), Event event, ToOn event, Function a)
   => Expr Tag
@@ -97,7 +97,7 @@ createHtml tr = FuncDef [] . eval $ case tr of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
-      forM_ (HM.toList attrs) $ \ (k,v) -> t !. Name k .= ulit v
+      forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
       when (not . null $ cls) $
          t !. "className" .= lit (TL.unwords $ map unClass cls)
       mapM_ (bare . appendChild t . call0 . createHtml) children
