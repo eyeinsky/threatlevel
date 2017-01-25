@@ -13,6 +13,8 @@ import DOM.Event (ToOn(..))
 import JS
 import JS.Blaze
 
+import Web.HTML
+
 jsTag = E.script E.! A.type_ "text/javascript"
 jsUrl url = jsTag E.! A.src url $ ""
 cssTag = E.style E.! A.type_ "text/css"
@@ -25,5 +27,15 @@ favicon adr = E.link
 cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Prelude.map CSS.unClass strs
 id_ (CSS.Id t) = A.id $ E.toValue t
 
-on :: ToOn a => a -> Expr a1 -> Attribute
+on :: ToOn a => a -> Expr a1 -> E.Attribute
 on event js = customAttribute (fromString $ TL.unpack $ toOn event) (toValue $ call1 js (ex "event"))
+
+instance E.ToMarkup (HTMLM ()) where
+  toMarkup = preEscapedToMarkup
+  preEscapedToMarkup = E.preEscapedToMarkup . render
+instance E.ToMarkup HTML where
+  toMarkup = preEscapedToMarkup
+  preEscapedToMarkup = E.preEscapedToMarkup . render
+instance E.ToMarkup [HTML] where
+  toMarkup = preEscapedToMarkup
+  preEscapedToMarkup = E.preEscapedToMarkup . render
