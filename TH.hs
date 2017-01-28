@@ -16,4 +16,4 @@ reserved_ t = if t `elem` ["class", "type", "in"]
 
 mk t name = [d| $(varP $ mkName name) = \c -> tell [tag $(stringE name) & (contents .~ execWriter (c :: $t )) ] :: $t |]
 
-mkAttr custom type_ name = [d| $(varP $ mkName name) = \a -> $(conE custom) $(stringE name) a :: $type_ |]
+mkAttr custom type_ name = [d| $(varP . mkName . kebab2camel . reserved_ $ name) = \a -> $(conE custom) $(stringE $ TL.unpack name) a :: $type_ |]

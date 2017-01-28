@@ -6,7 +6,8 @@ import Web.HTML.Core
 import TH
 
 -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
-concat <$> mapM (mkAttr 'Custom [t|Attribute|] . kebab2camel . reserved_)
+concat <$> mapM (mkAttr 'Custom [t|Attribute|])
+  ( -- SVG 1.1
   [ "accent-height"
   , "accumulate"
   , "additive"
