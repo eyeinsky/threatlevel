@@ -1,17 +1,16 @@
 module Main where
 
 import Prelude2
-import qualified JS_Types as JT
-import JS_Monad
+import JS
 
 main = putStr "Tests!"
 
 test = let
    in do
-   return1 :: Expr (Expr JT.String, Proxy JT.NumberI)
-      <- newf' "ret1" $ \ (s :: Expr JT.String) ->
-         retrn (lit (1::Int) :: Expr JT.NumberI)
-   addArgs <- newf' "addArgs" $ \ (a :: Expr JT.NumberI) (b :: Expr JT.NumberI) -> do
+   return1 :: Expr (Expr JS.String, Proxy JS.NumberI)
+      <- newf' "ret1" $ \ (s :: Expr JS.String) ->
+         retrn (lit (1::Int) :: Expr JS.NumberI)
+   addArgs <- newf' "addArgs" $ \ (a :: Expr JS.NumberI) (b :: Expr JS.NumberI) -> do
       retrn $ a .+ b
 
    bare $ addArgs `a2` (lit (2::Int), lit (3::Int))
