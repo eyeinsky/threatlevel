@@ -13,6 +13,7 @@ library
       Cookie
     , DOM.Event
     , DOM.JS
+    , DOM
     , HTTP.Common
     , HTTP.Header
     , HTTP.Response
