@@ -281,3 +281,6 @@ concat <$> mapM (mkAttr 'Custom [t|Attribute|])
   , "z"
   , "zoomAndPan"
   ]
+  <> -- SVG 1.2 Tiny: https://www.w3.org/TR/SVGTiny12
+  ["vector-effect"]
+  )
