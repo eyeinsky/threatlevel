@@ -27,3 +27,8 @@ after = pseudo "after"
 focus = pseudo "focus"
 active = pseudo "active"
 visited = pseudo "visited"
+
+descendant = combinator Descendant
+child = combinator Child
+sibling = combinator Sibling
+generalSibling = combinator GeneralSibling

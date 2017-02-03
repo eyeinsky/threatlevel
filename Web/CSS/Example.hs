@@ -16,5 +16,7 @@ test = do
     display "level-2"
     hover $ do
       display "level-3"
+    descendant "strong" $ do
+      fontSize "jee"
 
 testRun = render $ run (TagName "body") test

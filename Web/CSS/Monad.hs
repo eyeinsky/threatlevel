@@ -56,3 +56,8 @@ pseudo t m = do
   let hoovered = apply (pseudo' t) s
       rs = runCSSM hoovered m
   tell $ CSSW (rs, [])
+
+combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
+combinator c d m = do
+  s <- ask
+  tell $ CSSW (runCSSM (Combined c s d) m, [])
