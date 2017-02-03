@@ -195,6 +195,21 @@ instance IsString Class where
 instance IsString Value where
   fromString = str . TL.pack
 
+instance IsString SimpleSelector where
+  fromString s = case s of
+    '#' : rest -> fromId rest
+    '.' : rest -> fromClass rest
+    ':' : rest -> fromPseudo rest
+    _ -> fromTag s
+    where
+      fromId s = SimpleSelector Nothing (Just $ Id $ TL.pack s) [] []
+      fromClass s = SimpleSelector Nothing Nothing [Class $ TL.pack s] []
+      fromPseudo s = SimpleSelector Nothing Nothing [] [Pseudo $ TL.pack s]
+      fromTag s = SimpleSelector (Just $ fromString s) Nothing [] []
+
+instance IsString TagName where
+  fromString = TagName . TL.pack
+
 instance Num Value where
   fromInteger = Int . fromInteger
 -- * Declaration monad

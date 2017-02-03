@@ -56,6 +56,7 @@ instance FindBy CSS.Id where
    findBy (CSS.Id t) = docCall "getElementById" t
 instance FindBy CSS.Class where
    findBy (CSS.Class a) = docCall "getElementsByClassName" a
+
 instance FindBy CSS.TagName where
    findBy (CSS.TagName a) = docCall "getElementsByTagName" a
 instance FindBy (Expr CSS.Id) where
