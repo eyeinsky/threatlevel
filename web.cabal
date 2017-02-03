@@ -119,3 +119,5 @@ test-suite test
     , unordered-containers
     , wai
     , warp
+    , web
+    , web-js
