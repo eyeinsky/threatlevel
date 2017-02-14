@@ -1,5 +1,8 @@
 
-module Warp_Helpers where
+module Warp_Helpers
+  ( module Warp_Helpers
+  , tlsSettings
+  ) where
 
 import Prelude2 as P
 import Data.Function (on)
@@ -11,49 +14,76 @@ import qualified Data.ByteString as B
 import Control.Concurrent
 
 import Network.Wai -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
-import Network.Wai.Handler.Warp -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
+import Network.Wai.Handler.Warp hiding (getPort) -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
+import Network.Wai.Handler.WarpTLS (runTLS, tlsSettings, TLSSettings)
 import Network.HTTP.Types
 
 import HTTP.Common
 import URL
 
+getRequestBody :: Request -> IO BL.ByteString
 getRequestBody req = BL.fromChunks <$> loop
    where
       loop = requestBody req >>= re
       re chunk = B.null chunk ? return [""] $ (chunk:) <$> loop
 
-myRun :: URL.Port -> (Request -> IO Response) -> IO ()
+myRun :: URL.Port -> Handler -> IO ()
 myRun (URL.Port port) f
    = runSettings (setPort (fromIntegral port) $ defaultSettings) $ \ r r' -> r' =<< f r
 
-type Site = (Authority, AppIO)
-runDomains :: URL.Port -> [Site] -> IO ()
-runDomains port sites = do
-   pairs' <- forM sites $ \ (a, b) -> (toHost a,) <$> b
-   runSettings (setPort (fromIntegral $ unPort port) $ defaultSettings) $
-      \ req respond -> let
-            domain = fromJust $ getDomain req :: B.ByteString
-            resp = snd <$> find ((== domain) . fst) pairs' :: Maybe (Request -> IO Response)
-         in do
-         respond =<< fromMaybe noDomain (($ req) <$> resp)
-   where
-      getDomain = lookup "Host" . requestHeaders
-      noDomain = return $ responseLBS status404 [] "No host"
-      toHost authority = authority { URL.authentication = Nothing }
-         & toPayload
-         & TLE.encodeUtf8
-         & BL.toStrict
+-- * Types
 
--- type HostMatch = Maybe Authority
+type Handler = Request -> IO Response
+type Site = (Authority, IO Handler)
+
 type AppName = String
-type AppIO = IO (Request -> IO Response)
-type App = Authority -> AppIO
-type AppDef = (AppName, App)
+
+type AppDef = (AppName, Authority -> IO Handler)
 type Rule = (AppName, Authority)
 
-runServer :: [AppDef] -> [Rule] -> IO ()
-runServer defs rules = let
-      join :: [(Authority, AppName, AppIO)]
+data Server = Server (Maybe (AppDef, Rule, TLSSettings)) [AppDef] [Rule]
+
+-- * Run domains
+
+runDomains :: URL.Port -> [Site] -> IO ()
+runDomains port sites = do
+  pairs' <- initSites sites
+  runSettings
+    (mkPort port)
+    (\req respond -> let
+        domain = fromJust $ getDomain req :: B.ByteString
+        resp = snd <$> find ((== domain) . fst) pairs' :: Maybe Handler
+      in respond =<< fromMaybe noDomain (($ req) <$> resp)
+    )
+
+runDomainTLS :: FilePath -> FilePath -> URL.Port -> Site -> IO ()
+runDomainTLS cert key port sites = do
+  (_, handler) <- initSite sites
+  runTLS tls (mkPort port) (\req resp -> resp =<< handler req)
+  where
+    tls = tlsSettings cert key
+
+mkPort port = setPort (fromIntegral $ unPort port) $ defaultSettings
+
+-- ** Helpers
+
+initSites sites = forM sites initSite
+
+initSite (a, b) = (toHost a,) <$> b
+
+toHost authority = authority { URL.authentication = Nothing }
+   & toPayload
+   & TLE.encodeUtf8
+   & BL.toStrict
+
+noDomain = return $ responseLBS status404 [] "No host"
+getDomain = lookup "Host" . requestHeaders
+
+getPort site = port (site ^. _1)
+
+runServer :: Server -> IO ()
+runServer (Server https defs rules) = let
+      join :: [(Authority, AppName, IO Handler)]
       join = do
          (name, app) <- defs
          (name', autho) <- rules
