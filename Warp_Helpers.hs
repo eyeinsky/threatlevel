@@ -107,11 +107,3 @@ runServer (Server https defs rules) = let
       getPort site = port (site ^. _1)
       pr = mapM_ (\j -> print (j^._1 ,j^._2))
 
-newtype BaseURL = BaseURL (URL.Proto, URL.Host, URL.Port)
-instance ToPayload BaseURL where
-   toPayload (BaseURL (proto, host, port)) =
-         toPayload proto
-      <> protoSep
-      <> toPayload host
-      <> portSep
-      <> toPayload port
