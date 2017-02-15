@@ -43,7 +43,7 @@ type Rule = (AppName, Authority)
 
 data Server = Server (Maybe (AppDef, Rule, TLSSettings)) [AppDef] [Rule]
 
--- * Run domains
+-- * Run http domains
 
 runDomains :: URL.Port -> [Site] -> IO ()
 runDomains port sites = do
@@ -56,30 +56,31 @@ runDomains port sites = do
       in respond =<< fromMaybe noDomain (($ req) <$> resp)
     )
 
-runDomainTLS :: FilePath -> FilePath -> URL.Port -> Site -> IO ()
-runDomainTLS cert key port sites = do
-  (_, handler) <- initSite sites
-  runTLS tls (mkPort port) (\req resp -> resp =<< handler req)
-  where
-    tls = tlsSettings cert key
-
 mkPort port = setPort (fromIntegral $ unPort port) $ defaultSettings
 
 -- ** Helpers
 
+initSites :: [Site] -> IO [(B.ByteString, Handler)]
 initSites sites = forM sites initSite
 
+initSite :: (Authority, IO Handler) -> IO (B.ByteString, Handler)
 initSite (a, b) = (toHost a,) <$> b
 
-toHost authority = authority { URL.authentication = Nothing }
-   & toPayload
-   & TLE.encodeUtf8
-   & BL.toStrict
+toHost :: Authority -> B.ByteString
+toHost authority = BL.toStrict . TLE.encodeUtf8 $ toPayload baseUrl
+   where
+     baseUrl = BaseURL (Proto "http") (host authority) (port authority)
 
+noDomain :: Monad m => m Response
 noDomain = return $ responseLBS status404 [] "No host"
+
+getDomain :: Request -> Maybe B.ByteString
 getDomain = lookup "Host" . requestHeaders
 
+getPort :: Site -> URL.Port
 getPort site = port (site ^. _1)
+
+-- * Run web server
 
 runServer :: Server -> IO ()
 runServer (Server https defs rules) = let
@@ -98,12 +99,18 @@ runServer (Server https defs rules) = let
          & map pullPort
    in do
       pr join
+      traverse_ id $ (forkIO . runHttps) <$> https
       case portSites of
          x : xs -> let f = uncurry runDomains
             in mapM_ (forkIO . f) xs >> f x
          _ -> print "Nothing to run"
    where
       pullPort xs@ (x : _) = (getPort x, xs)
-      getPort site = port (site ^. _1)
       pr = mapM_ (\j -> print (j^._1 ,j^._2))
 
+runHttps :: (AppDef, Rule, TLSSettings) -> IO ()
+runHttps ((_, init), (_, auth), tls) = do
+  handler <- init auth
+  runTLS tls settings (\req resp -> resp =<< handler req)
+  where
+    settings = mkPort (port auth)
