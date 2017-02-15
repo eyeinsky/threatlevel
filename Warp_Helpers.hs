@@ -67,7 +67,7 @@ initSite :: (Authority, IO Handler) -> IO (B.ByteString, Handler)
 initSite (a, b) = (toHost a,) <$> b
 
 toHost :: Authority -> B.ByteString
-toHost authority = BL.toStrict . TLE.encodeUtf8 $ toPayload baseUrl
+toHost authority = BL.toStrict . TLE.encodeUtf8 $ withoutSchema baseUrl
    where
      baseUrl = BaseURL (Proto "http") (host authority) (port authority)
 

@@ -42,6 +42,15 @@ instance ToPayload BaseURL where
          | proto' == "https" && port' == 443 = ""
          | otherwise = portSep <> toPayload port
 
+withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
+     toPayload host
+  <> portPayload
+  where
+    portPayload
+      | proto' == "http" && port' == 80 = ""
+      | proto' == "https" && port' == 443 = ""
+      | otherwise = portSep <> toPayload port
+
 
 {- Although called ToPayload, the method converts these for
    a payload to an HTTP Request and not for anything else
