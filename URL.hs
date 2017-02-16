@@ -29,6 +29,28 @@ data Authority = Authority {
    , port :: Port
    }
 
+data BaseURL = BaseURL URL.Proto URL.Host URL.Port
+instance ToPayload BaseURL where
+   toPayload (BaseURL proto@ (Proto proto') host port @(Port port')) =
+         toPayload proto
+      <> protoSep
+      <> toPayload host
+      <> portPayload
+     where
+       portPayload
+         | proto' == "http" && port' == 80 = ""
+         | proto' == "https" && port' == 443 = ""
+         | otherwise = portSep <> toPayload port
+
+withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
+     toPayload host
+  <> portPayload
+  where
+    portPayload
+      | proto' == "http" && port' == 80 = ""
+      | proto' == "https" && port' == 443 = ""
+      | otherwise = portSep <> toPayload port
+
 
 {- Although called ToPayload, the method converts these for
    a payload to an HTTP Request and not for anything else
@@ -45,10 +67,9 @@ instance ToPayload URL where
 
 instance ToPayload Authority where
    toPayload (Authority authentication host port@ (Port pn)) =
-      HTTP.Common.concat [maybe "" mkAuth authentication, r host, portPart]
+      HTTP.Common.concat [maybe "" mkAuth authentication, r host, portSep, r port]
       where r = toPayload
             mkAuth (u, p) = u <> ":" <> p <> "@"
-            portPart = if pn == 80 then "" else portSep <> r port
 
 instance ToPayload Proto where
    toPayload (Proto a) = a
@@ -59,7 +80,7 @@ instance ToPayload Host where
       IP4 a b c d -> format "{}.{}.{}.{}" (a,b,c,d)
 
 instance ToPayload Port where
-   toPayload (Port w16) = w16 == 80 ? "" $ pack (show w16)
+   toPayload (Port w16) = pack (show w16)
 
 instance ToPayload Path where
    toPayload (Path p) = "/" <> un "/" p -- toPayload for Request => hast to start with /
