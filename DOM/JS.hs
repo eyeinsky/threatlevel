@@ -78,8 +78,8 @@ findUnder e a = u
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
 
-remove :: Expr Tag -> M r ()
-remove e = bare $ call0 (e !. "remove")
+remove :: Expr Tag -> Expr ()
+remove e = call0 (e !. "remove")
 
 setInnerHTML e x = e !. "innerHTML" .= x
 
