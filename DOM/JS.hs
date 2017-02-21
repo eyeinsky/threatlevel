@@ -7,6 +7,7 @@ import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer (execWriter)
 
+import Web.Browser
 import JS.Monad
 import JS.API
 import JS.Ops_Untyped
@@ -78,8 +79,13 @@ findUnder e a = u
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
 
-remove :: Expr Tag -> Expr ()
-remove e = call0 (e !. "remove")
+remove :: Expr Tag -> M r (Expr ())
+remove e = browser <&> \b -> case b of
+  IE -> call1 (parentNode e !. "removeChild") e
+  _ -> call0 (e !. "remove")
+
+parentNode :: Expr Tag -> Expr Tag
+parentNode e = e !. "parentNode"
 
 setInnerHTML e x = e !. "innerHTML" .= x
 
