@@ -197,7 +197,6 @@ instance ToPayload RequestHeader where
 instance ToPayload C.Cookie where
    toPayload = C.cookieString
 
-cookie' a b c d e = Header (SetCookie, toPayload $ C.Cookie a b c d e)
-mkC k v = cookie' k v "" [] ""
-delC k  = cookie' k "deleted" "" [] "Thu, 01-Jan-1970 00:00:01 GMT"
-
+cookie' k v c d e = Header (SetCookie, toPayload $ C.Cookie k v c d e)
+mkC k v = cookie' k v Nothing Nothing Nothing
+delC k  = cookie' k "deleted" Nothing Nothing (Just "Thu, 01-Jan-1970 00:00:01 GMT")
