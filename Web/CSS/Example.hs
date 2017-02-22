@@ -2,6 +2,8 @@ module Web.CSS.Example where
 
 import Prelude2
 
+import Web.Browser
+
 import Web.CSS.Internal
 import Web.CSS.Monad
 import Web.CSS.Shorthands
@@ -19,4 +21,4 @@ test = do
     descendant "strong" $ do
       fontSize "jee"
 
-testRun = render $ run (TagName "body") test
+testRun = render $ run Chrome (TagName "body") test

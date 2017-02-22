@@ -94,15 +94,19 @@ instance (Monad m) => MonadWeb (WebT m) where
       modify' (jsCounter .~ s')
       return a
    css m = WebT $ do
+      b <- ask
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
       let c = CSS.Class $ "c" <> TL.pack (show n)
-      tell $ mempty & cssCode .~ CSSM.run c m
+      tell $ mempty & cssCode .~ CSSM.run b c m
       return c
-   cssRule sl m = WebT $ tell $ mempty & cssCode .~ CSSM.run sl m
+   cssRule sl m = WebT $ do
+      b <- ask
+      tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId m = WebT $ do
+      b <- ask
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
       let c = CSS.Id $ "i" <> TL.pack (show n)
-      tell $ mempty & cssCode .~ CSSM.run c m
+      tell $ mempty & cssCode .~ CSSM.run b c m
       return c
 
 -- ** Helpers
@@ -114,9 +118,9 @@ webWai webm req = fmap toWai $ webToResponse browser webm
     browser = maybe Br.Unknown Br.parseBrowser . lookup "User-Agent" $ hdrs
 
 webToResponse :: Monad m => Br.Browser -> WebT m E.Html -> m Resp
-webToResponse r m = do
-   (resp, _, Writer js css) <- run r m
-   let addCss = addHead (cssTag . E.toHtml . render $ css <> CSS.resetCSS)
+webToResponse b m = do
+   (resp, _, Writer js css) <- run b m
+   let addCss = addHead (cssTag . E.toHtml . render $ css <> CSS.resetCSS b)
        addJs = addHead (jsTag $ E.toHtml js)
    addHead (favicon "data:;base64,iVBORw0KGgo=") . addCss . addJs <$> htmlBody resp
 

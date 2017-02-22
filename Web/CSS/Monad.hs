@@ -8,14 +8,16 @@ import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad.Identity
 
+import Web.Browser
 import Web.CSS.Internal
+
 
 -- * For export
 
 type M = CSSM
 
-run :: SelectorFrom a => a -> CSSM () -> [Rule]
-run s m = runCSSM (selFrom s) m
+run :: SelectorFrom a => Browser -> a -> CSSM () -> [Rule]
+run b s m = runCSSM (selFrom s, b) m
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tell $ CSSW ([mkRule (selFrom s) (runIdentity . execWriterT $ ds)], [])
@@ -25,14 +27,15 @@ prop k v = tell $ CSSW ([], [mkDeclaration k v]) :: CSSM ()
 
 -- * DSL setup
 
-type CSSM = WriterT CSSW (ReaderT Selector Identity)
+type R = (Selector, Browser)
+type CSSM = WriterT CSSW (ReaderT R Identity)
 newtype CSSW = CSSW ([Rule], [Declaration])
 
-runCSSM :: Selector -> CSSM () -> [Rule]
-runCSSM r m = r' : rs
+runCSSM :: R -> CSSM () -> [Rule]
+runCSSM r@ (s, _) m = r' : rs
   where
     x@ (_, CSSW (rs, ds)) = runIdentity . flip runReaderT r . runWriterT $ m
-    r' = mkRule r ds
+    r' = mkRule s ds
 
 instance Monoid CSSW where
   mempty = CSSW ([], [])
@@ -52,12 +55,12 @@ pseudo' t s = s & pseudos %~ (p:)
 
 pseudo :: TL.Text -> CSSM () -> CSSM ()
 pseudo t m = do
-  s <- ask
+  (s, b) <- ask
   let hoovered = apply (pseudo' t) s
-      rs = runCSSM hoovered m
+      rs = runCSSM (hoovered, b) m
   tell $ CSSW (rs, [])
 
 combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
 combinator c d m = do
-  s <- ask
-  tell $ CSSW (runCSSM (Combined c s d) m, [])
+  (s, b) <- ask
+  tell $ CSSW (runCSSM (Combined c s d, b) m, [])
