@@ -1,12 +1,4 @@
-module Web.Monad
-  ( MonadWeb(..)
-  , WebT, runWebMT, run, WebMonadResult
-  , jsCode, cssCode
-
-  -- * Helpers
-  , webWai, webToResponse
-  , newId
-  ) where
+module Web.Monad where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
