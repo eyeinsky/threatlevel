@@ -77,7 +77,7 @@ findUnder e a = u
 -- * Modify DOM
 
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
-appendChild t a = call1 (t !. "appendChild") a -- :: Expr a
+appendChild a t = call1 (t !. "appendChild") a
 
 remove :: Expr Tag -> M r (Expr ())
 remove e = browser <&> \b -> case b of
@@ -107,7 +107,7 @@ createHtml tr = FuncDef [] . eval $ case tr of
       forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
       when (not . null $ cls) $
          t !. "className" .= lit (TL.unwords $ map unClass cls)
-      mapM_ (bare . appendChild t . call0 . createHtml) children
+      mapM_ (bare . flip appendChild t . call0 . createHtml) children
       retrn t
    TextNode txt -> retrn $ createTextNode (ulit txt)
    JSNode expr -> retrn (Cast expr)
@@ -116,7 +116,7 @@ createHtmls :: HTMLM () -> Expr Tag
 createHtmls htmlm = FuncDef [] . eval $ do
   f <- new $ createDocumentFragment
   forM_ htmls $ \ html -> do
-    bare $ appendChild (Cast f) (call0 $ createHtml html)
+    bare $ appendChild (call0 $ createHtml html) (Cast f)
   retrn f
   where
     htmls = execWriter htmlm
