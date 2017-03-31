@@ -8,9 +8,8 @@ import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer (execWriter)
 
 import Web.Browser
-import JS.Monad
-import JS.API
-import JS.Ops_Untyped
+import JS
+
 import qualified Web.CSS as CSS
 import Web.HTML.Core
 import DOM.Event
