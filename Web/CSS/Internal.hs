@@ -138,7 +138,12 @@ instance Render Selector where
 
 type CSS = [Rule]
 instance Render CSS where
-   renderM li = unlines <$> mapM renderM li
+   renderM li = unlines <$> mapM renderM (filter (not . isEmpty) li)
+     where
+       isEmpty r = case r of
+         Qualified _ [] -> True
+         _ -> False
+
 data Rule
    = Qualified Prelude [Declaration]
    | At
