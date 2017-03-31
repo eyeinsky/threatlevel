@@ -102,10 +102,10 @@ createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ case tr of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
-      maybe (return ()) (\id -> t !. "id" .= lit (unId id)) mid
+      maybe (return ()) (\id -> t !. "id" .= ulit (unId id)) mid
       forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
       when (not . null $ cls) $
-         t !. "className" .= lit (TL.unwords $ map unClass cls)
+         t !. "className" .= ulit (TL.unwords $ map unClass cls)
       mapM_ (bare . flip appendChild t . call0 . createHtml) children
       retrn t
    TextNode txt -> retrn $ createTextNode (ulit txt)
