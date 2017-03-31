@@ -2,6 +2,7 @@ module Web.Monad where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
+import Data.Default
 
 import Control.Monad.RWS as RWS
 import qualified Control.Monad.Writer as MW
@@ -47,7 +48,7 @@ runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
 run :: Br.Browser -> WebT m a -> WebMonadResult m a
 run r wm = RWS.runRWST (unWebT wm) r state
-   where state = State JS.def 0
+   where state = State def 0
 
 type WebMonadResult m a = m (a, State, Writer)
 
