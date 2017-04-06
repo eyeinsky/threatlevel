@@ -24,8 +24,8 @@ favicon adr = E.link
    E.! A.type_ "image/x-icon"
    E.! A.href (E.toValue adr)
 
-cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Prelude.map CSS.unClass strs
-id_ (CSS.Id t) = A.id $ E.toValue t
+cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Prelude.map (static . CSS.unClass) strs
+id_ (CSS.Id t) = A.id $ E.toValue $ static t
 
 on :: ToOn a => a -> Expr a1 -> E.Attribute
 on event js = customAttribute (fromString $ TL.unpack $ toOn event) (toValue $ call1 js (ex "event"))

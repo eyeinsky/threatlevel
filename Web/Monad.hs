@@ -21,6 +21,7 @@ import qualified JS
 import qualified DOM.JS as JD
 import qualified JS.Blaze
 
+import DOM.Internal
 import Web.HTML.Blaze
 import Render
 
@@ -31,10 +32,15 @@ declareLenses [d|
       { jsCounter :: JS.S
       , cssCounter :: Int
       }
+
+   instance Default State where
+      def = State def 0
+
    data Writer = Writer
       { jsCode :: JS.Code ()
       , cssCode :: [CSS.Rule]
       }
+
    instance Monoid Writer where
       mempty = Writer mempty mempty
       mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
@@ -59,6 +65,7 @@ class Monad m => MonadWeb m where
    css :: CSSM.M () -> m CSS.Class
    cssRule :: CSS.SelectorFrom a => a -> CSSM.M () -> m ()
    cssId :: CSSM.M () -> m CSS.Id
+   nextId :: m Int
 
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
@@ -72,7 +79,7 @@ instance (Monad m) => MonadWeb (WebT m) where
    css m = WebT $ do
       b <- ask
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
-      let c = CSS.Class $ "c" <> TL.pack (show n)
+      let c = CSS.Class $ Static $ "c" <> TL.pack (show n)
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    cssRule sl m = WebT $ do
@@ -81,9 +88,10 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssId m = WebT $ do
       b <- ask
       n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
-      let c = CSS.Id $ "i" <> TL.pack (show n)
+      let c = CSS.Id $ Static $ "i" <> TL.pack (show n)
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
+   nextId = WebT $ gets (^.cssCounter)
 
 -- ** Instances
 
@@ -116,12 +124,14 @@ instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
   css = lift . css
   cssRule a b = lift $ cssRule a b
   cssId = lift . cssId
+  nextId = lift $ nextId
 
 instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   js = lift . js
   css = lift . css
   cssRule a b = lift $ cssRule a b
   cssId = lift . cssId
+  nextId = lift $ nextId
 
 -- ** Helpers
 

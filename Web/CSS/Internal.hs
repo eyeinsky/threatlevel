@@ -89,9 +89,9 @@ instance Render Comment where
 
 data Pseudo = Pseudo TL.Text deriving (Eq)
 instance Render Pseudo where renderM (Pseudo a) = pure $ ":" <> a
-instance Render TagName where renderM (TagName a) = pure a
-instance Render Id     where renderM (Id     a) = pure $ "#" <> a
-instance Render Class  where renderM (Class  a) = pure $ "." <> a
+instance Render TagName where renderM (TagName a) = renderM a
+instance Render Id     where renderM (Id     a) = ("#" <>) <$> renderM a
+instance Render Class  where renderM (Class  a) = ("." <>) <$> renderM a
 
 declareFields [d|
   data SimpleSelector = SimpleSelector
@@ -195,7 +195,7 @@ instance SelectorFrom Pseudo where
    selFrom a = selFrom $ SimpleSelector Nothing Nothing [] [a]
 
 instance IsString Class where
-  fromString = Class . TL.pack
+  fromString = Class . fromString
 
 instance IsString Value where
   fromString = str . TL.pack
@@ -207,13 +207,13 @@ instance IsString SimpleSelector where
     ':' : rest -> fromPseudo rest
     _ -> fromTag s
     where
-      fromId s = SimpleSelector Nothing (Just $ Id $ TL.pack s) [] []
-      fromClass s = SimpleSelector Nothing Nothing [Class $ TL.pack s] []
+      fromId s = SimpleSelector Nothing (Just $ Id $ fromString s) [] []
+      fromClass s = SimpleSelector Nothing Nothing [Class $ fromString s] []
       fromPseudo s = SimpleSelector Nothing Nothing [] [Pseudo $ TL.pack s]
       fromTag s = SimpleSelector (Just $ fromString s) Nothing [] []
 
 instance IsString TagName where
-  fromString = TagName . TL.pack
+  fromString = TagName . fromString
 
 instance Num Value where
   fromInteger = Int . fromInteger

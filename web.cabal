@@ -39,6 +39,7 @@ library
     , Web.HTML.Shorthands
     , Web.SVG.Elements
     , Web.SVG.Attributes
+    , DOM.Internal
     , TH
   build-depends:
       base

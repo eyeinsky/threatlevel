@@ -10,6 +10,7 @@ import Control.Monad.Writer (execWriter)
 import Web.Browser
 import JS
 
+import qualified DOM.Internal as D
 import qualified Web.CSS as CSS
 import Web.HTML.Core
 import DOM.Event
@@ -53,16 +54,26 @@ on' e t f = do
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
 instance FindBy CSS.Id where
-   findBy (CSS.Id t) = docCall "getElementById" t
+   findBy (CSS.Id id) = valueSelf id (docCall "getElementById")
 instance FindBy CSS.Class where
-   findBy (CSS.Class a) = docCall "getElementsByClassName" a
+   findBy (CSS.Class a) = valueSelf a (docCall "getElementsByClassName")
 
 instance FindBy CSS.TagName where
-   findBy (CSS.TagName a) = docCall "getElementsByTagName" a
+   findBy (CSS.TagName a) = valueSelf a (docCall "getElementsByTagName")
 instance FindBy (Expr CSS.Id) where
    findBy a = docCall' "getElementById" a
 instance FindBy (Expr CSS.Class) where
    findBy a = docCall' "getElementsByClassName" a
+
+valueSelf :: D.Value -> (TL.Text -> Expr b) -> Expr b
+valueSelf v f = case v of
+  Static a -> f a
+  Dynamic a -> Cast a
+
+valueExpr :: D.Value -> Expr ()
+valueExpr v = case v of
+  Static a -> ulit a
+  Dynamic a -> Cast a
 
 docCall' f a = call1 (document !. f) a
 docCall f a = docCall' f (ulit a)
@@ -89,7 +100,7 @@ parentNode e = e !. "parentNode"
 setInnerHTML e x = e !. "innerHTML" .= x
 
 createElement :: TagName -> Expr Tag
-createElement tn = docCall "createElement" $ unTagName tn
+createElement tn = docCall' "createElement" $ valueExpr $ unTagName tn
 
 createTextNode :: Expr a -> Expr b
 createTextNode txt = docCall' "createTextNode" txt
@@ -97,28 +108,42 @@ createTextNode txt = docCall' "createTextNode" txt
 createDocumentFragment :: Expr DocumentFragment
 createDocumentFragment = call0 (document !. "createDocumentFragment")
 
--- creates the expr to create the tree, returns top
-createHtml :: HTML -> Expr Tag
-createHtml tr = FuncDef [] . eval $ case tr of
+createClasses :: [Class] -> Expr ()
+createClasses cs = if null dynamics'
+  then statics
+  else dynamics
+  where
+    (statics', dynamics') = partitionEithers $ map (value2either . unClass) cs
+    statics = ulit $ TL.unwords statics'
+    dynamics = JS.join " " $ ulit dynamics'
+
+createHtml' :: HTML -> M r (Expr Tag)
+createHtml' html = case html of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
-      maybe (return ()) (\id -> t !. "id" .= ulit (unId id)) mid
+      maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) mid
       forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
       when (not . null $ cls) $
-         t !. "className" .= ulit (TL.unwords $ map unClass cls)
-      mapM_ (bare . flip appendChild t . call0 . createHtml) children
-      retrn t
-   TextNode txt -> retrn $ createTextNode (ulit txt)
-   JSNode expr -> retrn (Cast expr)
+         t !. "className" .= createClasses cls
+      ts :: [Expr Tag] <- mapM createHtml' children
+      forM_ ts $ bare . flip appendChild t
+      return t
+   TextNode txt -> return $ createTextNode (ulit txt)
+   JSNode expr -> return (Cast expr)
+
+createHtml :: HTML -> Expr Tag
+createHtml tr = FuncDef [] . eval $ createHtml' tr >>= retrn
+
+createHtmls' :: HTMLM () -> M r (Expr DocumentFragment)
+createHtmls' htmlm = do
+  f <- new $ createDocumentFragment
+  forM_ (execWriter htmlm) $ \ html -> do
+    e <- createHtml' html
+    bare $ appendChild e (Cast f)
+  return f
 
 createHtmls :: HTMLM () -> Expr Tag
-createHtmls htmlm = FuncDef [] . eval $ do
-  f <- new $ createDocumentFragment
-  forM_ htmls $ \ html -> do
-    bare $ appendChild (call0 $ createHtml html) (Cast f)
-  retrn f
-  where
-    htmls = execWriter htmlm
+createHtmls htmlm = FuncDef [] . eval $ createHtmls' htmlm >>= retrn
 
 -- *** Text input
 
@@ -164,6 +189,19 @@ ajaxExpr meth uri data_ callback = do
       xhr !. "onload" .= Cast wrap
    bare (call (xhr !. "open") [meth, uri, ulit True])
    bare $ call1 (xhr !. "send") data_
+
+xhr meth uri data_ callback = do
+   xhr <- new $ ex "new XMLHttpRequest()"
+   ifonly (callback .!== Undefined) $ do
+      wrap <- newf $ \(ret :: Expr ()) -> do
+         text <- new $ xhr !. "responseText"
+         json <- new $ fromJSON text
+         bare $ call1 callback json
+      xhr !. "onload" .= Cast wrap
+   bare (call (xhr !. "open") [meth, uri, ulit True])
+   bare $ call1 (xhr !. "send") data_
+
+
 
 -- ** DOM/Event
 

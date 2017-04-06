@@ -1,4 +1,7 @@
-module Web.HTML.Core where
+module Web.HTML.Core
+  ( module Web.HTML.Core
+  , module DOM.Internal
+  ) where
 
 import Prelude2 hiding (div, span, elem, id)
 import Data.String
@@ -10,14 +13,7 @@ import Control.Monad.Writer
 
 import qualified JS
 
--- * Base types
-
-data TagName = TagName { unTagName :: TL.Text }
-data Id      = Id { unId :: TL.Text }
-data Class   = Class { unClass :: TL.Text }
-deriving instance Show TagName
-deriving instance Show Id
-deriving instance Show Class
+import DOM.Internal hiding (Value)
 
 -- | Stubs
 data Tag
@@ -52,7 +48,9 @@ tag str = TagNode (TagName str) Nothing [] HM.empty []
 
 -- ** Monadic dsl
 
-type HTMLM = Writer [HTML] -- Identity
+type HTMLM = Writer [HTML]
+
+type Html = HTMLM ()
 
 data Attribute
   = Custom TL.Text TL.Text
