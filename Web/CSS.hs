@@ -15,7 +15,7 @@ import Web.CSS.Internal hiding
   )
 import Web.CSS.Monad
 import Web.CSS.Shorthands
-import Web.HTML.Core
+import Web.HTML.Core hiding (Value)
 
 resetCSS :: Browser -> [Rule]
 resetCSS b = run b (TagName "body") no <> run b (TagName "div") no

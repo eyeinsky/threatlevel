@@ -13,7 +13,7 @@ import Control.Monad.Writer
 
 import qualified JS
 
-import DOM.Internal hiding (Value)
+import DOM.Internal
 
 -- | Stubs
 data Tag
