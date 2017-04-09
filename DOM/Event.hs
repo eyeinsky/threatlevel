@@ -5,6 +5,13 @@ import Render
 
 
 class Show a => Event a where
+  eventString :: a -> Render.Text
+  eventString a = Render.toLower $ tshow a
+
+-- | Make 'on$event' attribute
+toOn :: Event a => a -> Render.Text
+toOn = ("on"<>) . eventString
+
 instance Event MouseEvent
 instance Event KeyboardEvent
 instance Event HTMLFrameObjectEvent
@@ -91,12 +98,3 @@ deriving instance Show HTMLFrameObjectEvent
 deriving instance Show HTMLFormEvent
 deriving instance Show Progress
 deriving instance Show Touch
-
--- | Make 'on$event' attribute
-class Show a => ToOn a where
-   toOn :: a -> Text
-   toOn = ("on"<>) . toLower . tshow
-instance ToOn MouseEvent
-instance ToOn KeyboardEvent
-instance ToOn HTMLFrameObjectEvent
-instance ToOn HTMLFormEvent

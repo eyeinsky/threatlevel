@@ -9,7 +9,7 @@ import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html5            as E
 
 import qualified Web.CSS as CSS
-import DOM.Event (ToOn(..))
+import DOM.Event (Event, toOn)
 import JS
 import JS.Blaze
 
@@ -27,7 +27,7 @@ favicon adr = E.link
 cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Prelude.map (static . CSS.unClass) strs
 id_ (CSS.Id t) = A.id $ E.toValue $ static t
 
-on :: ToOn a => a -> Expr a1 -> E.Attribute
+on :: Event a => a -> Expr a1 -> E.Attribute
 on event js = customAttribute (fromString $ TL.unpack $ toOn event) (toValue $ call1 js (ex "event"))
 
 instance E.ToMarkup (HTMLM ()) where

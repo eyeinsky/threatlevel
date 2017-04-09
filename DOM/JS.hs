@@ -32,7 +32,7 @@ onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
 
 onload = window !. "onload"
 
-on :: (Event event, ToOn event)
+on :: (Event event)
    => Expr Tag                       -- When this element
    -> event                          --   .. has this event
    -> Expr (Expr event, Proxy ()) --   .. then do this.
@@ -40,7 +40,7 @@ on :: (Event event, ToOn event)
 on e t f = onEvent .= f
   where onEvent = e !. toOn t
 
-on' :: (Arguments a ~ (Expr event, Proxy ()), Event event, ToOn event, Function a)
+on' :: (Arguments a ~ (Expr event, Proxy ()), Event event, Function a)
   => Expr Tag
   -> event
   -> a
