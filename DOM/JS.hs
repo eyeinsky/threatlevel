@@ -49,6 +49,13 @@ on' e t f = do
    fdef <- func f
    on e t fdef
 
+
+getAttribute k e = call1 (e !. "getAttribute") k
+setAttribute k v e = call (e !. "setAttribute") [k, v]
+
+requestAnimationFrame :: Expr a -> Expr b
+requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
+
 -- * Finding elements
 
 -- | The global find
@@ -190,17 +197,22 @@ ajaxExpr meth uri data_ callback = do
    bare (call (xhr !. "open") [meth, uri, ulit True])
    bare $ call1 (xhr !. "send") data_
 
-xhr meth uri data_ callback = do
-   xhr <- new $ ex "new XMLHttpRequest()"
-   ifonly (callback .!== Undefined) $ do
-      wrap <- newf $ \(ret :: Expr ()) -> do
-         text <- new $ xhr !. "responseText"
-         json <- new $ fromJSON text
-         bare $ call1 callback json
-      xhr !. "onload" .= Cast wrap
-   bare (call (xhr !. "open") [meth, uri, ulit True])
-   bare $ call1 (xhr !. "send") data_
+xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> M r ()
+xhrRaw meth uri data_ callback = do
+  xhr <- new $ ex "new XMLHttpRequest()"
+  ifonly (callback .!== Undefined) $ do
+    xhr !. "onload" .= callback
+  bare (call (xhr !. "open") [Cast meth, uri, ulit True])
+  bare $ call1 (xhr !. "send") data_
 
+xhrJs :: Expr a -> Expr a -> Expr c -> M r ()
+xhrJs meth uri data_ = do
+  wrap <- newf $ \(resp :: Expr ()) -> do
+    let text = responseText resp
+    bare $ call1 (ex "eval") text
+  xhrRaw meth uri data_ wrap
+
+responseText resp = resp !. "target" !. "responseText"
 
 
 -- ** DOM/Event
@@ -226,6 +238,12 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
 
 preventDefault :: Event e => Expr e -> Expr ()
 preventDefault e = call0 (e !. "preventDefault")
+
+mkEventListener a el et h = call (el !. a) [etStr, h]
+  where etStr = ulit $ eventString et
+
+addEventListener = mkEventListener "addEventListener"
+removeEventListener = mkEventListener "removeEventListener"
 
 -- * Helpers
 
