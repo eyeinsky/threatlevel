@@ -66,6 +66,7 @@ class Monad m => MonadWeb m where
    cssRule :: CSS.SelectorFrom a => a -> CSSM.M () -> m ()
    cssId :: CSSM.M () -> m CSS.Id
    nextId :: m Int
+   getState :: m State
 
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
@@ -92,6 +93,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    nextId = WebT $ gets (^.cssCounter)
+   getState = WebT get
 
 -- ** Instances
 
@@ -125,6 +127,7 @@ instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
   cssRule a b = lift $ cssRule a b
   cssId = lift . cssId
   nextId = lift $ nextId
+  getState = lift getState
 
 instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   js = lift . js
@@ -132,6 +135,7 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   cssRule a b = lift $ cssRule a b
   cssId = lift . cssId
   nextId = lift $ nextId
+  getState = lift getState
 
 -- ** Helpers
 
