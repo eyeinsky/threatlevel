@@ -15,6 +15,7 @@ import Network.Wai ( Response, responseBuilder, responseFile
                    , pathInfo, queryString, requestHeaders, requestBody
                    , requestMethod
                    )
+import qualified Network.Wai as Wai
 import Network.Wai.Internal (Response(..))
 import Network.HTTP.Types (
      ok200, hContentType, hCacheControl, hCookie, queryToQueryText, parseQuery, RequestHeaders, methodGet, urlEncode
@@ -55,7 +56,6 @@ data RespAction where
    InlineFile :: Hdr.Header -> B.ByteString -> RespAction
    Any      :: Int -> [Hdr.Header] -> BL.ByteString -> RespAction
 
-
 declareFields [d|
   -- The high-level response type
   data Resp = Resp
@@ -65,13 +65,30 @@ declareFields [d|
     }
   |]
 
-
 toResp :: RespAction -> Resp
 toResp ra = Resp 200 [] ra
 
 addHeader :: Hdr.Header -> Resp -> Resp
 addHeader c r = r & headers %~ (c:)
 
+-- ** Raw http response
+
+type Raw = Wai.Response
+
+class ToRaw a where
+  toRaw :: a -> Raw
+
+instance ToRaw Resp where
+  toRaw (Resp status hs c) = waiAddHeaders (map Hdr.cc hs) $ case c of
+   Html hh hb -> r [utf8textHdr "html"] $ html2bl hh hb
+   JSON json -> r [jsh] $ encode json
+   Redirect url -> httpResponse 303 [Hdr.hdr Hdr.Location (TL.fromStrict url)] ""
+   DiskFile path -> responseFile (waiCode status) [htmlUtf8 path False] (T.unpack path) Nothing
+   InlineFile ct content -> r [ct] $ BL.fromStrict content
+   Any status headers content -> httpResponse status headers content
+   where
+     jsh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
+     r = httpResponse status
 
 -- ** Shorthands
 
@@ -100,16 +117,8 @@ withBody f r = r & content %~ f'
 
 -- * Conversion to Wai/Warp
 
-toWai (Resp status hs c) = waiAddHeaders (map Hdr.cc hs) $ case c of
-   Html hh hb -> r [utf8textHdr "html"] $ html2bl hh hb
-   JSON json -> r [jsh] $ encode json
-   Redirect url -> httpResponse 303 [Hdr.hdr Hdr.Location (TL.fromStrict url)] ""
-   DiskFile path -> responseFile (waiCode status) [htmlUtf8 path False] (T.unpack path) Nothing
-   InlineFile ct content -> r [ct] $ BL.fromStrict content
-   Any status headers content -> httpResponse status headers content
-   where
-     jsh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
-     r = httpResponse status
+toWai :: Resp -> Wai.Response
+toWai = toRaw
 
 -- * Helpers
 
