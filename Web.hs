@@ -6,7 +6,7 @@ module Web
    , module Render
    ) where
 
-import Web.CSS hiding (run)
+import Web.CSS hiding (run, (!))
 import Web.HTML hiding (Value)
 import Web.Browser
 import Web.Monad

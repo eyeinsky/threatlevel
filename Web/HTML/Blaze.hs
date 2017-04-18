@@ -1,6 +1,6 @@
 module Web.HTML.Blaze where
 
-import Prelude
+import Prelude as Pr
 import Data.String (fromString)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -24,7 +24,7 @@ favicon adr = E.link
    E.! A.type_ "image/x-icon"
    E.! A.href (E.toValue adr)
 
-cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Prelude.map (static . CSS.unClass) strs
+cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Pr.map (static . CSS.unClass) strs
 id_ (CSS.Id t) = A.id $ E.toValue $ static t
 
 on :: Event a => a -> Expr a1 -> E.Attribute
@@ -39,3 +39,30 @@ instance E.ToMarkup HTML where
 instance E.ToMarkup [HTML] where
   toMarkup = preEscapedToMarkup
   preEscapedToMarkup = E.preEscapedToMarkup . render
+
+-- * Exclamatable instances
+
+instance Exclamatable (E.Html) E.Attribute where
+  (!) e a = e E.! a
+instance Exclamatable (E.Html -> E.Html) E.Attribute where
+  (!) e a = e E.! a
+
+instance Exclamatable (E.Html) Id where
+  (!) e id = e E.! A.id (id2v id)
+instance Exclamatable (E.Html -> E.Html) Id where
+  (!) e id = e E.! A.id (id2v id)
+
+instance Exclamatable (E.Html) [Class] where
+  (!) e cs = e E.! A.class_ (E.toValue str)
+    where str = TL.unwords $ Pr.map (static . unClass) cs
+instance Exclamatable (E.Html -> E.Html) [Class] where
+  (!) e cs = e E.! A.class_ (E.toValue str)
+    where str = TL.unwords $ Pr.map (static . unClass) cs
+
+instance Exclamatable (E.Html) Class where
+  (!) e c = e E.! A.class_ (c2v c)
+instance Exclamatable (E.Html -> E.Html) Class where
+  (!) e c = e E.! A.class_ (c2v c)
+
+id2v = E.toValue . static . unId
+c2v = E.toValue . static . unClass
