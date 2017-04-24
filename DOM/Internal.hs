@@ -17,6 +17,7 @@ data Class   = Class { unClass :: Value }
 data Value
   = Static TL.Text
   | Dynamic (JS.Expr ())
+makeClassyPrisms ''Value
 
 value2either v = case v of
   Static a -> Left a

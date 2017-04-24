@@ -1,6 +1,7 @@
 module DOM.JS where
 
 import Prelude2 hiding ((.=), Bool)
+import qualified Prelude2 as Pr
 import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -9,6 +10,8 @@ import Control.Monad.Writer (execWriter)
 
 import Web.Browser
 import JS
+import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
+
 
 import qualified DOM.Internal as D
 import qualified Web.CSS as CSS
@@ -26,11 +29,6 @@ document = ex "document"
 
 location :: Expr Location
 location = window !. "location"
-
-onloadIs :: Code () -> M r ()
-onloadIs code = onload .= FuncDef [] code -- :: Code' -> Statement ()
-
-onload = window !. "onload"
 
 on :: (Event event)
    => Expr Tag                       -- When this element
@@ -130,7 +128,7 @@ createHtml' html = case html of
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) mid
       forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
-      when (not . null $ cls) $
+      when (Pr.not . null $ cls) $
          t !. "className" .= createClasses cls
       ts :: [Expr Tag] <- mapM createHtml' children
       forM_ ts $ bare . flip appendChild t
@@ -170,8 +168,10 @@ cursorPosition e = do
 -- ** CSS
 
 cssAttr e k v = e !. "style" !. k .= v
-addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) cls
-remClass cls el = bare $ call1 (el !. "classList" !. "remove") cls
+addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) $ mkExpr cls
+remClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
+
+mkExpr = Cast . ulit . static . unClass
 
 -- * From JS_API
 
@@ -239,6 +239,7 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
 preventDefault :: Event e => Expr e -> Expr ()
 preventDefault e = call0 (e !. "preventDefault")
 
+mkEventListener :: Event e => TL.Text -> Expr Tag -> e -> Expr b -> Expr c
 mkEventListener a el et h = call (el !. a) [etStr, h]
   where etStr = ulit $ eventString et
 
@@ -247,5 +248,9 @@ removeEventListener = mkEventListener "removeEventListener"
 
 -- * Helpers
 
-onloadDo :: M b a -> M b ()
-onloadDo js = (onload .=) =<< block js
+onload = window !. "onload"
+
+putOnload :: Code a -> Code b
+putOnload code = [BareExpr $ onload =: func]
+  where
+    func = FuncDef [] code :: Expr b

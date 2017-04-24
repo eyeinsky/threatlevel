@@ -33,8 +33,6 @@ nl  = "\n"
 nl2 = "\n\n"
 crlf = "\r\n"
 
-todo = error "TODO"
-
 rp = TIO.putStr . toPayload
 
 
@@ -42,5 +40,3 @@ class BodyAs b where
    parseBody :: B.ByteString {-^ defined by NS.recv-} -> b
 {- ^ We use BodyAs as a class to be able to extende it to
      arbitrary types. -}
-
-

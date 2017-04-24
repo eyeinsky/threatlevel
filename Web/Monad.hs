@@ -29,7 +29,7 @@ import Render
 
 declareLenses [d|
    data State = State
-      { jsCounter :: JS.S
+      { jsCounter :: JS.State
       , cssCounter :: Int
       }
 
@@ -73,7 +73,9 @@ instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
       c <- gets (^.jsCounter)
       b <- ask
-      let ((a, code), s') = JS.runM (b, True) c jsm
+      let
+        config =  JS.Config b True
+        ((a, code), s') = JS.runM config c jsm
       tell $ mempty & jsCode .~ code
       modify' (jsCounter .~ s')
       return a
