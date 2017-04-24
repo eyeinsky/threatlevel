@@ -28,6 +28,14 @@ focus = pseudo "focus"
 active = pseudo "active"
 visited = pseudo "visited"
 
+nthChild :: Int -> CSSM () -> CSSM ()
+nthChild n = pseudo str
+  where
+    n' = TL.pack (show n)
+    str = "nth-child(" <> n' <> ")"
+
+
+
 descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
