@@ -25,16 +25,20 @@ import DOM.Internal
 import Web.HTML.Blaze
 import Render
 
+import qualified IdentifierSource as IS
+
 -- ** WebT
+
+tlIdentifierSource = map TL.fromStrict IS.identifierSource
 
 declareLenses [d|
    data State = State
       { jsCounter :: JS.State
-      , cssCounter :: Int
+      , cssCounter :: [TL.Text]
       }
 
    instance Default State where
-      def = State def 0
+      def = State def tlIdentifierSource
 
    data Writer = Writer
       { jsCode :: JS.Code ()
@@ -54,7 +58,7 @@ runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
 run :: Br.Browser -> WebT m a -> WebMonadResult m a
 run r wm = RWS.runRWST (unWebT wm) r state
-   where state = State def 0
+   where state = State def tlIdentifierSource
 
 type WebMonadResult m a = m (a, State, Writer)
 
@@ -65,7 +69,7 @@ class Monad m => MonadWeb m where
    css :: CSSM.M () -> m CSS.Class
    cssRule :: CSS.SelectorFrom a => a -> CSSM.M () -> m ()
    cssId :: CSSM.M () -> m CSS.Id
-   nextId :: m Int
+   nextId :: m TL.Text
    getState :: m State
 
 -- | Main instance
@@ -81,8 +85,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       return a
    css m = WebT $ do
       b <- ask
-      n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
-      let c = CSS.Class $ Static $ "c" <> TL.pack (show n)
+      c <- CSS.Class . Static <$> IS.next cssCounter
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    cssRule sl m = WebT $ do
@@ -90,11 +93,10 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId m = WebT $ do
       b <- ask
-      n <- gets (^.cssCounter) <* modify (cssCounter %~ (+ 1))
-      let c = CSS.Id $ Static $ "i" <> TL.pack (show n)
+      c <- CSS.Id . Static <$> IS.next cssCounter
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
-   nextId = WebT $ gets (^.cssCounter)
+   nextId = WebT $ head <$> gets (^.cssCounter)
    getState = WebT get
 
 -- ** Instances
