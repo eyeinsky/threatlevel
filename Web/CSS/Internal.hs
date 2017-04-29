@@ -134,6 +134,20 @@ instance Render Selector where
     Simple ss -> renderM ss
     Combined op s s' -> renderM s <+> renderM op <+> renderM s'
 
+-- ** Keyframe
+
+data KeyframeSelector = From | To | KPercent Int
+instance Render KeyframeSelector where
+   renderM ks = pure $ case ks of
+     From -> "from"
+     To -> "to"
+     KPercent i -> tshow i <> "%"
+
+data KeyframeBlock
+  = KeyframeBlock KeyframeSelector [Declaration]
+instance Render KeyframeBlock where
+  renderM (KeyframeBlock s ds) = renderM s <+> (curly <$> renderM ds)
+
 -- ** Rule
 
 type CSS = [Rule]
@@ -141,16 +155,18 @@ instance Render CSS where
    renderM li = unlines <$> mapM renderM (filter (not . isEmpty) li)
      where
        isEmpty r = case r of
-         Qualified _ [] -> True
-         _ -> False
+         Qualified _ ds -> null ds
+         Keyframes name blocks -> False
 
-data Rule
-   = Qualified Prelude [Declaration]
-   | At
+data Rule where
+  Qualified :: Prelude -> [Declaration] -> Rule
+  Keyframes :: TL.Text -> [KeyframeBlock] -> Rule
 instance Render Rule where
    renderM r = case r of
       Qualified p ds -> renderM p <+> (curly <$> (renderM ds))
-      At -> renderM (Comment "At rules not implemented..")
+      Keyframes name blocks -> pure "@keyframes " <+> pure name <+> blocks'
+        where
+          blocks' = curly . TL.concat <$> mapM renderM blocks
 
 data Prelude = Selectors [Selector]
 instance Render Prelude where
@@ -167,6 +183,8 @@ mkDeclaration p v = Declaration (Property p) v
 -- ** Instances
 
 deriving instance Show Rule
+deriving instance Show KeyframeBlock
+deriving instance Show KeyframeSelector
 deriving instance Show Prelude
 deriving instance Show Selector
 deriving instance Show SOp
@@ -217,11 +235,3 @@ instance IsString TagName where
 
 instance Num Value where
   fromInteger = Int . fromInteger
--- * Declaration monad
-
-type DM = WriterT [Declaration] Identity
-runDM :: DM a -> (a, [Declaration])
-runDM = runIdentity . runWriterT
-
-execDM :: DM a -> [Declaration]
-execDM = snd . runDM

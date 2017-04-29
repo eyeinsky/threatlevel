@@ -4,6 +4,7 @@ module Web.CSS
   , module Web.HTML.Core
   , resetCSS
   , setBoxSizing
+  , keyframes, keyframe, browser, selector
   ) where
 
 import Prelude2

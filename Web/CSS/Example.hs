@@ -20,5 +20,10 @@ test = do
       display "level-3"
     descendant "strong" $ do
       fontSize "jee"
+  keyframes "bla" $ do
+    keyframe 0 $ do
+      backgroundColor "red"
+    keyframe 100 $ do
+      backgroundColor "blue"
 
 testRun = render $ run Chrome (TagName "body") test
