@@ -3,7 +3,7 @@ module Web.HTML.Core
   , module DOM.Internal
   ) where
 
-import Prelude2 hiding (div, span, elem, id)
+import Prelude2 hiding (div, span, elem, id, text)
 import Data.String
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
