@@ -29,6 +29,7 @@ library
     , Web.HTML.Blaze.Bootstrap
     , Web.HTML
     , Web.Monad
+    , Web.Static
   other-modules:
       Web.CSS.Internal
     , Web.CSS.Monad
