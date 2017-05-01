@@ -10,6 +10,10 @@ import qualified Web.HTML.Core as W
 import Web.HTML.Render
 import Web.HTML.Shorthands
 
+-- *
+
+renderRaw x = text (render x)
+
 -- * Exclamatable
 
 class Exclamatable e a where
