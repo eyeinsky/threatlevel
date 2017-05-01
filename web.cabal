@@ -37,6 +37,7 @@ library
     , Web.HTML.Core
     , Web.HTML.Render
     , Web.HTML.Shorthands
+    , Web.HTML.Shorthands.Paste
     , Web.SVG.Elements
     , Web.SVG.Attributes
     , DOM.Internal

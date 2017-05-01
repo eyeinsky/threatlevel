@@ -1,4 +1,7 @@
-module Web.HTML.Render where
+module Web.HTML.Render
+  ( module Web.HTML.Render
+  , module Render
+  ) where
 
 import Prelude2 hiding (concat, unwords)
 import qualified Data.HashMap.Strict as HM

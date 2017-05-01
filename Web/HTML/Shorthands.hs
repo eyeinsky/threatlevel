@@ -9,8 +9,11 @@ import Language.Haskell.TH
 import Web.HTML.Core
 import TH
 
-concat <$> mapM (mk [t|HTMLM ()|]) ["div", "span", "a", "form", "h1", "ul", "li", "svg"]
-concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href"]
+import Web.HTML.Shorthands.Paste
+
+concat <$> mapM (mk [t|HTMLM ()|]) tags
+
+concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content" ]
 
 id_ :: Id -> Attribute
 id_ id = AttrId id :: Attribute
