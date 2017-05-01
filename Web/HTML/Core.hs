@@ -40,7 +40,7 @@ instance IsString HTML where
    fromString str = TextNode $ TL.pack str
 
 instance IsString (HTMLM ()) where
-   fromString str = tell [fromString str]
+   fromString str = text $ TL.pack str
 
 -- ** Shorthands
 
