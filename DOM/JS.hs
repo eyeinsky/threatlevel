@@ -30,24 +30,6 @@ document = ex "document"
 location :: Expr Location
 location = window !. "location"
 
-on :: (Event event)
-   => Expr Tag                       -- When this element
-   -> event                          --   .. has this event
-   -> Expr (Expr event, Proxy ()) --   .. then do this.
-   -> M r ()
-on e t f = onEvent .= f
-  where onEvent = e !. toOn t
-
-on' :: (Arguments a ~ (Expr event, Proxy ()), Event event, Function a)
-  => Expr Tag
-  -> event
-  -> a
-  -> M parent ()
-on' e t f = do
-   fdef <- func f
-   on e t fdef
-
-
 getAttribute k e = call1 (e !. "getAttribute") k
 setAttribute k v e = call (e !. "setAttribute") [k, v]
 

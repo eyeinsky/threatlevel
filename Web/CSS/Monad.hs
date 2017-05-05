@@ -55,14 +55,11 @@ tellDecls ds = tell $ mempty & decls .~ ds
 runCSSM :: R -> CSSM () -> [Rule]
 runCSSM r m = r' : cssw^.rules
   where
-    (_, cssw) = flip runReader r . runWriterT $ m
+    cssw = runReader (execWriterT m) r
     r' = mkRule (r^.selector) (cssw^.decls)
 
-runCSSM' :: R -> CSSM () -> CSSW
-runCSSM' r m = snd . flip runReader r . runWriterT $ m
-
 instance Monoid CSSW where
-  mempty = CSSW [] []
+  mempty = CSSW mempty mempty
   mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
 
 apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
@@ -73,15 +70,14 @@ apply f s = go s
       Simple ss -> Simple (f ss)
       Combined op s ss -> Combined op s (f ss)
 
-pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
-pseudo' t s = s & pseudos %~ (p:)
-  where p = Pseudo t
-
 pseudo :: TL.Text -> CSSM () -> CSSM ()
 pseudo t m = do
   conf <- ask
   let hoovered = apply (pseudo' t) (conf^.selector)
   tellRules $ runCSSM (R hoovered $ conf^.browser) m
+  where
+    pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
+    pseudo' t s = s & pseudos %~ (Pseudo t:)
 
 combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
 combinator c d m = do

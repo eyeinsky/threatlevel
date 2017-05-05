@@ -1,6 +1,6 @@
 module Web.CSS
   ( module Web.CSS.Internal
-  , module Web.CSS.Shorthands
+  , module Web.CSS.Shorthands, prop
   , module Web.HTML.Core
   , resetCSS
   , setBoxSizing
