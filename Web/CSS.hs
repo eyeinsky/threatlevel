@@ -5,6 +5,7 @@ module Web.CSS
   , resetCSS
   , setBoxSizing
   , keyframes, keyframe, browser, selector
+  , media
   ) where
 
 import Prelude2

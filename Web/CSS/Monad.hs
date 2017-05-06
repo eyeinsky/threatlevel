@@ -10,7 +10,7 @@ import Control.Monad.Identity
 
 import Web.Browser
 import Web.CSS.Internal
-
+import qualified Web.CSS.MediaQuery as MediaQuery
 
 
 -- * DSL setup
@@ -111,3 +111,10 @@ keyframes name km = do
   b :: Browser <- asks (view browser)
   let ks = flip runReader b $ execWriterT km :: [KeyframeBlock]
   tellRules [Keyframes name ks]
+
+-- * Media query
+
+media :: TL.Text -> CSSM () -> CSSM ()
+media e dm = ask >>= tellRule . MediaQuery expr . flip runCSSM dm
+  where
+    expr = MediaQuery.Expr e

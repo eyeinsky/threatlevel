@@ -23,6 +23,7 @@ library
     , Warp_Helpers
     , Web
     , Web.CSS
+    , Web.CSS.MediaQuery
     , Web.SVG
     , Web.FRP
     , Web.HTML.Blaze
