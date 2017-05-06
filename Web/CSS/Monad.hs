@@ -41,15 +41,16 @@ run :: SelectorFrom a => Browser -> a -> CSSM () -> [Rule]
 run b s m = runCSSM (R (selFrom s) b) m
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
-rule s ds = tellRules [mkRule (selFrom s) (execWriter ds)]
+rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
 
 prop
   :: (HasDecls w [Declaration], MonadWriter w m)
   => TL.Text -> Value -> m ()
-prop k v = tellDecls [mkDeclaration k v]
-
+prop k v = tellDecls $ pure $ mkDeclaration k v
 
 tellRules rs = tell $ mempty & rules .~ rs
+tellRule =  tellRules . pure
+
 tellDecls ds = tell $ mempty & decls .~ ds
 
 runCSSM :: R -> CSSM () -> [Rule]
@@ -102,15 +103,13 @@ type KM = WriterT [KeyframeBlock] (Reader Browser)
 
 keyframe :: Int -> DeclM () -> KM ()
 keyframe n dm = do
-  b :: Browser <- ask
-  let dw = flip runReader b $ execWriterT dm :: DeclW
-  tell [KeyframeBlock (KPercent n) (dw^.decls)]
+  dw <- ask <&> runReader (execWriterT dm)
+  tell $ pure $ KeyframeBlock (KPercent n) (dw^.decls)
 
 keyframes :: TL.Text -> KM () -> CSSM ()
 keyframes name km = do
-  b :: Browser <- asks (view browser)
-  let ks = flip runReader b $ execWriterT km :: [KeyframeBlock]
-  tellRules [Keyframes name ks]
+  ks <- asks (view browser) <&> runReader (execWriterT km)
+  tellRule $ Keyframes name ks
 
 -- * Media query
 
