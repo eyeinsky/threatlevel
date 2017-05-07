@@ -1,4 +1,4 @@
-module Web.CSS.Monad where
+module CSS.Monad where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
@@ -9,8 +9,8 @@ import Control.Monad.Writer
 import Control.Monad.Identity
 
 import Web.Browser
-import Web.CSS.Internal
-import qualified Web.CSS.MediaQuery as MediaQuery
+import CSS.Internal
+import qualified CSS.MediaQuery as MediaQuery
 
 
 -- * DSL setup

@@ -1,14 +1,14 @@
-module Web.HTML
-  ( module Web.HTML
-  , module Web.HTML.Core
-  , module Web.HTML.Render
-  , module Web.HTML.Shorthands
+module HTML
+  ( module HTML
+  , module HTML.Core
+  , module HTML.Render
+  , module HTML.Shorthands
   ) where
 
-import Web.HTML.Core hiding ((!))
-import qualified Web.HTML.Core as W
-import Web.HTML.Render
-import Web.HTML.Shorthands
+import HTML.Core hiding ((!))
+import qualified HTML.Core as W
+import HTML.Render
+import HTML.Shorthands
 
 -- *
 

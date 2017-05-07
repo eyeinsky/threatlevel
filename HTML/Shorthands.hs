@@ -1,4 +1,4 @@
-module Web.HTML.Shorthands where
+module HTML.Shorthands where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL
@@ -6,10 +6,10 @@ import Control.Monad.Writer
 
 import Language.Haskell.TH
 
-import Web.HTML.Core
+import HTML.Core
 import TH
 
-import Web.HTML.Shorthands.Paste
+import HTML.Shorthands.Paste
 
 concat <$> mapM (mk [t|HTMLM ()|]) tags
 

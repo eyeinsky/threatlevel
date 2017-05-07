@@ -1,4 +1,4 @@
-module Web.HTML.Blaze where
+module HTML.Blaze where
 
 import Prelude as Pr
 import Data.String (fromString)
@@ -8,12 +8,12 @@ import qualified Data.Text as T
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html5            as E
 
-import qualified Web.CSS as CSS
+import qualified CSS as CSS
 import DOM.Event (Event, toOn)
 import JS
 import JS.Blaze
 
-import Web.HTML
+import HTML
 
 jsTag = E.script E.! A.type_ "text/javascript"
 jsUrl url = jsTag E.! A.src url $ ""

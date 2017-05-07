@@ -1,7 +1,7 @@
-module Web.CSS
-  ( module Web.CSS.Internal
-  , module Web.CSS.Shorthands, prop
-  , module Web.HTML.Core
+module CSS
+  ( module CSS.Internal
+  , module CSS.Shorthands, prop
+  , module HTML.Core
   , resetCSS
   , setBoxSizing
   , keyframes, keyframe, browser, selector
@@ -12,12 +12,12 @@ import Prelude2
 
 import Web.Browser
 
-import Web.CSS.Internal hiding
+import CSS.Internal hiding
   ( tag, maybeId, classes, pseudos
   )
-import Web.CSS.Monad
-import Web.CSS.Shorthands
-import Web.HTML.Core hiding (Value)
+import CSS.Monad
+import CSS.Shorthands
+import HTML.Core hiding (Value)
 
 resetCSS :: Browser -> [Rule]
 resetCSS b = run b (TagName "body") no <> run b (TagName "div") no

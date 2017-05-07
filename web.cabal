@@ -22,26 +22,26 @@ library
     , URL
     , Warp_Helpers
     , Web
-    , Web.CSS
-    , Web.CSS.MediaQuery
-    , Web.SVG
+    , CSS
+    , CSS.MediaQuery
+    , SVG
     , Web.FRP
-    , Web.HTML.Blaze
-    , Web.HTML.Blaze.Bootstrap
-    , Web.HTML
+    , HTML.Blaze
+    , HTML.Blaze.Bootstrap
+    , HTML
     , Web.Monad
     , Web.Static
   other-modules:
-      Web.CSS.Internal
-    , Web.CSS.Monad
-    , Web.CSS.Shorthands
-    , Web.CSS.Example
-    , Web.HTML.Core
-    , Web.HTML.Render
-    , Web.HTML.Shorthands
-    , Web.HTML.Shorthands.Paste
-    , Web.SVG.Elements
-    , Web.SVG.Attributes
+      CSS.Internal
+    , CSS.Monad
+    , CSS.Shorthands
+    , CSS.Example
+    , HTML.Core
+    , HTML.Render
+    , HTML.Shorthands
+    , HTML.Shorthands.Paste
+    , SVG.Elements
+    , SVG.Attributes
     , DOM.Internal
     , TH
   build-depends:

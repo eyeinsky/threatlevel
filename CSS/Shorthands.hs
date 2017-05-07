@@ -1,8 +1,8 @@
-module Web.CSS.Shorthands where
+module CSS.Shorthands where
 
 import Prelude2
-import Web.CSS.Internal
-import Web.CSS.Monad
+import CSS.Internal
+import CSS.Monad
 
 import qualified Data.Text.Lazy as TL
 import Language.Haskell.TH

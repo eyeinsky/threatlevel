@@ -1,8 +1,8 @@
-module Web.SVG.Elements where
+module SVG.Elements where
 
 import Prelude2
 import Control.Monad.Writer
-import Web.HTML.Core
+import HTML.Core
 import TH
 
 concat <$> mapM (mk [t|HTMLM ()|] . kebab2camel) [

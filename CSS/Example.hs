@@ -1,14 +1,14 @@
-module Web.CSS.Example where
+module CSS.Example where
 
 import Prelude2
 
 import Web.Browser
 
-import Web.CSS.Internal
-import Web.CSS.Monad
-import Web.CSS.Shorthands
+import CSS.Internal
+import CSS.Monad
+import CSS.Shorthands
 
-import Web.HTML hiding (em)
+import HTML hiding (em)
 import Render
 
 test = do

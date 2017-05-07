@@ -1,7 +1,7 @@
-module Web.HTML.Examples where
+module HTML.Examples where
 
 import Prelude2 hiding (div)
-import Web.HTML
+import HTML
 import Render
 
 e = div ! href "" $ a ! href "" $ "aeuaeueou"

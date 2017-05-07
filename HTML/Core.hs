@@ -1,5 +1,5 @@
-module Web.HTML.Core
-  ( module Web.HTML.Core
+module HTML.Core
+  ( module HTML.Core
   , module DOM.Internal
   ) where
 

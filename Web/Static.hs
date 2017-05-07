@@ -5,7 +5,7 @@ import qualified Data.Text.Lazy as TL
 
 import JS
 import Web hiding (content)
-import Web.HTML
+import HTML
 
 import Web.Monad (run)
 import Web.Browser

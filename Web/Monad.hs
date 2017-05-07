@@ -14,15 +14,15 @@ import Network.Wai
 
 import HTTP.Response
 
-import qualified Web.CSS as CSS
-import qualified Web.CSS.Monad as CSSM
+import qualified CSS as CSS
+import qualified CSS.Monad as CSSM
 import qualified Web.Browser as Br
 import qualified JS
 import qualified DOM.JS as JD
 import qualified JS.Blaze
 
 import DOM.Internal
-import Web.HTML.Blaze
+import HTML.Blaze
 import Render
 
 import qualified IdentifierSource as IS

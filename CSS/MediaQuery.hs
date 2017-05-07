@@ -1,4 +1,4 @@
-module Web.CSS.MediaQuery where
+module CSS.MediaQuery where
 
 import Prelude2
 import qualified Data.Text.Lazy as TL

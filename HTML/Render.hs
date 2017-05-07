@@ -1,5 +1,5 @@
-module Web.HTML.Render
-  ( module Web.HTML.Render
+module HTML.Render
+  ( module HTML.Render
   , module Render
   ) where
 
@@ -7,7 +7,7 @@ import Prelude2 hiding (concat, unwords)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text.Lazy as TL
 
-import Web.HTML.Core
+import HTML.Core
 import Render
 import Control.Monad.Writer (execWriter)
 

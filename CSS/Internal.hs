@@ -1,4 +1,4 @@
-module Web.CSS.Internal where
+module CSS.Internal where
 
 import Prelude2 hiding (unlines, intercalate, concat)
 import Text.Format
@@ -12,9 +12,9 @@ import Data.Word
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import Web.HTML.Core hiding (Value)
+import HTML.Core hiding (Value)
 import Render
-import qualified Web.CSS.MediaQuery as MediaQuery
+import qualified CSS.MediaQuery as MediaQuery
 
 -- * Syntax
 

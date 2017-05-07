@@ -1,8 +1,8 @@
-module Web.SVG.Attributes where
+module SVG.Attributes where
 
 import Prelude2
 import Control.Monad.Writer
-import Web.HTML.Core
+import HTML.Core
 import TH
 
 -- https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute

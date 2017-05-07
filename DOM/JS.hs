@@ -14,8 +14,8 @@ import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 
 
 import qualified DOM.Internal as D
-import qualified Web.CSS as CSS
-import Web.HTML.Core
+import qualified CSS as CSS
+import HTML.Core
 import DOM.Event
 
 
