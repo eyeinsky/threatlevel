@@ -1,6 +1,7 @@
 module Warp_Helpers
   ( module Warp_Helpers
-  , tlsSettings
+  , TLS.tlsSettings
+  , TLS.TLSSettings
   ) where
 
 import Prelude2 as P
@@ -14,7 +15,7 @@ import Control.Concurrent
 
 import Network.Wai -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
 import Network.Wai.Handler.Warp hiding (getPort) -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
-import Network.Wai.Handler.WarpTLS (runTLS, tlsSettings, TLSSettings)
+import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
 import HTTP.Common
@@ -39,8 +40,9 @@ type AppName = String
 
 type AppDef = (AppName, Authority -> IO Handler)
 type Rule = (AppName, Authority)
+type Https =  (AppDef, Rule, TLS.TLSSettings)
 
-data Server = Server (Maybe (AppDef, Rule, TLSSettings)) [AppDef] [Rule]
+data Server = Server (Maybe Https) [AppDef] [Rule]
 
 -- * Run http domains
 
@@ -107,9 +109,9 @@ runServer (Server https defs rules) = let
       pullPort xs@ (x : _) = (getPort x, xs)
       pr = mapM_ (\j -> print (j^._1 ,j^._2))
 
-runHttps :: (AppDef, Rule, TLSSettings) -> IO ()
+runHttps :: Https -> IO ()
 runHttps ((_, init), (_, auth), tls) = do
   handler <- init auth
-  runTLS tls settings (\req resp -> resp =<< handler req)
+  TLS.runTLS tls settings (\req resp -> resp =<< handler req)
   where
     settings = mkPort (port auth)
