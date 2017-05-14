@@ -109,7 +109,7 @@ createHtml' html = case html of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) mid
-      forM_ (HM.toList attrs) $ \ (k,v) -> t !. k .= ulit v
+      forM_ (HM.toList attrs) $ uncurry $ mkAttr t
       when (Pr.not . null $ cls) $
          t !. "className" .= createClasses cls
       ts :: [Expr Tag] <- mapM createHtml' children
@@ -117,6 +117,12 @@ createHtml' html = case html of
       return t
    TextNode txt -> return $ createTextNode (ulit txt)
    JSNode expr -> return (Cast expr)
+   where
+     mkAttr e k v
+       | "data-" `TL.isPrefixOf` k = let
+             k' = TL.drop 5 k
+           in (e !. "dataset" !. k') .= ulit v
+       | otherwise = e !. k .= ulit v
 
 createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ createHtml' tr >>= retrn
