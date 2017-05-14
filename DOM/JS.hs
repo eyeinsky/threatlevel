@@ -228,6 +228,9 @@ mkEventListener a el et h = call (el !. a) [etStr, h]
 addEventListener = mkEventListener "addEventListener"
 removeEventListener = mkEventListener "removeEventListener"
 
+alert :: Expr a -> Expr b
+alert x = call1 (ex "alert") x
+
 -- * Helpers
 
 onload = window !. "onload"
