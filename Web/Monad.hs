@@ -156,4 +156,5 @@ webToResponse b m = do
        addJs = addHead (jsTag $ E.toHtml js)
    addHead (favicon "data:;base64,iVBORw0KGgo=") . addCss . addJs <$> htmlBody resp
 
+newId :: MonadWeb m => m Id
 newId = cssId $ return ()
