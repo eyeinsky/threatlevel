@@ -58,6 +58,7 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    Vary :: HeaderName
    Warning :: HeaderName
    WWWAuthenticate :: HeaderName
+   StrictTransportSecurity :: HeaderName
 
     -- Entity Headers :: HeaderName
    Allow :: HeaderName
@@ -102,6 +103,7 @@ headerMap =
    , p "Vary"                 Vary
    , p "Warning"              Warning
    , p "WWW-Authenticate"     WWWAuthenticate
+   , p "Strict-Transport-Security" StrictTransportSecurity
    , p "Allow"                Allow
    , p "Content-Base"         ContentBase
    , p "Content-Encoding"     ContentEncoding
