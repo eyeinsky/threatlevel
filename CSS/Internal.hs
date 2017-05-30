@@ -1,6 +1,6 @@
 module CSS.Internal where
 
-import Prelude2 hiding (unlines, intercalate, concat)
+import Pr
 import Text.Format
 
 import Numeric (showHex)
@@ -13,7 +13,8 @@ import Control.Monad.Writer
 import Control.Monad.Identity
 
 import HTML.Core hiding (Value)
-import Render
+import Render (renderM, Render, (<+>))
+import qualified Render as R
 import qualified CSS.MediaQuery as MediaQuery
 
 -- * Syntax
@@ -62,7 +63,7 @@ instance Render Value where
       Word a -> pure a
       String a -> renderM (Comment "long strings unimplemented")
 
-      Percent a -> pure $ tshow a <> "%"
+      Percent a -> pure $ R.tshow a <> "%"
       Em a -> pure $ p a <> "em"
       Px a -> pure $ p a <> "px"
       Int a -> pure $ p a
@@ -78,13 +79,13 @@ instance Render Value where
       ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
       where
         hex a = TL.pack $ showHex a ""
-        p = tshow
+        p = R.tshow
 
 -- ** Comment
 
 data Comment = Comment TL.Text
 instance Render Comment where
-   renderM (Comment a) = pure $ sur "/*" "*/" a
+   renderM (Comment a) = pure $ R.sur "/*" "*/" a
 
 -- ** Selector
 
@@ -105,16 +106,16 @@ declareFields [d|
 
 instance Render SimpleSelector where
    renderM (SimpleSelector mt mi cs ps)
-     = g mt <+> g mi <+> (concat <$> (f cs <+> f ps))
+     = g mt <+> g mi <+> (R.concat <$> (f cs <+> f ps))
       where f = mapM renderM
             g = maybe (pure "") renderM
 
 
 data Declaration = Declaration Property Value
 instance Render Declaration where
-   renderM (Declaration p v) = mseq [renderM p, pure ":", renderM v]
+   renderM (Declaration p v) = R.mseq [renderM p, pure ":", renderM v]
 instance Render [Declaration] where
-   renderM ds = concat . map (<> ";") <$> mapM renderM ds
+   renderM ds = R.concat . map (<> ";") <$> mapM renderM ds
 
 -- ** Selector
 
@@ -142,18 +143,18 @@ instance Render KeyframeSelector where
    renderM ks = pure $ case ks of
      From -> "from"
      To -> "to"
-     KPercent i -> tshow i <> "%"
+     KPercent i -> R.tshow i <> "%"
 
 data KeyframeBlock
   = KeyframeBlock KeyframeSelector [Declaration]
 instance Render KeyframeBlock where
-  renderM (KeyframeBlock s ds) = renderM s <+> (curly <$> renderM ds)
+  renderM (KeyframeBlock s ds) = renderM s <+> (R.curly <$> renderM ds)
 
 -- ** Rule
 
 type CSS = [Rule]
 instance Render CSS where
-   renderM li = unlines <$> mapM renderM (filter (not . isEmpty) li)
+   renderM li = R.unlines <$> mapM renderM (filter (not . isEmpty) li)
      where
        isEmpty r = case r of
          Qualified _ ds -> null ds
@@ -166,15 +167,15 @@ data Rule where
   MediaQuery :: MediaQuery.Expr -> CSS -> Rule
 instance Render Rule where
    renderM r = case r of
-      Qualified p ds -> renderM p <+> (curly <$> (renderM ds))
+      Qualified p ds -> renderM p <+> (R.curly <$> (renderM ds))
       Keyframes name blocks -> pure "@keyframes " <+> pure name <+> blocks'
         where
-          blocks' = curly . TL.concat <$> mapM renderM blocks
-      MediaQuery (MediaQuery.Expr tl) rs -> pure ("@media " <> tl) <+> (curly . TL.concat <$> mapM renderM rs)
+          blocks' = R.curly . R.concat <$> mapM renderM blocks
+      MediaQuery (MediaQuery.Expr tl) rs -> pure ("@media " <> tl) <+> (R.curly . R.concat <$> mapM renderM rs)
 
 data Prelude = Selectors [Selector]
 instance Render Prelude where
-   renderM (Selectors ss) = intercalate "," <$> mapM renderM ss
+   renderM (Selectors ss) = R.intercalate "," <$> mapM renderM ss
 
 -- ** Helpers
 
