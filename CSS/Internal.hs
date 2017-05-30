@@ -8,6 +8,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import Data.Word
+import qualified Data.DList as D
 
 import Control.Monad.Writer
 import Control.Monad.Identity
@@ -44,6 +45,15 @@ data Value
    | ColorRGB Word8 Word8 Word8
    | ColorRGBA Word8 Word8 Word8 Double
 
+   | Compound (D.DList Value)
+
+instance Monoid Value where
+  mempty = error "CSS.Internal: Value can't be empty"
+  mappend (Compound xs) (Compound ys) = Compound (xs <> ys)
+  mappend (Compound xs) v = Compound (xs <> pure v)
+  mappend v (Compound xs) = Compound (pure v <> xs)
+  mappend x y = Compound (pure x <> pure y)
+
 prc i = Percent i
 px i = Px i
 em i = Em i
@@ -77,6 +87,8 @@ instance Render Value where
       ColorHex w32 -> pure $ "#" <> hex w32
       ColorRGB a b c -> pure $ format "rgb({},{},{})" (a,b,c)
       ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
+
+      Compound l -> R.intercalate " " <$> mapM renderM (D.toList l)
       where
         hex a = TL.pack $ showHex a ""
         p = R.tshow

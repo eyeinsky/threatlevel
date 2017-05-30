@@ -52,6 +52,7 @@ library
     , bytestring
     , case-insensitive
     , containers
+    , dlist
     , file-embed
     , hs-minu
     , http-types
