@@ -1,6 +1,6 @@
 module HTML.Core
   ( module HTML.Core
-  , module DOM.Internal
+  , module DOM.Core
   ) where
 
 import Prelude2 hiding (div, span, elem, id, text)
@@ -13,7 +13,7 @@ import Control.Monad.Writer
 
 import qualified JS
 
-import DOM.Internal
+import DOM.Core
 
 -- | Stubs
 data Tag

@@ -1,4 +1,4 @@
-module DOM.Internal where
+module DOM.Core where
 
 import Prelude2
 

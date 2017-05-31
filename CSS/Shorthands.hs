@@ -7,6 +7,8 @@ import CSS.Monad
 import qualified Data.Text.Lazy as TL
 import Language.Haskell.TH
 
+import DOM.Core
+
 $(let
     shorthand :: String -> DecsQ
     shorthand propName = [d| $(varP $ mkName name') = prop $(stringE propName) |]

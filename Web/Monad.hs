@@ -21,7 +21,7 @@ import qualified JS
 import qualified DOM.JS as JD
 import qualified JS.Blaze
 
-import DOM.Internal
+import DOM.Core
 import HTML.Blaze
 import Render
 

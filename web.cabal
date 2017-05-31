@@ -42,7 +42,7 @@ library
     , HTML.Shorthands.Paste
     , SVG.Elements
     , SVG.Attributes
-    , DOM.Internal
+    , DOM.Core
     , TH
   build-depends:
       base
