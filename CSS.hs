@@ -28,8 +28,7 @@ resetCSS b = run b (TagName "body") no <> run b (TagName "div") no
         prop "margin" $ px 0
 
 setBoxSizing :: Browser -> [Rule]
-setBoxSizing b = run b (TagName "html") (boxSizing "border-box") <> run b any inherit
+setBoxSizing b = run b (TagName "html") (boxSizing "border-box") <> run b anyTag inherit
   where
     forAny = inherit >> before inherit >> after inherit
     inherit = boxSizing "inherit"
-    any = selFrom $ TagName "*"

@@ -42,3 +42,6 @@ descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
+
+anyTag :: Selector
+anyTag = selFrom $ TagName "*"
