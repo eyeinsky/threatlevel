@@ -33,6 +33,7 @@ data Value
    | Em Double
    | Px Int
    | Int Int
+   | Points Double
 
    | ViewportHeight  Double
    | ViewportWidth   Double
@@ -56,6 +57,7 @@ instance Monoid Value where
 
 prc i = Percent i
 px i = Px i
+pt i = Points i
 em i = Em i
 vh i   = ViewportHeight i
 vw i   = ViewportWidth  i
@@ -76,6 +78,7 @@ instance Render Value where
       Percent a -> pure $ R.tshow a <> "%"
       Em a -> pure $ p a <> "em"
       Px a -> pure $ p a <> "px"
+      Points a -> pure $ p a <> "pt"
       Int a -> pure $ p a
       Time a -> pure $ p a <> "s"
 
