@@ -2,6 +2,7 @@ module CSS
   ( module CSS.Internal
   , module CSS.Shorthands, prop
   , module HTML.Core
+  , run
   , resetCSS
   , setBoxSizing
   , keyframes, keyframe, browser, selector
