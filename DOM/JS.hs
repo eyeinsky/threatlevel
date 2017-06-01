@@ -69,12 +69,36 @@ docCall f a = docCall' f (ulit a)
 findUnder :: FindBy a => Expr Tag -> a -> Expr Tag
 findUnder e a = todo
 
+--
 
+ea s e = e !. s
+
+offsetHeight = ea "offsetHeight"
+scrollHeight = ea "scrollHeight"
+
+scrollTop = ea "scrollTop"
+scrollBottom e = scrollTop e + offsetHeight e
+
+offsetTop = ea "offsetTop"
+offsetBottom e = ea "offsetTop" e + offsetHeight e
+
+atTop el = scrollTop el .== 0 :: Expr JS.Bool
+atBottom el = scrollBottom el .>= scrollHeight el :: Expr JS.Bool
+
+getComputedStyle e = call1 (ex "getComputedStyle") e
+
+childNodes e = e !. "childNodes"
 
 -- * Modify DOM
 
+timeStamp e = e !. "timeStamp"
+
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild a t = call1 (t !. "appendChild") a
+
+insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
+
+replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
 
 remove :: Expr Tag -> M r (Expr ())
 remove e = browser <&> \b -> case b of
@@ -84,7 +108,9 @@ remove e = browser <&> \b -> case b of
 parentNode :: Expr Tag -> Expr Tag
 parentNode e = e !. "parentNode"
 
-setInnerHTML e x = e !. "innerHTML" .= x
+setInnerHTML e x = innerHTML e .= x
+
+innerHTML e = e !. "innerHTML"
 
 createElement :: TagName -> Expr Tag
 createElement tn = docCall' "createElement" $ valueExpr $ unTagName tn
