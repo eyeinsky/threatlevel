@@ -13,7 +13,7 @@ import DOM.Event (Event, toOn)
 import JS
 import JS.Blaze
 
-import HTML
+import HTML hiding (jsTag, cssTag, favicon)
 
 jsTag = E.script E.! A.type_ "text/javascript"
 jsUrl url = jsTag E.! A.src url $ ""

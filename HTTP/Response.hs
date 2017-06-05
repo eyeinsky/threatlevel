@@ -1,6 +1,6 @@
 module HTTP.Response where
 
-import Prelude2
+import Pr hiding (Any)
 
 import qualified Text.Blaze.Html5            as E
 import           Text.Blaze.Html.Renderer.Utf8 (renderHtml)
@@ -10,13 +10,13 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as LBS
 
 -- Wai/Warp conversions
-import Network.Wai ( Response, responseBuilder, responseFile
+import Network.Wai ( responseBuilder, responseFile
                    , Request
                    , pathInfo, queryString, requestHeaders, requestBody
                    , requestMethod
                    )
 import qualified Network.Wai as Wai
-import Network.Wai.Internal (Response(..))
+import qualified Network.Wai.Internal as WaiI
 import Network.HTTP.Types (
      ok200, hContentType, hCacheControl, hCookie, queryToQueryText, parseQuery, RequestHeaders, methodGet, urlEncode
    , hServer, status303, status404, status503, QueryText)
@@ -45,8 +45,30 @@ import qualified HTTP.Header as Hdr
 import HTTP.Common
 import URL
 
--- * Send
 
+-- * Opaque
+
+type Raw = Wai.Response
+
+class ToRaw a where
+  toRaw :: a -> Raw
+
+httpResponse :: Int -> [Hdr.Header] -> BL.ByteString -> Wai.Response
+httpResponse code headers body
+  = responseBuilder (waiCode code) headers' (BBB.fromLazyByteString body)
+  where
+    headers' = map Hdr.cc headers
+
+waiCode code = case code of
+  200 -> WT.status200
+  404 -> WT.status404
+  303 -> WT.status303
+  _ -> todo
+
+
+-- * Helpers
+
+utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8")
 -- | Typed response
 data RespAction where
    Html     :: E.Html -> E.Html -> RespAction
@@ -65,18 +87,17 @@ declareFields [d|
     }
   |]
 
+toWai :: Resp -> Wai.Response
+toWai = toRaw
+
 toResp :: RespAction -> Resp
 toResp ra = Resp 200 [] ra
 
 addHeader :: Hdr.Header -> Resp -> Resp
 addHeader c r = r & headers %~ (c:)
 
--- ** Raw http response
-
-type Raw = Wai.Response
-
-class ToRaw a where
-  toRaw :: a -> Raw
+instance ToRaw Raw where
+  toRaw = id
 
 instance ToRaw Resp where
   toRaw (Resp status hs c) = waiAddHeaders (map Hdr.cc hs) $ case c of
@@ -98,8 +119,6 @@ utf8ct what r = r & headers .~ common
    common :: [ Hdr.Header ]
    common = [ Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8") ]
 
-utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8")
-
 addHead a r = r & content %~ f
    where f c = case c of Html h b -> Html (h>>a) b; _ -> c
 
@@ -117,8 +136,6 @@ withBody f r = r & content %~ f'
 
 -- * Conversion to Wai/Warp
 
-toWai :: Resp -> Wai.Response
-toWai = toRaw
 
 -- * Helpers
 
@@ -138,22 +155,10 @@ html2bl :: E.Html -> E.Html -> BL.ByteString
 html2bl hh hb = renderHtml $ E.docType >> E.head hh >> E.body hb
 
 waiAddHeaders hs r = case r of
-   ResponseBuilder st hdrs builder -> ResponseBuilder st (hs <> hdrs) builder
-   ResponseFile st hdrs path mFilePart -> ResponseFile st (hs <> hdrs) path mFilePart
+   WaiI.ResponseBuilder st hdrs builder -> WaiI.ResponseBuilder st (hs <> hdrs) builder
+   WaiI.ResponseFile st hdrs path mFilePart -> WaiI.ResponseFile st (hs <> hdrs) path mFilePart
 
 htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
-
-httpResponse :: Int -> [Hdr.Header] -> BL.ByteString -> Response
-httpResponse code headers body
-  = responseBuilder (waiCode code) headers' (BBB.fromLazyByteString body)
-  where
-    headers' = map Hdr.cc headers
-
-waiCode code = case code of
-  200 -> WT.status200
-  404 -> WT.status404
-  303 -> WT.status303
-  _ -> todo
 
 {-
 sendEmbed assoc path = lookup path assoc

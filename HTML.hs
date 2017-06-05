@@ -5,6 +5,8 @@ module HTML
   , module HTML.Shorthands
   ) where
 
+import Pr
+import Data.Text.Lazy.Lens (utf8)
 import HTML.Core hiding ((!))
 import qualified HTML.Core as W
 import HTML.Render
@@ -12,7 +14,9 @@ import HTML.Shorthands
 
 -- *
 
-renderRaw x = text (render x)
+renderRaw :: forall a. Render a => a -> W.Html
+renderRaw x = W.text (render x)
+
 
 -- * Exclamatable
 

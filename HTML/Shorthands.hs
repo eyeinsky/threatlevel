@@ -20,3 +20,16 @@ id_ id = AttrId id :: Attribute
 
 cls_ :: [Class] -> Attribute
 cls_ cs = AttrClass cs
+
+cssTag :: HTMLM () -> HTMLM ()
+cssTag = style ! type_ "text/css"
+
+jsTag :: HTMLM () -> HTMLM ()
+jsTag = script ! type_ "text/javascript"
+
+favicon :: TL.Text -> HTMLM ()
+favicon adr = link
+  ! rel "shortcut icon"
+  ! type_ "image/x-icon"
+  ! href adr
+  $ pure ()

@@ -1,6 +1,6 @@
 module Web.Monad where
 
-import Prelude2
+import Pr
 import qualified Data.Text.Lazy as TL
 import Data.Default
 
@@ -96,7 +96,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       c <- CSS.Id . Static <$> IS.next cssCounter
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
-   nextId = WebT $ head <$> gets (^.cssCounter)
+   nextId = WebT $ Pr.head <$> gets (^.cssCounter)
    getState = WebT get
 
 -- ** Instances
@@ -143,7 +143,7 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
 
 -- ** Helpers
 
-webWai :: Monad f => WebT f E.Html -> Request -> f Response
+webWai :: Monad f => WebT f E.Html -> Request -> f Network.Wai.Response
 webWai webm req = fmap toWai $ webToResponse browser webm
   where
     hdrs = requestHeaders req

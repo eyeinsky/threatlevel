@@ -33,7 +33,8 @@ library
     , Web.Monad
     , Web.Static
   other-modules:
-      CSS.Internal
+      Pr
+    , CSS.Internal
     , CSS.Monad
     , CSS.Shorthands
     , CSS.Example
@@ -57,6 +58,7 @@ library
     , file-embed
     , hs-minu
     , http-types
+    , lens
     , mime-types
     , mtl
     , network
@@ -84,6 +86,7 @@ library
     , DeriveFunctor
     , EmptyDataDecls
     , UndecidableInstances
+    , InstanceSigs
   default-language:    Haskell2010
 
 test-suite test
