@@ -193,12 +193,12 @@ mkExpr = Cast . ulit . static . unClass
 
 -- Expr URL -> data -> (\ x -> M y z) -> M a b
 -- doPost' a b c = call ajaxExpr ["post", a, b, c]
-doPost' a b c = do
+doPost' uri data_ cb = do
    aj <- newf $ ajaxExpr
-   bare $ call aj [ulit "POST", a, b, c]
-doGet' a b c = do
+   bare $ call aj [ulit "POST", uri, data_, cb]
+doGet' uri data_ cb = do
    aj <- newf $ ajaxExpr
-   bare $ call aj [ulit "GET", a, b, c]
+   bare $ call aj [ulit "GET", uri, data_, cb]
 
 ajaxExpr meth uri data_ callback = do
    xhr <- new $ ex "new XMLHttpRequest()"
