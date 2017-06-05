@@ -65,10 +65,27 @@ waiCode code = case code of
   303 -> WT.status303
   _ -> todo
 
+-- * HTTP response
+
+declareFields [d|
+  data Response = Response
+    { responseCode :: Int
+    , responseHeaders :: [H.Header]
+    , responseBody :: BL.ByteString
+    }
+  |]
+class ToResponse a where
+  toResponse :: a -> Response
+
+instance ToRaw Response where
+  toRaw (Response status headers content) = httpResponse status headers content
 
 -- * Helpers
 
 utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8")
+
+-- * Send (old)
+
 -- | Typed response
 data RespAction where
    Html     :: E.Html -> E.Html -> RespAction
@@ -211,13 +228,9 @@ import           HTTP.Netw
 
 -- * Response parse
 
-data ResponseR b where
-   ResponseR :: BodyAs b => StatusLine -> [H.Header] -> b -> ResponseR b
-
-type StatusLine = B.ByteString
-
-parseResponse :: BodyAs b => B.ByteString -> ResponseR b
-parseResponse bs = ResponseR statusLine headers body
+{-
+parseResponse :: BodyAs b => B.ByteString -> Response b
+parseResponse bs = Response statusLine headers body
    where (statusLine, rest) = B.breakSubstring crlf bs
          (hdrsBs, bodyBs)   = B.breakSubstring (crlf<>crlf) rest
          headers = parseHeaders hdrsBs
@@ -239,7 +252,7 @@ parseHeaders bs = pairs
                then []
                else tokenise x (B.drop (B.length x) t)
             where (h,t) = B.breakSubstring x y
-
+-}
 
 -- ** Parsing various types of response body
 
@@ -257,5 +270,5 @@ instance BodyAs (Maybe JSON.Object) where
 
 -- * Instances
 
-deriving instance Show b => Show (ResponseR b)
+-- deriving instance Show b => Show (Response b)
 -- deriving instance Show (Request b)

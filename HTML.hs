@@ -10,13 +10,22 @@ import Data.Text.Lazy.Lens (utf8)
 import HTML.Core hiding ((!))
 import qualified HTML.Core as W
 import HTML.Render
-import HTML.Shorthands
+import HTML.Shorthands hiding (head, body, map)
+import HTML.Shorthands as H
+import HTTP.Response (ToResponse(..), Response(..), utf8textHdr)
 
 -- *
 
 renderRaw :: forall a. Render a => a -> W.Html
 renderRaw x = W.text (render x)
 
+-- * Response
+
+instance ToResponse Document where
+  toResponse (Document h b) = Response 200 [utf8textHdr "html"] $ tl^.re utf8
+    where
+      html = H.html (H.head h >> b)
+      tl = "<!DOCTYPE html>" <> render html
 
 -- * Exclamatable
 
