@@ -25,10 +25,11 @@ library
     , CSS
     , CSS.MediaQuery
     , SVG
-    , Web.FRP
     , HTML.Blaze
     , HTML.Blaze.Bootstrap
     , HTML
+    , Web.Endpoint
+    , Web.FRP
     , Web.Monad
     , Web.Static
   other-modules:
