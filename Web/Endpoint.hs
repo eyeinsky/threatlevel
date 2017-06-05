@@ -21,7 +21,7 @@ type Urls = [Url]
 type Endpoints m = [(Url, m Raw)]
 newtype EndpointT m a = EndpointT
   { unEndpointT :: RWST (Url -> Url) (Endpoints m) Urls m a
-  } deriving (MonadIO, MonadFix)
+  } deriving (Functor, Applicative, Monad, MonadIO, MonadFix)
 
 deriving instance MonadFix m => MonadFix (W.WebT m)
 
@@ -54,14 +54,6 @@ currentUrl = urlMaker <&> ($ "")
 
 -- ** Instances
 
-instance Functor m => Functor (EndpointT m) where
-  fmap f (EndpointT m) = EndpointT (fmap f m)
-instance (Applicative m, Monad m) => Applicative (EndpointT m) where
-  pure a = EndpointT (pure a)
-  EndpointT a <*> EndpointT b = EndpointT (a <*> b)
-instance Monad m => Monad (EndpointT m) where
-  return a = EndpointT $ RWST $ \_ s -> return (a, s, mempty)
-  m >>= f = EndpointT $ unEndpointT . f =<< unEndpointT m
 instance MonadTrans EndpointT where
   lift m = EndpointT $ RWST $ \_ s -> do
     a <- m
