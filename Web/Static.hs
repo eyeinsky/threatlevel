@@ -1,23 +1,20 @@
 module Web.Static where
 
-import Prelude2 hiding (head, text)
-import qualified Data.Text.Lazy as TL
+import Pr hiding (head, text)
 
-import JS
-import Web hiding (content)
+import Web hiding (content, favicon)
 import HTML
 
 import Web.Monad (run)
 import Web.Browser
 
-runStatic :: WebT Identity (HTMLM ()) -> HTMLM ()
-runStatic wm = html $ do
-  head $ do
-    cssTag $ renderRaw $ wr^.cssCode <> reset
-    jsTag $ renderRaw $ wr^.jsCode
-    favicon "data:;base64,iVBORw0KGgo="
-    meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8" $ pure ()
-  body
+runStatic :: WebT Identity Html -> Document
+runStatic wm = Document
+  (do cssTag $ renderRaw $ wr^.cssCode <> reset
+      jsTag $ renderRaw $ wr^.jsCode
+      favicon "data:;base64,iVBORw0KGgo="
+      meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8" $ pure ())
+  (do body)
   where
     browser = Unknown
     (body :: HTMLM (), _, wr) = runIdentity $ run browser wm

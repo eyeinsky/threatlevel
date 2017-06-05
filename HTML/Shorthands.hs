@@ -33,3 +33,7 @@ favicon adr = link
   ! type_ "image/x-icon"
   ! href adr
   $ pure ()
+
+
+docBody :: Html -> Document
+docBody = Document (return ())

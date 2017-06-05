@@ -19,7 +19,6 @@ import DOM.Core
 data Tag
 data Attr
 data Window
-data Document
 data DocumentFragment
 data Location
 
@@ -83,3 +82,10 @@ instance Attributable (HTMLM () -> HTMLM ()) where
         e' = e ! attr & contents .~ ct
       in tell (e' : rest)
     _ -> a
+
+declareFields [d|
+  data Document = Document
+    { documentHead :: Html
+    , documentBody :: Html
+    }
+  |]
