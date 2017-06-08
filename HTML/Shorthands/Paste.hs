@@ -18,6 +18,11 @@ tags = map extract . filter' . lines $ paste
 <details> 	Represents a widget from which the user can obtain additional information or controls on-demand.
 <div> 	Specifies a division or a section in a document.
 <h1> to <h6> 	Defines HTML headings.
+<h2> to <h6> 	Defines HTML headings.
+<h3> to <h6> 	Defines HTML headings.
+<h4> to <h6> 	Defines HTML headings.
+<h5> to <h6> 	Defines HTML headings.
+<h6> to <h6> 	Defines HTML headings.
 <head> 	Defines the head portion of the document that contains information about the document.
 <header> 	Represents the header of a document or a section.
 <hgroup> 	Defines a group of headings.
