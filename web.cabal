@@ -28,7 +28,6 @@ library
     , HTML.Blaze
     , HTML.Blaze.Bootstrap
     , HTML
-    , Web.Endpoint
     , Web.FRP
     , Web.Monad
     , Web.Static
