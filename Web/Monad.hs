@@ -51,7 +51,7 @@ declareLenses [d|
    |]
 
 newtype WebT m a = WebT { unWebT :: RWS.RWST Br.Browser Writer State m a }
-   deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
+   deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)
 
 runWebMT :: Br.Browser -> State -> WebT m a -> m (a, State, Writer)
 runWebMT r s wm = RWS.runRWST (unWebT wm) r s
