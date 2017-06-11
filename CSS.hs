@@ -7,6 +7,7 @@ module CSS
   , setBoxSizing
   , keyframes, keyframe, browser, selector
   , media
+  , DeclM, renderDecls
   ) where
 
 import Prelude2
@@ -19,6 +20,11 @@ import CSS.Internal hiding
 import CSS.Monad
 import CSS.Shorthands
 import HTML.Core hiding (Value)
+
+import Render
+
+renderDecls :: Browser -> DeclM a -> Text
+renderDecls r dm = render $ view decls $ execDeclM r dm
 
 resetCSS :: Browser -> [Rule]
 resetCSS b = run b (TagName "body") no <> run b (TagName "div") no

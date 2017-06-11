@@ -98,6 +98,8 @@ instance Monoid DeclW where
   mappend a b = DeclW (a^.decls <> b^.decls)
 
 type DeclM = WriterT DeclW (Reader Browser)
+execDeclM :: Browser -> DeclM a ->  DeclW
+execDeclM r dm = runReader (execWriterT dm) r
 
 type KM = WriterT [KeyframeBlock] (Reader Browser)
 
