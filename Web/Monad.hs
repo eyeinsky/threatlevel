@@ -66,9 +66,9 @@ type WebMonadResult m a = m (a, State, Writer)
 
 class Monad m => MonadWeb m where
    js :: JS.M () a -> m a
-   css :: CSSM.M () -> m CSS.Class
+   css :: CSSM.M () -> m Class
    cssRule :: CSS.SelectorFrom a => a -> CSSM.M () -> m ()
-   cssId :: CSSM.M () -> m CSS.Id
+   cssId :: CSSM.M () -> m Id
    nextId :: m TL.Text
    getState :: m State
 
@@ -85,7 +85,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       return a
    css m = WebT $ do
       b <- ask
-      c <- CSS.Class . Static <$> IS.next cssCounter
+      c <- Class . Static <$> IS.next cssCounter
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    cssRule sl m = WebT $ do
@@ -93,7 +93,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId m = WebT $ do
       b <- ask
-      c <- CSS.Id . Static <$> IS.next cssCounter
+      c <- Id . Static <$> IS.next cssCounter
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    nextId = WebT $ Pr.head <$> gets (^.cssCounter)

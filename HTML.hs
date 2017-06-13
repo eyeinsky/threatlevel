@@ -3,10 +3,12 @@ module HTML
   , module HTML.Core
   , module HTML.Render
   , module HTML.Shorthands
+  , module DOM.Core
   ) where
 
 import Pr
 import Data.Text.Lazy.Lens (utf8)
+import DOM.Core
 import HTML.Core hiding ((!))
 import qualified HTML.Core as W
 import HTML.Render

@@ -12,6 +12,7 @@ import qualified CSS as CSS
 import DOM.Event (Event, toOn)
 import JS
 import JS.Blaze
+import DOM.Core
 
 import HTML hiding (jsTag, cssTag, favicon)
 
@@ -24,8 +25,8 @@ favicon adr = E.link
    E.! A.type_ "image/x-icon"
    E.! A.href (E.toValue adr)
 
-cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Pr.map (static . CSS.unClass) strs
-id_ (CSS.Id t) = A.id $ E.toValue $ static t
+cls_ strs = A.class_ $ E.toValue $ TL.unwords $ Pr.map (static . unClass) strs
+id_ (Id t) = A.id $ E.toValue $ static t
 
 on :: Event a => a -> Expr a1 -> E.Attribute
 on event js = customAttribute (fromString $ TL.unpack $ toOn event) (toValue $ call1 js (ex "event"))

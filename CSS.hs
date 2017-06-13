@@ -1,7 +1,7 @@
 module CSS
   ( module CSS.Internal
   , module CSS.Shorthands, prop
-  , module HTML.Core
+  , module DOM.Core
   , run
   , resetCSS
   , setBoxSizing
@@ -19,7 +19,7 @@ import CSS.Internal hiding
   )
 import CSS.Monad
 import CSS.Shorthands
-import HTML.Core hiding (Value)
+import DOM.Core hiding (Value) -- don't export attribute value, but css value
 
 import Render
 

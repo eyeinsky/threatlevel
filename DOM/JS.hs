@@ -16,6 +16,7 @@ import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 import qualified DOM.Core as D
 import qualified CSS as CSS
 import HTML.Core
+import DOM.Core
 import DOM.Event
 
 
@@ -40,16 +41,16 @@ requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
-instance FindBy CSS.Id where
-   findBy (CSS.Id id) = valueSelf id (docCall "getElementById")
-instance FindBy CSS.Class where
-   findBy (CSS.Class a) = valueSelf a (docCall "getElementsByClassName")
+instance FindBy Id where
+   findBy (Id id) = valueSelf id (docCall "getElementById")
+instance FindBy Class where
+   findBy (Class a) = valueSelf a (docCall "getElementsByClassName")
 
-instance FindBy CSS.TagName where
-   findBy (CSS.TagName a) = valueSelf a (docCall "getElementsByTagName")
-instance FindBy (Expr CSS.Id) where
+instance FindBy TagName where
+   findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
+instance FindBy (Expr Id) where
    findBy a = docCall' "getElementById" a
-instance FindBy (Expr CSS.Class) where
+instance FindBy (Expr Class) where
    findBy a = docCall' "getElementsByClassName" a
 
 valueSelf :: D.Value -> (TL.Text -> Expr b) -> Expr b
