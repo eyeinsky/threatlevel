@@ -151,11 +151,11 @@ createHtml' html = case html of
    TextNode txt -> return $ createTextNode (ulit txt)
    JSNode expr -> return (Cast expr)
    where
-     mkAttr e k v
-       | "data-" `TL.isPrefixOf` k = let
-             k' = TL.drop 5 k
-           in (e !. "dataset" !. k') .= ulit v
-       | otherwise = e !. k .= ulit v
+     mkAttr :: Expr a -> TL.Text -> Attribute -> M r ()
+     mkAttr e k attr = case attr of
+       Data _ v -> (e !. "dataset" !. k) .= ulit v
+       OnEvent et expr -> e !. toOn et .= expr
+       Custom _ v -> e !. k .= ulit v
 
 createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ createHtml' tr >>= retrn

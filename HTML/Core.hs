@@ -14,6 +14,7 @@ import Control.Monad.Writer
 import qualified JS
 
 import DOM.Core
+import DOM.Event
 
 -- | Stubs
 data Tag
@@ -22,13 +23,21 @@ data Window
 data DocumentFragment
 data Location
 
+
+data Attribute where
+  Custom :: TL.Text -> TL.Text -> Attribute
+  OnEvent :: Event event => event -> JS.Expr a -> Attribute
+  Data ::  TL.Text -> TL.Text -> Attribute
+  AttrClass :: [Class] -> Attribute
+  AttrId :: Id -> Attribute
+
 declareLenses [d|
    data HTML
       = TagNode {
            tagLens  :: TagName
          , id       :: Maybe Id
          , classes  :: [Class]
-         , attrs    :: HM.HashMap TL.Text TL.Text
+         , attrs    :: HM.HashMap TL.Text Attribute
          , contents :: [HTML]
          }
       | TextNode TL.Text
@@ -51,11 +60,6 @@ type HTMLM = Writer [HTML]
 
 type Html = HTMLM ()
 
-data Attribute
-  = Custom TL.Text TL.Text
-  | AttrClass [Class]
-  | AttrId Id
-
 text :: TL.Text -> HTMLM ()
 text tl = tell [TextNode tl]
 
@@ -68,7 +72,9 @@ instance Attributable HTML where
   (!) a attr = case attr of
     AttrClass cs -> a & classes %~ (cs <>)
     AttrId id' -> a & id .~ Just id'
-    Custom k v -> a & attrs %~ (HM.insert k v)
+    Custom k v -> a & attrs %~ (HM.insert k attr)
+    OnEvent e v -> a & attrs %~ (HM.insert (toOn e) attr)
+    Data e v -> a & attrs %~ (HM.insert e attr)
 
 instance Attributable (HTMLM ()) where
   (!) a attr = case execWriter a of

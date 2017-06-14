@@ -10,24 +10,30 @@ import qualified Data.Text.Lazy as TL
 import HTML.Core
 import Render
 import Control.Monad.Writer (execWriter)
+import DOM.Event
 
 instance Render HTML where
   renderM html = pure $ case html of
-    TagNode n mId cs as htmls -> "<" <> tag <> attrs2str as' <> rest
+    TagNode n mId cs as htmls -> "<" <> tag <> (TL.null as' ? "" $ (" " <> as')) <> rest
       where
         tag = static $ unTagName n
         rest = case htmls of
           _ : _ -> let sub = concat (map render htmls)
             in ">" <> sub <> "</" <> tag <> ">"
           _ -> "/>"
-        as' = HM.unions [as, id,  classes]
-        id = maybe HM.empty (HM.singleton "id" . static . unId) mId
-        classes = null cs ? HM.empty $ HM.singleton "class" $ unwords $ map (static . unClass) cs
+        as' = TL.unwords $ (v2s <$> HM.elems as) <> catMaybes [id,  classes]
+        id = (eq "id" . static . unId) <$> mId
+        classes = null cs ? Nothing $ Just $ eq "class" (TL.unwords $ map (static . unClass) cs)
     TextNode tl -> escape tl
       where escape tl = tl
     JSNode tl -> "error: Can't render browser js in back-end!"
     where
-      attrs2str = HM.foldrWithKey (\k v x -> x <> " " <> k <> "=" <> q v) ""
+      v2s attr = case attr of
+        Custom k v -> eq k v
+        OnEvent et expr -> eq (toOn et) (render expr)
+        Data k v -> eq ("data-" <> k) v
+        where
+      eq k v = k <> "=" <> q v
       q v = "'" <> v <> "'"
 
 instance Render [HTML] where

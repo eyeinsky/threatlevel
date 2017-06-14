@@ -11,7 +11,7 @@ import TH
 
 import HTML.Shorthands.Paste
 
-concat <$> mapM (mk [t|HTMLM ()|]) tags
+-- * Attributes
 
 concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content" ]
 
@@ -20,6 +20,10 @@ id_ id = AttrId id :: Attribute
 
 cls_ :: [Class] -> Attribute
 cls_ cs = AttrClass cs
+
+-- * Elements
+
+concat <$> mapM (mk [t|HTMLM ()|]) tags
 
 cssTag :: HTMLM () -> HTMLM ()
 cssTag = style ! type_ "text/css"
@@ -33,7 +37,6 @@ favicon adr = link
   ! type_ "image/x-icon"
   ! href adr
   $ pure ()
-
 
 docBody :: Html -> Document
 docBody = Document (return ())
