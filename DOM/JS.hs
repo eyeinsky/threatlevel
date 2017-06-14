@@ -101,10 +101,16 @@ insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
 
 replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
 
-remove :: Expr Tag -> M r (Expr ())
-remove e = browser <&> \b -> case b of
-  IE -> call1 (parentNode e !. "removeChild") e
+remove' :: Expr Tag -> M r (Expr Tag)
+remove' e = browser <&> \b -> case b of
+  IE -> removeChild (parentNode e) e
   _ -> call0 (e !. "remove")
+
+remove :: Expr Tag -> M r ()
+remove e = remove' e >>= bare
+
+removeChild :: Expr Tag -> Expr Tag -> Expr Tag
+removeChild parent child = call1 (parent !. "removeChild") child
 
 parentNode :: Expr Tag -> Expr Tag
 parentNode e = e !. "parentNode"
