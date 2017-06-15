@@ -28,6 +28,7 @@ library
     , HTML.Blaze
     , HTML.Blaze.Bootstrap
     , HTML
+    , HTML.Shorthands
     , Web.FRP
     , Web.Monad
     , Web.Static
@@ -39,7 +40,6 @@ library
     , CSS.Example
     , HTML.Core
     , HTML.Render
-    , HTML.Shorthands
     , HTML.Shorthands.Paste
     , SVG.Elements
     , SVG.Attributes
