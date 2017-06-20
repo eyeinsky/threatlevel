@@ -1,33 +1,46 @@
 module URL where
 
-import Prelude2 hiding (null, un)
+import Pr hiding (null, un)
 import qualified Prelude2 as P
+import qualified Data.Text.Lazy as TL
 import Text.Format
 
-import HTTP.Common
+import HTTP.Common hiding (un)
 import Data.Word (Word8, Word16)
 
-data URL = URL {
-     proto :: Proto
-   , authority :: Authority
-   , path :: Path
-   , params :: Params
-   , fragment :: Fragment }
 
-data Proto = Proto T
+protoSep = "://"
+portSep = ":"
+
+declareFields [d|
+  data Proto = Proto
+    { protoUn :: T }
+  |]
+
 data Host
    = Domain T
    | IP4 Word8 Word8 Word8 Word8
-newtype Port = Port { unPort :: Word16 }
-data Path = Path [T]
-data Params = Params [(T,T)]
+
+declareFields [d|
+  newtype Port = Port { portUn :: Word16 }
+  |]
+
+declareFields [d|
+  data Path = Path { pathSegments :: [T] }
+  |]
+
+declareFields [d|
+  data Params = Params { paramsUn :: [(T,T)] }
+  |]
 data Fragment = Fragment T
 
-data Authority = Authority {
-     authentication :: Maybe (T, T)
-   , host :: Host
-   , port :: Port
-   }
+declareFields [d|
+  data Authority = Authority
+    { authorityAuthentication :: Maybe (T, T)
+    , authorityHost :: Host
+    , authorityPort :: Port
+    }
+  |]
 
 data BaseURL = BaseURL URL.Proto URL.Host URL.Port
 instance ToPayload BaseURL where
@@ -51,25 +64,67 @@ withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
       | proto' == "https" && port' == 443 = ""
       | otherwise = portSep <> toPayload port
 
+declareFields [d|
+  data URL = URL
+    { uRLProto :: Proto
+    , uRLAuthority :: Authority
+    , uRLPath :: Path
+    , uRLParams :: Params
+    , uRLFragment :: Fragment }
+  |]
+
+localhost = URL (Proto "http") auth (Path []) (Params []) (Fragment "")
+  where
+    auth = Authority Nothing (Domain "localhost") $ Port 80
+
+-- * Helpers
+
+base :: Lens' URL BaseURL
+base f url = fmap to (f from)
+  where
+    auth = url^.authority
+    from = BaseURL (url^.proto) (auth^.host) (auth^.port)
+    to (BaseURL pr ho po) = URL pr (Authority Nothing ho po) path params fragment
+      where
+        path = Path []
+        params = Params []
+        fragment = Fragment ""
+
+
 
 {- Although called ToPayload, the method converts these for
    a payload to an HTTP Request and not for anything else
    -- but URI is more than that.
    -}
 
-protoSep = "://"
-portSep = ":"
-
 instance ToPayload URL where
    toPayload (URL proto authority path params fragment) =
-      HTTP.Common.concat [r proto, protoSep, r authority, r path, r params, r fragment]
-      where r = toPayload
+      HTTP.Common.concat
+        [ r proto, protoSep
+        , auth, authority^.host.to r, portPayload
+        , r path, r params, r fragment]
+      where
+        r = toPayload
+        auth = maybe "" mkAuth $ authority^.authentication
+        portPayload
+          | pr == "http" && po == 80 = ""
+          | pr == "https" && po == 443 = ""
+          | otherwise = portSep <> toPayload (authority^.port)
+          where
+            pr = proto^.un
+            po = authority^.port.un
 
 instance ToPayload Authority where
-   toPayload (Authority authentication host port@ (Port pn)) =
-      HTTP.Common.concat [maybe "" mkAuth authentication, r host, portSep, r port]
-      where r = toPayload
-            mkAuth (u, p) = u <> ":" <> p <> "@"
+   toPayload a = HTTP.Common.concat
+     [ maybe "" mkAuth $ a^.authentication
+     , r $ a^.host
+     , portSep
+     , r $ a^.port
+     ]
+     where
+       r = toPayload
+
+mkAuth (u, p) = u <> ":" <> p <> "@"
 
 instance ToPayload Proto where
    toPayload (Proto a) = a
@@ -83,11 +138,11 @@ instance ToPayload Port where
    toPayload (Port w16) = pack (show w16)
 
 instance ToPayload Path where
-   toPayload (Path p) = "/" <> un "/" p -- toPayload for Request => hast to start with /
+   toPayload (Path p) = "/" <> TL.intercalate "/" p -- toPayload for Request => hast to start with /
 
 instance ToPayload Params where
    toPayload (Params ps) = P.null ps ? "" $ expl
-      where expl = "?" <> un "&" (map (pair "=") ps)
+      where expl = "?" <> TL.intercalate "&" (map (pair "=") ps)
 
 instance ToPayload Fragment where
    toPayload (Fragment a) = null a ? "" $ expl

@@ -57,7 +57,7 @@ runDomains port sites = do
       in respond =<< fromMaybe noDomain (($ req) <$> resp)
     )
 
-mkPort port = setPort (fromIntegral $ unPort port) $ defaultSettings
+mkPort port = setPort (fromIntegral $ port^.URL.un) $ defaultSettings
 
 -- ** Helpers
 
@@ -70,7 +70,7 @@ initSite (a, b) = (toHost a,) <$> b
 toHost :: Authority -> B.ByteString
 toHost authority = BL.toStrict . TLE.encodeUtf8 $ withoutSchema baseUrl
    where
-     baseUrl = BaseURL (Proto "http") (host authority) (port authority)
+     baseUrl = BaseURL (Proto "http") (view host authority) (view port authority)
 
 noDomain :: Monad m => m Response
 noDomain = return $ responseLBS status404 [] "No host"
@@ -79,7 +79,7 @@ getDomain :: Request -> Maybe B.ByteString
 getDomain = lookup "Host" . requestHeaders
 
 getPort :: Site -> URL.Port
-getPort site = port (site ^. _1)
+getPort site = view port (site ^. _1)
 
 -- * Run web server
 
@@ -114,4 +114,4 @@ runHttps ((_, init), (_, auth), tls) = do
   handler <- init auth
   TLS.runTLS tls settings (\req resp -> resp =<< handler req)
   where
-    settings = mkPort (port auth)
+    settings = mkPort (view port auth)
