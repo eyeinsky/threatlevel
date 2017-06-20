@@ -29,6 +29,7 @@ library
     , HTML.Blaze.Bootstrap
     , HTML
     , HTML.Shorthands
+    , Web.CSS
     , Web.FRP
     , Web.Monad
     , Web.Static
