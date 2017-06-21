@@ -226,11 +226,12 @@ xhrRaw meth uri data_ callback = do
   bare (call (xhr !. "open") [Cast meth, uri, ulit True])
   bare $ call1 (xhr !. "send") data_
 
-xhrJs :: Expr a -> Expr a -> Expr c -> M r ()
-xhrJs meth uri data_ = do
+xhrJs :: Expr a -> Expr a -> Expr c -> Expr d -> M r ()
+xhrJs meth uri data_ callback = do
   wrap <- newf $ \(resp :: Expr ()) -> do
     let text = responseText resp
     bare $ call1 (ex "eval") text
+    ifonly (Cast callback) $ bare $ call0 callback
   xhrRaw meth uri data_ wrap
 
 responseText resp = resp !. "target" !. "responseText"
