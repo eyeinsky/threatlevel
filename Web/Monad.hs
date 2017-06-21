@@ -60,6 +60,22 @@ run :: Br.Browser -> WebT m a -> WebMonadResult m a
 run r wm = RWS.runRWST (unWebT wm) r state
    where state = State def tlIdentifierSource
 
+foldWM :: Foldable t
+  => Br.Browser
+  -> State
+  -> t (WebT Identity a) -> ([a], JS.Code (), [CSS.Rule])
+foldWM r st ws = foldl step (st, []) ws & snd & final
+  where
+    runOne s = runIdentity . runWebMT r s
+    step (s, li) m = let
+        (a, s', w) = runOne s m
+      in (s', (a, w) : li)
+    final li = let
+      (htmls, ws) = unzip li
+      js = view jsCode <$> ws & mconcat
+      css = view cssCode <$> ws & mconcat
+      in (reverse htmls, js, css)
+
 type WebMonadResult m a = m (a, State, Writer)
 
 -- * MonadWeb
