@@ -66,7 +66,7 @@ library
     , tagged
     , template-haskell
     , text
-    , text-format-hs
+    , text-format
     , unordered-containers
     , wai
     , warp
@@ -125,7 +125,6 @@ test-suite test
     , tagged
     , template-haskell
     , text
-    , text-format-hs
     , unordered-containers
     , wai
     , warp

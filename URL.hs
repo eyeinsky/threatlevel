@@ -3,7 +3,7 @@ module URL where
 import Pr hiding (null, un)
 import qualified Prelude2 as P
 import qualified Data.Text.Lazy as TL
-import Text.Format
+import Data.Text.Format
 
 import HTTP.Common hiding (un)
 import Data.Word (Word8, Word16)

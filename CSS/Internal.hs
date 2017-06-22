@@ -1,7 +1,7 @@
 module CSS.Internal where
 
 import Pr
-import Text.Format
+import Data.Text.Format
 
 import Numeric (showHex)
 import qualified Data.Text as T

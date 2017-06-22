@@ -1,7 +1,7 @@
 module HTTP.Header where
 
 import Prelude2 hiding (unlines, find)
-import Text.Format
+import Data.Text.Format
 
 import HTTP.Common
 
