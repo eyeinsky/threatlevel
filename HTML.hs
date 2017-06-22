@@ -29,6 +29,12 @@ instance ToResponse Document where
       html = H.html (H.head h >> b)
       tl = "<!DOCTYPE html>" <> render html
 
+instance Render Document where
+  renderM (Document h b) = tl
+    where
+      html' = H.html (H.head h >> b)
+      tl = ("<!DOCTYPE html>" <>) <$> (renderM html')
+
 -- * Exclamatable
 
 class Exclamatable e a where
