@@ -26,6 +26,8 @@ import Render
 renderDecls :: Browser -> DeclM a -> Text
 renderDecls r dm = render $ view decls $ execDeclM r dm
 
+-- * Useful styles
+
 resetCSS :: Browser -> [Rule]
 resetCSS b = run b (TagName "body") no <> run b (TagName "div") no
    where
