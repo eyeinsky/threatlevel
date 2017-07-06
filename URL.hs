@@ -7,6 +7,7 @@ import Data.Text.Format
 
 import HTTP.Common hiding (un)
 import Data.Word (Word8, Word16)
+import Data.Hashable (Hashable)
 
 
 protoSep = "://"
@@ -21,9 +22,25 @@ data Host
    = Domain T
    | IP4 Word8 Word8 Word8 Word8
 
+makePrisms ''Host
+
+instance IsString Host where
+  fromString = view (packed.to Domain)
+
+instance Read Host where
+  readsPrec _ str = [(fromString str, "")]
+
 declareFields [d|
   newtype Port = Port { portUn :: Word16 }
   |]
+
+deriving instance Hashable Port
+
+instance Num Port where
+  fromInteger a = Port (fromInteger a)
+
+instance Read Port where
+  readsPrec _ str = [(Port (read str), "")]
 
 declareFields [d|
   data Path = Path { pathSegments :: [T] }
