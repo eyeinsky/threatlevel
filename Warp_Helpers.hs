@@ -6,10 +6,12 @@ module Warp_Helpers
 
 import Prelude2 as P
 import Data.Function (on)
+import Control.Monad (guard)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString as B
+import qualified Data.HashMap.Strict as HM
 
 import Control.Concurrent
 
@@ -39,7 +41,7 @@ type Site = (Authority, IO Handler)
 type AppName = String
 
 type AppDef = (AppName, Authority -> IO Handler)
-type Rule = (AppName, Authority)
+type Rule = (AppName, Authority, URL.Port)
 type Https =  (AppDef, Rule, TLS.TLSSettings)
 
 data Server = Server (Maybe Https) [AppDef] [Rule]
@@ -47,10 +49,10 @@ data Server = Server (Maybe Https) [AppDef] [Rule]
 -- * Run http domains
 
 runDomains :: URL.Port -> [Site] -> IO ()
-runDomains port sites = do
+runDomains bindPort sites = do
   pairs' <- initSites sites
   runSettings
-    (mkPort port)
+    (mkPort bindPort)
     (\req respond -> let
         domain = fromJust $ getDomain req :: B.ByteString
         resp = snd <$> find ((== domain) . fst) pairs' :: Maybe Handler
@@ -78,40 +80,28 @@ noDomain = return $ responseLBS status404 [] "No host"
 getDomain :: Request -> Maybe B.ByteString
 getDomain = lookup "Host" . requestHeaders
 
-getPort :: Site -> URL.Port
-getPort site = view port (site ^. _1)
-
 -- * Run web server
 
 runServer :: Server -> IO ()
 runServer (Server https defs rules) = let
-      join :: [(Authority, AppName, IO Handler)]
+      join :: [(URL.Port, [Site])]
       join = do
          (name, app) <- defs
-         (name', autho) <- rules
-         if name == name'
-            then return (autho, name, app autho)
-            else []
+         (name', autho, bindPort) <- rules
+         guard (name == name')
+         return (bindPort, [(autho, app autho)])
       portSites :: [(URL.Port, [Site])]
-      portSites = join
-         & map (\ j -> (j^._1, j^._3) :: Site)
-         & sortBy (compare `on` getPort)
-         & groupBy (eq `on` getPort)
-         & map pullPort
+      portSites = join & HM.fromListWith (<>) & HM.toList
    in do
-      pr join
       traverse_ id $ (forkIO . runHttps) <$> https
       case portSites of
          x : xs -> let f = uncurry runDomains
             in mapM_ (forkIO . f) xs >> f x
          _ -> print "Nothing to run"
    where
-      pullPort xs@ (x : _) = (getPort x, xs)
-      pr = mapM_ (\j -> print (j^._1 ,j^._2))
+      pullPort xs@ (x : _) = (view _2 x, map (view _1) xs)
 
 runHttps :: Https -> IO ()
-runHttps ((_, init), (_, auth), tls) = do
+runHttps ((_, init), (_, auth, bindPort), tls) = do
   handler <- init auth
-  TLS.runTLS tls settings (\req resp -> resp =<< handler req)
-  where
-    settings = mkPort (view port auth)
+  TLS.runTLS tls (mkPort bindPort) (\req resp -> resp =<< handler req)
