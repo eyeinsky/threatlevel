@@ -3,8 +3,6 @@ packages:
 - '.'
 - location: '../hs-minu'
   extra-dep: true
-- location: '../text-format-hs'
-  extra-dep: true
 - location: '../web-browser'
   extra-dep: true
 - location: '../web-js'
