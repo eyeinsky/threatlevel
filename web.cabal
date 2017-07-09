@@ -32,7 +32,6 @@ library
     , Web.CSS
     , Web.FRP
     , Web.Monad
-    , Web.Static
   other-modules:
       Pr
     , CSS.Internal
