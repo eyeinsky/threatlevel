@@ -14,6 +14,7 @@ import qualified Data.ByteString as B
 import qualified Data.HashMap.Strict as HM
 
 import Control.Concurrent
+import qualified Control.Concurrent.Async as Async
 
 import Network.Wai -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
 import Network.Wai.Handler.Warp hiding (getPort) -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
@@ -92,14 +93,11 @@ runServer (Server https defs rules) = let
          return (bindPort, [(autho, app autho)])
       portSites :: [(URL.Port, [Site])]
       portSites = join & HM.fromListWith (<>) & HM.toList
-   in do
-      traverse_ id $ (forkIO . runHttps) <$> https
-      case portSites of
-         x : xs -> let f = uncurry runDomains
-            in mapM_ (forkIO . f) xs >> f x
-         _ -> print "Nothing to run"
-   where
-      pullPort xs@ (x : _) = (view _2 x, map (view _1) xs)
+
+      maybeHttpsIO = runHttps <$> https :: Maybe (IO ())
+      httpIO = map (uncurry runDomains) portSites :: [IO ()]
+      li = maybe httpIO (:httpIO) maybeHttpsIO :: [IO ()]
+   in Async.mapConcurrently_ id li
 
 runHttps :: Https -> IO ()
 runHttps ((_, init), (_, auth, bindPort), tls) = do
