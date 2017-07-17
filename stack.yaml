@@ -7,6 +7,8 @@ packages:
   extra-dep: true
 - location: '../web-js'
   extra-dep: true
+- location: '../identifiers'
+  extra-dep: true
 extra-deps: []
 flags: {}
 extra-package-dbs: []

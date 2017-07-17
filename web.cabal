@@ -59,6 +59,7 @@ library
     , hashable
     , hs-minu
     , http-types
+    , identifiers
     , lens
     , mime-types
     , mtl

@@ -25,7 +25,7 @@ import DOM.Core
 import HTML.Blaze
 import Render
 
-import qualified IdentifierSource as IS
+import qualified Identifiers as IS
 
 -- ** WebT
 
