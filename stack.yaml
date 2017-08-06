@@ -9,6 +9,8 @@ packages:
   extra-dep: true
 - location: '../identifiers'
   extra-dep: true
+- location: '../render'
+  extra-dep: true
 extra-deps: []
 flags: {}
 extra-package-dbs: []

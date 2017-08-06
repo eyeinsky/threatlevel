@@ -75,6 +75,7 @@ library
     , warp-tls
     , web-browser
     , web-js
+    , render
   default-extensions:
       NoImplicitPrelude, TupleSections, TypeSynonymInstances
     , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows
