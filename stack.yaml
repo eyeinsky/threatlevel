@@ -7,7 +7,9 @@ packages:
   extra-dep: true
 - location: '../web-js'
   extra-dep: true
-- location: '../identifiers'
+- location:
+    git: git://git-daemon/identifiers
+    commit: master
   extra-dep: true
 - location: '../render'
   extra-dep: true
