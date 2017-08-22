@@ -30,8 +30,10 @@ library
     , HTML
     , HTML.Shorthands
     , Web.CSS
+    , Web.Endpoint
     , Web.FRP
     , Web.Monad
+    , Web.Response
   other-modules:
       Pr
     , CSS.Internal
@@ -51,10 +53,12 @@ library
     , async
     , blaze-builder
     , blaze-html
+    , boomerang
     , bytestring
     , case-insensitive
     , containers
     , dlist
+    , ds
     , file-embed
     , hashable
     , hs-minu

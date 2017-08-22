@@ -13,6 +13,8 @@ packages:
   extra-dep: true
 - location: '../render'
   extra-dep: true
+- location: '../ds'
+  extra-dep: true
 extra-deps: []
 flags: {}
 extra-package-dbs: []
