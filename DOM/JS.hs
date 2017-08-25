@@ -153,7 +153,7 @@ createHtml' html = case html of
    where
      mkAttr :: Expr a -> TL.Text -> Attribute -> M r ()
      mkAttr e k attr = case attr of
-       Data _ v -> (e !. "dataset" !. k) .= ulit v
+       Data _ v -> (e !. "dataset" !. kebab2camel k) .= ulit v
        OnEvent et expr -> e !. toOn et .= expr
        Custom _ v -> e !. k .= ulit v
 
