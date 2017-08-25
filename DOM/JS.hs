@@ -1,6 +1,6 @@
 module DOM.JS where
 
-import Prelude2 hiding ((.=), Bool)
+import Pr hiding ((.=), Bool)
 import qualified Prelude2 as Pr
 import Text.Exts
 import qualified Data.Text.Lazy as TL

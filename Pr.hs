@@ -1,6 +1,7 @@
 module Pr
   ( module Pr
   , module Prelude2
+  , module Text.Exts
   , module Data.Default
   , module Data.ByteString.Lens
   , module Data.Text.Lazy.Lens
@@ -16,6 +17,7 @@ import Prelude2
 import Data.Default
 import Data.ByteString.Lens
 import Data.Text.Lazy.Lens hiding (Text, _Text, packed, builder, text, unpacked)
+import Text.Exts (kebab2camel)
 
 import Control.Monad
 import Control.Monad.Except
