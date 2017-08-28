@@ -1,8 +1,6 @@
 module DOM.JS where
 
 import Pr hiding ((.=), Bool)
-import qualified Prelude2 as Pr
-import Text.Exts
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
@@ -11,7 +9,6 @@ import Control.Monad.Writer (execWriter)
 import Web.Browser
 import JS
 import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
-
 
 import qualified DOM.Core as D
 import qualified CSS as CSS

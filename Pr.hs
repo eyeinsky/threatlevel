@@ -1,6 +1,5 @@
 module Pr
-  ( module Pr
-  , module Prelude2
+  ( module Prelude2
   , module Text.Exts
   , module Data.Default
   , module Data.ByteString.Lens
