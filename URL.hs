@@ -18,6 +18,9 @@ declareFields [d|
     { protoUn :: T }
   |]
 
+instance IsString Proto where
+  fromString = view (packed.to Proto)
+
 data Host
    = Domain T
    | IP4 Word8 Word8 Word8 Word8
@@ -93,6 +96,14 @@ declareFields [d|
 localhost = URL (Proto "http") auth (Path []) (Params []) (Fragment "")
   where
     auth = Authority Nothing (Domain "localhost") $ Port 80
+
+-- ** Lens
+
+instance HasHost URL Host where
+  host = authority.host
+
+instance HasPort URL Port where
+  port = authority.port
 
 -- * Helpers
 
