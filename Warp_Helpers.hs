@@ -4,7 +4,7 @@ module Warp_Helpers
   , TLS.TLSSettings
   ) where
 
-import Prelude2 as P
+import Pr
 import Data.Function (on)
 import Control.Monad (guard)
 import qualified Data.ByteString.Lazy as BL
@@ -21,7 +21,7 @@ import Network.Wai.Handler.Warp hiding (getPort) -- (Response, Request, queryStr
 import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
-import HTTP.Common
+import HTTP.Common hiding (un)
 import URL
 
 getRequestBody :: Request -> IO BL.ByteString
@@ -60,7 +60,7 @@ runDomains bindPort sites = do
       in respond =<< fromMaybe noDomain (($ req) <$> resp)
     )
 
-mkPort port = setPort (fromIntegral $ port^.URL.un) $ defaultSettings
+mkPort port = setPort (fromIntegral $ port^.un) $ defaultSettings
 
 -- ** Helpers
 

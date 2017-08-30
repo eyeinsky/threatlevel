@@ -1,5 +1,6 @@
 module Pr
   ( module Prelude2
+  , module Prelude2.Has
   , module Text.Exts
   , module Data.Default
   , module Data.ByteString.Lens
@@ -12,7 +13,8 @@ module Pr
   , module Control.Monad.RWS
   ) where
 
-import Prelude2
+import Prelude2 hiding (un)
+import Prelude2.Has
 import Data.Default
 import Data.ByteString.Lens
 import Data.Text.Lazy.Lens hiding (Text, _Text, packed, builder, text, unpacked)

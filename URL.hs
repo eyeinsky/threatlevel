@@ -1,6 +1,6 @@
 module URL where
 
-import Pr hiding (null, un)
+import Pr hiding (null)
 import qualified Prelude2 as P
 import qualified Data.Text.Lazy as TL
 import Data.Text.Format
