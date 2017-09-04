@@ -225,6 +225,8 @@ instance SelectorFrom SimpleSelector where
    selFrom a = Simple a
 instance SelectorFrom TagName where
    selFrom a = selFrom $ SimpleSelector (Just a) Nothing [] []
+instance SelectorFrom [Class] where
+   selFrom a = selFrom $ SimpleSelector Nothing Nothing a []
 instance SelectorFrom Class where
    selFrom a = selFrom $ SimpleSelector Nothing Nothing [a] []
 instance SelectorFrom Id where
