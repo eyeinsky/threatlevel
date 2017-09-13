@@ -11,10 +11,11 @@ module Pr
   , module Control.Monad.Writer
   , module Control.Monad.State
   , module Control.Monad.RWS
+  , module Pr
   ) where
 
-import Prelude2 hiding (un, text)
-import Prelude2.Has
+import Prelude2 hiding (un, text, Text)
+import Prelude2.Has hiding (id)
 import Data.Default
 import Data.ByteString.Lens
 import Data.Text.Lazy.Lens hiding (Text, _Text, packed, builder, text, unpacked)
@@ -26,3 +27,7 @@ import Control.Monad.Reader hiding (Reader)
 import Control.Monad.Writer hiding (Writer)
 import Control.Monad.State  hiding (State)
 import Control.Monad.RWS (RWST(..), runRWST)
+
+class HasClasses s a | s -> a where
+  classes :: Lens' s a
+  {-# MINIMAL classes #-}

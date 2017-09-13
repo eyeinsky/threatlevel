@@ -1,6 +1,7 @@
 module DOM.JS where
 
-import Pr hiding ((.=), Bool)
+import Pr hiding ((.=), Bool, id)
+import Prelude2.Has (HasId(..))
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
@@ -15,7 +16,8 @@ import qualified CSS as CSS
 import HTML.Core
 import DOM.Core
 import DOM.Event
-
+import XML
+import SVG hiding (onload, id)
 
 -- * Objects
 
@@ -136,7 +138,9 @@ createClasses cs = if null dynamics'
 
 createHtml' :: HTML -> JS.M r (Expr Tag)
 createHtml' html = case html of
-   TagNode tn mid cls attrs children -> do
+   Element tn attrs' children -> let
+     Html5Attributes mid cls attrs = attrs'
+     in do
       t <- new $ createElement tn
       maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) mid
       forM_ (HM.toList attrs) $ uncurry $ mkAttr t

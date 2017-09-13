@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 module Web.Monad where
 
 import Pr

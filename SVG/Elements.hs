@@ -4,8 +4,12 @@ import Pr
 import Control.Monad.Writer
 import HTML.Core
 import TH
+import XML
 
-concat <$> mapM (mk [t|Html|] . view (from packed) . kebab2camel) [
+data SVG
+type Svg = Writer [XML SVG AttributeSet] ()
+
+concat <$> mapM (mk [t|Svg|] . view (from packed) . kebab2camel) [
   -- https://developer.mozilla.org/en-US/docs/Web/SVG/Element
     "a"
   , "altGlyph"

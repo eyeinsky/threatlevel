@@ -7,6 +7,7 @@ import Control.Monad.Writer
 import Language.Haskell.TH
 
 import HTML.Core
+import XML
 import TH
 
 import HTML.Shorthands.Paste
@@ -14,12 +15,6 @@ import HTML.Shorthands.Paste
 -- * Attributes
 
 concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content" ]
-
-id_ :: Id -> Attribute
-id_ id = AttrId id :: Attribute
-
-cls_ :: [Class] -> Attribute
-cls_ cs = AttrClass cs
 
 -- * Elements
 

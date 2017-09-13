@@ -13,6 +13,7 @@ import DOM.Event (Event, toOn)
 import JS
 import JS.Blaze
 import DOM.Core
+import XML
 
 import HTML hiding (jsTag, cssTag, favicon)
 
