@@ -1,10 +1,6 @@
 module DOM
-  ( module DOM.Event
-  , module DOM.JS
+  ( module Export
   ) where
 
-import Pr hiding (on)
-import DOM.Event
-import DOM.JS
-import HTML
-import JS
+import DOM.Event as Export
+import DOM.JS as Export

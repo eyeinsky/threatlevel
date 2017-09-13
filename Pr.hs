@@ -13,7 +13,7 @@ module Pr
   , module Control.Monad.RWS
   ) where
 
-import Prelude2 hiding (un)
+import Prelude2 hiding (un, text)
 import Prelude2.Has
 import Data.Default
 import Data.ByteString.Lens

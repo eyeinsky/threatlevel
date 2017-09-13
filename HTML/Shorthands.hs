@@ -23,15 +23,15 @@ cls_ cs = AttrClass cs
 
 -- * Elements
 
-concat <$> mapM (mk [t|HTMLM ()|]) tags
+concat <$> mapM (mk [t|Html|]) tags
 
-cssTag :: HTMLM () -> HTMLM ()
+cssTag :: Html -> Html
 cssTag = style ! type_ "text/css"
 
-jsTag :: HTMLM () -> HTMLM ()
+jsTag :: Html -> Html
 jsTag = script ! type_ "text/javascript"
 
-favicon :: TL.Text -> HTMLM ()
+favicon :: TL.Text -> Html
 favicon adr = link
   ! rel "shortcut icon"
   ! type_ "image/x-icon"

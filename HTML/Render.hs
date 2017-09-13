@@ -3,7 +3,7 @@ module HTML.Render
   , module Render
   ) where
 
-import Prelude2 hiding (concat, unwords)
+import Pr hiding (concat, unwords, id, eq)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text.Lazy as TL
 
@@ -39,5 +39,5 @@ instance Render HTML where
 instance Render [HTML] where
   renderM = pure . concat . map render
 
-instance Render (HTMLM ()) where
+instance Render Html where
   renderM htmlm = pure . render . execWriter $ htmlm

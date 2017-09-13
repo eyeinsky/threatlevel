@@ -31,7 +31,7 @@ id_ (Id t) = A.id $ E.toValue $ static t
 on :: Event a => a -> Expr a1 -> E.Attribute
 on event js = customAttribute (fromString $ TL.unpack $ toOn event) (toValue $ call1 js (ex "event"))
 
-instance E.ToMarkup (HTMLM ()) where
+instance E.ToMarkup HTML.Html where
   toMarkup = preEscapedToMarkup
   preEscapedToMarkup = E.preEscapedToMarkup . render
 instance E.ToMarkup HTML where

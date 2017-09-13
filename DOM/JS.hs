@@ -98,12 +98,12 @@ insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
 
 replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
 
-remove' :: Expr Tag -> M r (Expr Tag)
+remove' :: Expr Tag -> JS.M r (Expr Tag)
 remove' e = JS.browser <&> \b -> case b of
   IE -> removeChild (parentNode e) e
   _ -> call0 (e !. "remove")
 
-remove :: Expr Tag -> M r ()
+remove :: Expr Tag -> JS.M r ()
 remove e = remove' e >>= bare
 
 removeChild :: Expr Tag -> Expr Tag -> Expr Tag
@@ -134,7 +134,7 @@ createClasses cs = if null dynamics'
     statics = ulit $ TL.unwords statics'
     dynamics = JS.join " " $ ulit dynamics'
 
-createHtml' :: HTML -> M r (Expr Tag)
+createHtml' :: HTML -> JS.M r (Expr Tag)
 createHtml' html = case html of
    TagNode tn mid cls attrs children -> do
       t <- new $ createElement tn
@@ -148,7 +148,7 @@ createHtml' html = case html of
    TextNode txt -> return $ createTextNode (ulit txt)
    JSNode expr -> return (Cast expr)
    where
-     mkAttr :: Expr a -> TL.Text -> Attribute -> M r ()
+     mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
      mkAttr e k attr = case attr of
        Data _ v -> (e !. "dataset" !. kebab2camel k) .= ulit v
        OnEvent et expr -> e !. toOn et .= expr
@@ -157,7 +157,7 @@ createHtml' html = case html of
 createHtml :: HTML -> Expr Tag
 createHtml tr = FuncDef [] . eval $ createHtml' tr >>= retrn
 
-createHtmls' :: HTMLM () -> M r (Expr DocumentFragment)
+createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls' htmlm = do
   f <- new $ createDocumentFragment
   forM_ (execWriter htmlm) $ \ html -> do
@@ -165,7 +165,7 @@ createHtmls' htmlm = do
     bare $ appendChild e (Cast f)
   return f
 
-createHtmls :: HTMLM () -> Expr Tag
+createHtmls :: Html -> Expr Tag
 createHtmls htmlm = FuncDef [] . eval $ createHtmls' htmlm >>= retrn
 
 -- *** Text input
@@ -215,7 +215,7 @@ ajaxExpr meth uri data_ callback = do
    bare (call (xhr !. "open") [meth, uri, ulit True])
    bare $ call1 (xhr !. "send") data_
 
-xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> M r ()
+xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
 xhrRaw meth uri data_ callback = do
   xhr <- new $ ex "new XMLHttpRequest()"
   ifonly (callback .!== Undefined) $ do
@@ -223,7 +223,7 @@ xhrRaw meth uri data_ callback = do
   bare (call (xhr !. "open") [Cast meth, uri, ulit True])
   bare $ call1 (xhr !. "send") data_
 
-xhrJs :: Expr a -> Expr a -> Expr c -> Expr d -> M r ()
+xhrJs :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
 xhrJs meth uri data_ callback = do
   wrap <- newf $ \(resp :: Expr ()) -> do
     let text = responseText resp

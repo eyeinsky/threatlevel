@@ -11,6 +11,11 @@ data TagName = TagName { unTagName :: Value }
 data Id      = Id { unId :: Value }
 data Class   = Class { unClass :: Value }
 
+-- | Stubs
+data Tag
+data Window
+data DocumentFragment
+data Location
 
 -- * Value
 

@@ -81,19 +81,39 @@ library
     , web-js
     , render
   default-extensions:
-      NoImplicitPrelude, TupleSections, TypeSynonymInstances
-    , TypeOperators, ScopedTypeVariables, KindSignatures, Arrows
-    , OverloadedStrings, ExtendedDefaultRules, NoMonomorphismRestriction
-    , FlexibleInstances, FlexibleContexts, GADTs, MultiParamTypeClasses
-    , DeriveDataTypeable, TemplateHaskell, QuasiQuotes, DeriveGeneric, DefaultSignatures
-    , BangPatterns, TypeFamilies, StandaloneDeriving
-    , DataKinds, PolyKinds, GeneralizedNewtypeDeriving
-    , NamedFieldPuns
-    , FunctionalDependencies
+      Arrows
+    , BangPatterns
+    , ConstraintKinds
+    , DataKinds
+    , DefaultSignatures
+    , DeriveDataTypeable
     , DeriveFunctor
+    , DeriveGeneric
     , EmptyDataDecls
-    , UndecidableInstances
+    , ExtendedDefaultRules
+    , FlexibleContexts
+    , FlexibleInstances
+    , FunctionalDependencies
+    , GADTs
+    , GeneralizedNewtypeDeriving
     , InstanceSigs
+    , KindSignatures
+    , MultiParamTypeClasses
+    , NamedFieldPuns
+    , NoImplicitPrelude
+    , NoMonomorphismRestriction
+    , OverloadedStrings
+    , PolyKinds
+    , QuasiQuotes
+    , RecursiveDo
+    , ScopedTypeVariables
+    , StandaloneDeriving
+    , TemplateHaskell
+    , TupleSections
+    , TypeFamilies
+    , TypeInType
+    , TypeOperators
+    , TypeSynonymInstances
   default-language:    Haskell2010
 
 test-suite test
@@ -121,6 +141,7 @@ test-suite test
     , FunctionalDependencies
     , GADTs
     , GeneralizedNewtypeDeriving
+    , InstanceSigs
     , KindSignatures
     , MultiParamTypeClasses
     , NamedFieldPuns
@@ -135,6 +156,6 @@ test-suite test
     , TemplateHaskell
     , TupleSections
     , TypeFamilies
+    , TypeInType
     , TypeOperators
     , TypeSynonymInstances
-    , InstanceSigs

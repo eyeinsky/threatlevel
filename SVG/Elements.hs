@@ -5,7 +5,7 @@ import Control.Monad.Writer
 import HTML.Core
 import TH
 
-concat <$> mapM (mk [t|HTMLM ()|] . view (from packed) . kebab2camel) [
+concat <$> mapM (mk [t|Html|] . view (from packed) . kebab2camel) [
   -- https://developer.mozilla.org/en-US/docs/Web/SVG/Element
     "a"
   , "altGlyph"

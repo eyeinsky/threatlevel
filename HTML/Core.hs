@@ -3,7 +3,7 @@ module HTML.Core
   , module DOM.Core
   ) where
 
-import Prelude2 hiding (div, span, elem, id, text)
+import Pr hiding (id)
 import Data.String
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -15,13 +15,7 @@ import qualified JS
 
 import DOM.Core
 import DOM.Event
-
--- | Stubs
-data Tag
-data Attr
-data Window
-data DocumentFragment
-data Location
+import XML
 
 
 data Attribute where
@@ -47,7 +41,7 @@ declareLenses [d|
 instance IsString HTML where
    fromString str = TextNode $ TL.pack str
 
-instance IsString (HTMLM ()) where
+instance IsString Html where
    fromString str = text $ TL.pack str
 
 -- ** Shorthands
@@ -56,11 +50,11 @@ tag str = TagNode (TagName str) Nothing [] HM.empty []
 
 -- ** Monadic dsl
 
-type HTMLM = Writer [HTML]
+type M = Writer [HTML]
 
-type Html = HTMLM ()
+type Html = M ()
 
-text :: TL.Text -> HTMLM ()
+text :: TL.Text -> Html
 text tl = tell [TextNode tl]
 
 dyn expr = tell [JSNode (JS.Cast expr)]
@@ -76,13 +70,13 @@ instance Attributable HTML where
     OnEvent e v -> a & attrs %~ (HM.insert (toOn e) attr)
     Data e v -> a & attrs %~ (HM.insert e attr)
 
-instance Attributable (HTMLM ()) where
+instance Attributable Html where
   (!) a attr = case execWriter a of
     e : rest -> tell (e ! attr : rest)
     _ -> return ()
 
-instance Attributable (HTMLM () -> HTMLM ()) where
-  (!) a attr = case execWriter (a $ return ()) of
+instance Attributable (Html -> Html) where
+  (!) a attr = case execWriter (a $ pure ()) of
     e : rest -> \ x -> let
         ct = execWriter x
         e' = e ! attr & contents .~ ct
