@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-missing-methods #-}
 module URL where
 
 import Pr hiding (null)
