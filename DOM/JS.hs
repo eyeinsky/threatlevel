@@ -136,42 +136,6 @@ createClasses cs = if null dynamics'
     statics = ulit $ TL.unwords statics'
     dynamics = JS.join " " $ ulit dynamics'
 
-createHtml' :: HTML -> JS.M r (Expr Tag)
-createHtml' html = case html of
-   Element tn attrs' children -> let
-     Html5Attributes mid cls attrs = attrs'
-     in do
-      t <- new $ createElement tn
-      maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) mid
-      forM_ (HM.toList attrs) $ uncurry $ mkAttr t
-      when (Pr.not . null $ cls) $
-         t !. "className" .= createClasses cls
-      ts :: [Expr Tag] <- mapM createHtml' children
-      forM_ ts $ bare . flip appendChild t
-      return t
-   TextNode txt -> return $ createTextNode (ulit txt)
-   JSNode expr -> return (Cast expr)
-   where
-     mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
-     mkAttr e k attr = case attr of
-       Data _ v -> (e !. "dataset" !. kebab2camel k) .= ulit v
-       OnEvent et expr -> e !. toOn et .= expr
-       Custom _ v -> e !. k .= ulit v
-
-createHtml :: HTML -> Expr Tag
-createHtml tr = FuncDef [] . eval $ createHtml' tr >>= retrn
-
-createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
-createHtmls' htmlm = do
-  f <- new $ createDocumentFragment
-  forM_ (execWriter htmlm) $ \ html -> do
-    e <- createHtml' html
-    bare $ appendChild e (Cast f)
-  return f
-
-createHtmls :: Html -> Expr Tag
-createHtmls htmlm = FuncDef [] . eval $ createHtmls' htmlm >>= retrn
-
 -- *** Text input
 
 -- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
@@ -271,6 +235,78 @@ removeEventListener = mkEventListener "removeEventListener"
 
 alert :: Expr a -> Expr b
 alert x = call1 (ex "alert") x
+
+-- * RenderJSM instances
+
+instance RenderJSM HTML where
+  renderJSM html = case html of
+    Element tn as children -> do
+      t <- new $ createElement tn
+      attrsJSM t mkAttr as
+      ts :: [Expr Tag] <- mapM renderJSM children
+      forM_ ts $ bare . flip appendChild t
+      return t
+    Text txt -> return $ createTextNode (ulit txt)
+    Dyn expr -> return (Cast expr)
+    where
+      mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
+      mkAttr e k attr = case attr of
+        Data _ v -> (e !. "dataset" !. kebab2camel k) .= ulit v
+        OnEvent et expr -> e !. toOn et .= expr
+        Custom _ v -> e !. k .= ulit v
+
+createHtml :: HTML -> Expr Tag
+createHtml html = FuncDef [] . eval $ renderJSM html >>= retrn
+
+createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
+createHtmls' m = do
+  f <- new $ createDocumentFragment
+  forM_ (execWriter m) $ \ html -> do
+    e <- renderJSM html
+    bare $ appendChild e (Cast f)
+  return f
+
+createHtmls :: Html -> Expr Tag
+createHtmls html = FuncDef [] . eval $ createHtmls' html >>= retrn
+
+domExpr = createHtmls
+
+-- * Svg
+
+instance RenderJSM (XML SVG AttributeSet) where
+  renderJSM xml = case xml of
+    Element tn as children -> do
+      t <- new $ mkElem tn
+      attrsJSM t mkAttr as
+      ts :: [Expr Tag] <- mapM renderJSM children
+      forM_ ts $ bare . flip appendChild t
+      return t
+    Text txt -> return $ createTextNode (ulit txt)
+    Dyn expr -> return (Cast expr)
+    where
+      mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
+      mkAttr e k attr = case attr of
+        Data _ v -> e & setAttr ("data-" <> k) v & bare
+        OnEvent et expr -> e !. toOn et .= expr -- todo: does this work/fire?
+        Custom _ v -> e & setAttr k v & bare
+        where
+          setAttr :: TL.Text -> TL.Text -> Expr a -> Expr b
+          setAttr k v e = call (e !. "setAttributeNS") [Null, ulit k, ulit v]
+          -- ^ The regular setAttribute supposedly doesn't work in all browsers.
+          -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
+
+      ns = "http://www.w3.org/2000/svg"
+
+      mkElem :: TagName -> Expr Tag
+      mkElem tagName = call (document !. "createElementNS") [ns, valueExpr $ unTagName tagName]
+
+attrsJSM :: Expr Tag -> (Expr Tag -> TL.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
+attrsJSM t mkAttr as = do
+  maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) (as^.id)
+  forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
+  when (Pr.not . null $ cls) $
+     t !. "className" .= createClasses cls
+  where cls = as^.classes
 
 -- * Helpers
 
