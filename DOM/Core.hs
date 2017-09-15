@@ -44,3 +44,11 @@ instance Show Value where
   show (Dynamic a) = "dynamic"
 deriving instance Show Id
 deriving instance Show Class
+
+-- * RenderJSM
+
+class RenderJSM a where
+  renderJSM :: a -> JS.M r (JS.Expr Tag)
+
+class (Render a, RenderJSM a) => Both a
+instance (Render a, RenderJSM a) => Both a

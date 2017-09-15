@@ -18,15 +18,12 @@ library
     , HTTP.Header
     , HTTP.Response
     , HTTP.Response.InlineFile
-    , JS.Blaze
     , URL
     , Warp_Helpers
     , Web
     , CSS
     , CSS.MediaQuery
     , SVG
-    , HTML.Blaze
-    , HTML.Blaze.Bootstrap
     , HTML
     , HTML.Shorthands
     , Web.CSS
@@ -34,6 +31,9 @@ library
     , Web.FRP
     , Web.Monad
     , Web.Response
+    , XML
+    , XML.Core
+    , XML.Render
   other-modules:
       Pr
     , CSS.Internal
@@ -41,7 +41,6 @@ library
     , CSS.Shorthands
     , CSS.Example
     , HTML.Core
-    , HTML.Render
     , HTML.Shorthands.Paste
     , SVG.Elements
     , SVG.Attributes
@@ -52,7 +51,6 @@ library
     , aeson
     , async
     , blaze-builder
-    , blaze-html
     , boomerang
     , bytestring
     , case-insensitive

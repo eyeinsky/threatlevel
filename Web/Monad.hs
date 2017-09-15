@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 module Web.Monad where
 
 import Pr
@@ -8,8 +9,6 @@ import Control.Monad.RWS as RWS
 import qualified Control.Monad.Writer as MW
 import qualified Control.Monad.State as MS
 
-import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.Blaze.Html5            as E
 import Network.Wai
 
 import HTTP.Response
@@ -19,10 +18,8 @@ import qualified CSS.Monad as CSSM
 import qualified Web.Browser as Br
 import qualified JS
 import qualified DOM.JS as JD
-import qualified JS.Blaze
 
 import DOM.Core
-import HTML.Blaze
 import Render
 
 import qualified Identifiers as IS
@@ -158,19 +155,6 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   getState = lift getState
 
 -- ** Helpers
-
-webWai :: Monad f => WebT f E.Html -> Request -> f Network.Wai.Response
-webWai webm req = fmap toWai $ webToResponse browser webm
-  where
-    hdrs = requestHeaders req
-    browser = maybe Br.Unknown Br.parseBrowser . lookup "User-Agent" $ hdrs
-
-webToResponse :: Monad m => Br.Browser -> WebT m E.Html -> m Resp
-webToResponse b m = do
-   (resp, _, Writer js css) <- run b m
-   let addCss = addHead (cssTag . E.toHtml . render $ css <> CSS.resetCSS b)
-       addJs = addHead (jsTag $ E.toHtml js)
-   addHead (favicon "data:;base64,iVBORw0KGgo=") . addCss . addJs <$> htmlBody resp
 
 newId :: MonadWeb m => m Id
 newId = cssId $ return ()
