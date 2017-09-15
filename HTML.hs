@@ -1,17 +1,17 @@
 module HTML
   ( module HTML
   , module HTML.Core
-  , module HTML.Render
+  , module Render
   , module HTML.Shorthands
   , module DOM.Core
   ) where
 
 import Control.Monad.Writer
+import Render
 import Pr
 import Data.Text.Lazy.Lens (utf8)
 import DOM.Core
 import HTML.Core hiding ((!), M)
-import HTML.Render
 import HTML.Shorthands hiding (head, body, map)
 import HTML.Shorthands as H
 import HTTP.Response (ToResponse(..), Response(..), utf8textHdr)

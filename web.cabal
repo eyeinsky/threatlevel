@@ -35,6 +35,8 @@ library
     , Web.Monad
     , Web.Response
     , XML
+    , XML.Core
+    , XML.Render
   other-modules:
       Pr
     , CSS.Internal
@@ -42,7 +44,6 @@ library
     , CSS.Shorthands
     , CSS.Example
     , HTML.Core
-    , HTML.Render
     , HTML.Shorthands.Paste
     , SVG.Elements
     , SVG.Attributes

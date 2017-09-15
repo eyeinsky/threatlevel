@@ -1,18 +1,13 @@
-module HTML.Render
-  ( module HTML.Render
-  , module Render
-  ) where
+module XML.Render where
 
-import Pr hiding (concat, unwords, id, eq)
-import Prelude2.Has (HasId(..))
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Text.Lazy as TL
-
-import HTML.Core
+import qualified Data.HashMap.Strict as HM
+import Pr hiding (eq, id, concat)
+import Prelude2.Has (HasId(..))
 import Render
-import Control.Monad.Writer (execWriter)
+import XML.Core
+import DOM.Core
 import DOM.Event
-import XML
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
@@ -36,8 +31,7 @@ instance Render AttributeSet where
           $ Just $ eq "class" (TL.unwords $ map (static . unClass) cs)
       rest = mapM renderM $ HM.elems (attrSet^.attrs)
 
-
-instance Render HTML where
+instance Render (XMLA ns) where
   renderM html = case html of
     Element n attrSet htmls -> TL.concat <$> sequence
       [ pure "<"
@@ -57,8 +51,8 @@ instance Render HTML where
       -- ^ todo: actually escape the text! Or not? Am I using this to inject random stuff?
     Dyn tl -> pure $ "error: Can't render browser js in back-end!"
 
-instance Render [HTML] where
+instance Render [XMLA ns] where
   renderM = pure . concat . map render
 
-instance Render Html where
+instance Render (XMLM ns) where
   renderM htmlm = pure . render . execWriter $ htmlm
