@@ -18,15 +18,12 @@ library
     , HTTP.Header
     , HTTP.Response
     , HTTP.Response.InlineFile
-    , JS.Blaze
     , URL
     , Warp_Helpers
     , Web
     , CSS
     , CSS.MediaQuery
     , SVG
-    , HTML.Blaze
-    , HTML.Blaze.Bootstrap
     , HTML
     , HTML.Shorthands
     , Web.CSS
@@ -54,7 +51,6 @@ library
     , aeson
     , async
     , blaze-builder
-    , blaze-html
     , boomerang
     , bytestring
     , case-insensitive
