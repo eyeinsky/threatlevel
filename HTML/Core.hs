@@ -15,16 +15,17 @@ import qualified JS
 import DOM.Core
 import DOM.Event
 import XML
+import Render
 
 
 -- * Tag
 
 data Html5
-type HTML = XML Html5 AttributeSet
+type HTML c = XML Html5 AttributeSet c
 
 -- ** Monadic dsl
 
-type Html = Writer [HTML] ()
+type Html = Writer [HTML Both] ()
 
 declareFields [d|
   data Document = Document

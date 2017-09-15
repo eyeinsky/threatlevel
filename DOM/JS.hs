@@ -238,7 +238,7 @@ alert x = call1 (ex "alert") x
 
 -- * RenderJSM instances
 
-instance RenderJSM HTML where
+instance RenderJSM (HTML Both) where
   renderJSM html = case html of
     Element tn as children -> do
       t <- new $ createElement tn
@@ -248,6 +248,7 @@ instance RenderJSM HTML where
       return t
     Text txt -> return $ createTextNode (ulit txt)
     Dyn expr -> return (Cast expr)
+    Embed a -> renderJSM a
     where
       mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
@@ -255,7 +256,7 @@ instance RenderJSM HTML where
         OnEvent et expr -> e !. toOn et .= expr
         Custom _ v -> e !. k .= ulit v
 
-createHtml :: HTML -> Expr Tag
+createHtml :: HTML Both -> Expr Tag
 createHtml html = FuncDef [] . eval $ renderJSM html >>= retrn
 
 createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
@@ -273,7 +274,7 @@ domExpr = createHtmls
 
 -- * Svg
 
-instance RenderJSM (XML SVG AttributeSet) where
+instance  RenderJSM (XML SVG AttributeSet Both) where
   renderJSM xml = case xml of
     Element tn as children -> do
       t <- new $ mkElem tn
@@ -283,6 +284,7 @@ instance RenderJSM (XML SVG AttributeSet) where
       return t
     Text txt -> return $ createTextNode (ulit txt)
     Dyn expr -> return (Cast expr)
+    Embed a -> renderJSM a
     where
       mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of

@@ -31,7 +31,7 @@ instance Render AttributeSet where
           $ Just $ eq "class" (TL.unwords $ map (static . unClass) cs)
       rest = mapM renderM $ HM.elems (attrSet^.attrs)
 
-instance Render (XMLA ns) where
+instance Render (XMLA ns Both) where
   renderM html = case html of
     Element n attrSet htmls -> TL.concat <$> sequence
       [ pure "<"
@@ -50,9 +50,10 @@ instance Render (XMLA ns) where
       where escape tl = tl
       -- ^ todo: actually escape the text! Or not? Am I using this to inject random stuff?
     Dyn tl -> pure $ "error: Can't render browser js in back-end!"
+    Embed a -> renderM a
 
-instance Render [XMLA ns] where
+instance Render [XMLA ns Both] where
   renderM = pure . concat . map render
 
-instance Render (XMLM ns) where
+instance Render (XMLM ns Both) where
   renderM htmlm = pure . render . execWriter $ htmlm

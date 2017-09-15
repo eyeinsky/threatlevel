@@ -49,3 +49,6 @@ deriving instance Show Class
 
 class RenderJSM a where
   renderJSM :: a -> JS.M r (JS.Expr Tag)
+
+class (Render a, RenderJSM a) => Both a
+instance (Render a, RenderJSM a) => Both a

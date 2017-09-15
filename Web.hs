@@ -13,7 +13,7 @@ import Pr
 import qualified Data.Text.Lazy as TL
 import CSS hiding (run, (!), M, id)
 import Web.CSS (reset)
-import HTML hiding (M, Value, content, font, em, id)
+import HTML hiding (M, Value, embed, content, font, em, id)
 import XML
 import Web.Browser
 import Web.Monad

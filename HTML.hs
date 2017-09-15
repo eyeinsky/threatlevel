@@ -19,7 +19,7 @@ import XML as X
 
 -- *
 
-renderRaw :: Render a => a -> Writer [XML ns b] ()
+renderRaw :: Render a => a -> Writer [XML ns b c] ()
 renderRaw x = text (render x)
 
 -- * Response

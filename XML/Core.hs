@@ -6,6 +6,7 @@ module XML.Core
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
+import Data.Kind (type (*), Constraint)
 
 import Pr hiding (id)
 import Prelude2.Has (HasId(..))
@@ -14,30 +15,36 @@ import DOM.Core
 import DOM.Event
 
 
-data XML ns a where
-  Element :: TagName -> a -> [XML ns a] -> XML ns a
-  Text :: TL.Text -> XML ns a
-  Dyn :: JS.Expr a -> XML ns a
+data XML ns a c where
+  Element :: TagName -> a -> [XML ns a c] -> XML ns a c
+  Text :: TL.Text -> XML ns a c
+  Dyn :: JS.Expr a -> XML ns a c
+  Embed :: c (XML ns' a' c) => XML ns' a' c -> XML ns a c
 
 makePrisms ''XML
 contents = _Element._3
 
-instance IsString (XML ns a) where
+instance IsString (XML ns a c) where
    fromString str = Text $ TL.pack str
 
-instance IsString (Writer [XML ns a] ()) where
+instance IsString (Writer [XML ns a c] ()) where
    fromString str = text $ TL.pack str
 
 -- ** Shorthands
 
-tag :: Monoid a => Value -> XML n a
+tag :: Monoid a => Value -> XML n a c
 tag str = Element (TagName str) mempty []
 
-dyn :: JS.Expr b -> Writer [XML ns a] ()
+dyn :: JS.Expr b -> Writer [XML ns a c] ()
 dyn expr = tell [Dyn (JS.Cast expr)]
 
-text :: TL.Text -> Writer [XML ns a] ()
+text :: TL.Text -> Writer [XML ns a c] ()
 text tl = tell [Text tl]
+
+embed
+  :: (c (XML ns' a' c), c (XML ns a c))
+  => Writer [XML ns' a' c] a1 -> Writer [XML ns a c] ()
+embed xml = tell $ map Embed $ execWriter xml
 
 -- * Attribute
 
@@ -68,8 +75,8 @@ cls_ cs = AttrClass cs
 
 -- * Writer monad
 
-type XMLA ns = XML ns AttributeSet
-type XMLM ns = Writer [XMLA ns] ()
+type XMLA ns c = XML ns AttributeSet c
+type XMLM ns c = Writer [XMLA ns c] ()
 
 -- * Add attributes with !
 
@@ -84,15 +91,15 @@ instance Attributable AttributeSet where
     OnEvent e v -> a & attrs %~ (HM.insert (toOn e) attr)
     Data e v -> a & attrs %~ (HM.insert e attr)
 
-instance Attributable (XMLA n) where
+instance Attributable (XMLA ns c) where
   (!-) e attr = e & _Element._2 %~ (!- attr)
 
-instance Attributable (XMLM n) where
+instance Attributable (XMLM ns c) where
   (!-) a attr = case execWriter a of
     e : rest -> tell (e !- attr : rest)
     _ -> return ()
 
-instance Attributable (XMLM n -> XMLM n) where
+instance Attributable (XMLM ns c -> XMLM ns c) where
   (!-) a attr = case execWriter (a $ pure ()) of
     e : rest -> \ x -> let
         ct = execWriter x
@@ -106,22 +113,22 @@ instance Attributable (XMLM n -> XMLM n) where
 class Exclamatable e a where
   (!) :: e -> a -> e
 
-instance Exclamatable (XMLM n) Id where
+instance Exclamatable (XMLM ns c) Id where
   (!) e id = e !- id_ id
-instance Exclamatable (XMLM n -> XMLM n) Id where
+instance Exclamatable (XMLM ns c -> XMLM ns c) Id where
   (!) e id = e !- id_ id
 
-instance Exclamatable (XMLM n) [Class] where
+instance Exclamatable (XMLM ns c) [Class] where
   (!) e cs = e !- cls_ cs
-instance Exclamatable (XMLM n -> XMLM n) [Class] where
+instance Exclamatable (XMLM ns c -> XMLM ns c) [Class] where
   (!) e cs = e !- cls_ cs
 
-instance Exclamatable (XMLM n) Class where
+instance Exclamatable (XMLM ns c) Class where
   (!) e c = e !- cls_ [c]
-instance Exclamatable (XMLM n -> XMLM n) Class where
+instance Exclamatable (XMLM ns c -> XMLM ns c) Class where
   (!) e c = e !- cls_ [c]
 
-instance Exclamatable (XMLM n) Attribute where
+instance Exclamatable (XMLM ns c) Attribute where
   (!) e c = e !- c
-instance Exclamatable (XMLM n -> XMLM n) Attribute where
+instance Exclamatable (XMLM ns c -> XMLM ns c) Attribute where
   (!) e c = e !- c
