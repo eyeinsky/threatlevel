@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 module DOM.Core where
 
 import Prelude2
