@@ -2,6 +2,7 @@ module XML.Render where
 
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
+import Control.Monad.Writer
 import Pr hiding (eq, id, concat)
 import Prelude2.Has (HasId(..))
 import Render
@@ -57,3 +58,8 @@ instance Render [XMLA ns Both] where
 
 instance Render (XMLM ns Both) where
   renderM htmlm = pure . render . execWriter $ htmlm
+
+-- * Helper
+
+renderRaw :: Render a => a -> Writer [XML ns b c] ()
+renderRaw x = text (render x)

@@ -22,7 +22,8 @@ import Identifiers (identifierSource)
 
 import Web.Browser (browser)
 import qualified JS
-import DOM.JS hiding (responseText)
+import DOM
+import XML (renderRaw)
 
 import qualified Web.Response as Re
 import Web.Response (UrlPath, renderUrlPath, appendSegment, appendSegments)
@@ -90,9 +91,9 @@ run r b (_, i_io, js_css_st, js_css_wr) = merge <$> res
     collapse :: W.Writer -> W.Document -> W.Document
     collapse code doc
       = doc
-      & add (W.style $ W.text $ render $ code ^. W.cssCode)
-      & add (W.script $ W.text $ render $ putOnload $ code ^. W.jsCode)
-      where add w = W.head %~ (>> w)
+      & add (W.style $ renderRaw $ code ^. W.cssCode)
+      & add (W.script $ renderRaw $ putOnload $ code ^. W.jsCode)
+      where add w = W.head' %~ (>> w)
 
 -- * To handler
 

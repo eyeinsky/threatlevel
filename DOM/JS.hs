@@ -13,7 +13,7 @@ import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
-import HTML.Core
+import HTML
 import DOM.Core
 import DOM.Event
 import XML

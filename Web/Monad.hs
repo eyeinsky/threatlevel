@@ -17,9 +17,8 @@ import qualified CSS as CSS
 import qualified CSS.Monad as CSSM
 import qualified Web.Browser as Br
 import qualified JS
-import qualified DOM.JS as JD
 
-import DOM.Core
+import DOM
 import Render
 
 import qualified Identifiers as IS
