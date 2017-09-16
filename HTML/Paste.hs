@@ -1,4 +1,4 @@
-module HTML.Shorthands.Paste where
+module HTML.Paste where
 
 import Prelude2
 

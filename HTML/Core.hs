@@ -3,33 +3,56 @@ module HTML.Core
   , module DOM.Core
   ) where
 
-import Pr hiding (id)
 import Data.String
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 
 import Control.Monad.Writer
 
-import qualified JS
+import Render hiding (concat)
 
+import Pr hiding (id)
+import qualified JS
 import DOM.Core
 import DOM.Event
 import XML
-import Render
-
-
--- * Tag
+import TH
+import HTML.Paste
 
 data Html5
 type HTML c = XML Html5 AttributeSet c
-
--- ** Monadic dsl
-
 type Html = Writer [HTML Both] ()
 
 declareFields [d|
   data Document = Document
-    { documentHead :: Html
-    , documentBody :: Html
+    { documentHead' :: Html
+    , documentBody' :: Html
     }
   |]
+
+-- * Attributes
+
+concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content" ]
+concat <$> mapM (mk [t|Html|]) tags
+
+--
+
+cssTag :: Html -> Html
+cssTag = style ! type_ "text/css"
+
+jsTag :: Html -> Html
+jsTag = script ! type_ "text/javascript"
+
+favicon :: TL.Text -> Html
+favicon adr = link
+  ! rel "shortcut icon"
+  ! type_ "image/x-icon"
+  ! href adr
+  $ pure ()
+
+docBody :: Html -> Document
+docBody = Document (return ())
+
+
+
+-- ** Monadic dsl

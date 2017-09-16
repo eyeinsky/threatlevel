@@ -25,7 +25,6 @@ library
     , CSS.MediaQuery
     , SVG
     , HTML
-    , HTML.Shorthands
     , Web.CSS
     , Web.Endpoint
     , Web.FRP
@@ -41,7 +40,7 @@ library
     , CSS.Shorthands
     , CSS.Example
     , HTML.Core
-    , HTML.Shorthands.Paste
+    , HTML.Paste
     , SVG.Elements
     , SVG.Attributes
     , DOM.Core
