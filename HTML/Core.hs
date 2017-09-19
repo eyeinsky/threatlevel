@@ -50,9 +50,11 @@ favicon adr = link
   ! href adr
   $ pure ()
 
+property :: TL.Text -> TL.Text -> Html
+property name value = meta ! Custom "property" name ! Custom "content" value $ pure ()
+
+og :: TL.Text -> TL.Text -> Html
+og name value = property ("og:" <> name) value
+
 docBody :: Html -> Document
 docBody = Document (return ())
-
-
-
--- ** Monadic dsl
