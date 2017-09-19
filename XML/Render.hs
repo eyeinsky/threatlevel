@@ -50,6 +50,7 @@ instance Render (XMLA ns Both) where
     Text tl -> pure $ escape tl
       where escape tl = tl
       -- ^ todo: actually escape the text! Or not? Am I using this to inject random stuff?
+    Raw tl -> pure tl
     Dyn tl -> pure $ "error: Can't render browser js in back-end!"
     Embed a -> renderM a
 
