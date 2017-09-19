@@ -47,9 +47,7 @@ instance Render (XMLA ns Both) where
           _ : _ -> let sub = concat (map render htmls)
             in ">" <> sub <> "</" <> tag <> ">"
           _ -> "/>"
-    Text tl -> pure $ escape tl
-      where escape tl = tl
-      -- ^ todo: actually escape the text! Or not? Am I using this to inject random stuff?
+    Text tl -> pure $ htmlTextEscape tl
     Raw tl -> pure tl
     Dyn tl -> pure $ "error: Can't render browser js in back-end!"
     Embed a -> renderM a
@@ -64,3 +62,20 @@ instance Render (XMLM ns Both) where
 
 renderRaw :: Render a => a -> Writer [XML ns b c] ()
 renderRaw x = text (render x)
+
+htmlTextEscapeMap :: [(Char, TL.Text)]
+htmlTextEscapeMap = map (second $ \x -> "&" <> x <> ";") [
+    ('&', "amp")
+  , ('<', "lt")
+  , ('>', "gt")
+  , ('"', "quot")
+  , ('\'', "#039")
+  , ('/', "#x2F")
+  ]
+-- ^ https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+
+htmlTextEscape :: TL.Text -> TL.Text
+htmlTextEscape t = foldl f t map'
+  where
+    f t (a, b) = TL.replace a b t
+    map' = map (first TL.singleton) htmlTextEscapeMap
