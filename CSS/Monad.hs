@@ -1,13 +1,12 @@
 module CSS.Monad where
 
-import Prelude2
 import qualified Data.Text.Lazy as TL
-
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad.Identity
 
+import Pr
 import Web.Browser
 import CSS.Internal
 import qualified CSS.MediaQuery as MediaQuery
