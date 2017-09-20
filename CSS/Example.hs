@@ -22,7 +22,7 @@ test = do
       fontSize $ px 12
     media "print" $ do
       color "red"
-  keyframes "some-animation" $ do
+  keyframes $ do
     keyframe 0 $ do
       backgroundColor "red"
     keyframe 100 $ do

@@ -2,9 +2,11 @@ module CSS.Monad where
 
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State (evalStateT)
 import Control.Monad.Writer
 import Control.Monad.Identity
+
+import Identifiers as Idents
 
 import Pr
 import Web.Browser
@@ -28,9 +30,17 @@ declareFields [d|
     }
   |]
 
+-- | Animation name source
+type State = [TL.Text]
+animationNameSource :: State
+animationNameSource = Idents.identifiersFilter forbidden <&> TL.fromStrict
+  where
+    forbidden = ["none", "unset", "initial", "inherit"]
+    -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
+
 type DM = Writer [Declaration]
 
-type CSSM = WriterT CSSW (ReaderT R Identity)
+type CSSM = WriterT CSSW (StateT State (ReaderT R Identity))
 
 -- * For export
 
@@ -55,7 +65,8 @@ tellDecls ds = tell $ mempty & decls .~ ds
 runCSSM :: R -> CSSM () -> [Rule]
 runCSSM r m = r' : cssw^.rules
   where
-    cssw = runReader (execWriterT m) r
+    state = animationNameSource
+    cssw = runReader (evalStateT (execWriterT m) state) r
     r' = mkRule (r^.selector) (cssw^.decls)
 
 instance Monoid CSSW where
@@ -107,10 +118,12 @@ keyframe n dm = do
   dw <- ask <&> runReader (execWriterT dm)
   tell $ pure $ KeyframeBlock (KPercent n) (dw^.decls)
 
-keyframes :: TL.Text -> KM () -> CSSM ()
-keyframes name km = do
+keyframes :: KM () -> CSSM Value
+keyframes km = do
+  name <- Idents.next id
   ks <- asks (view browser) <&> runReader (execWriterT km)
   tellRule $ Keyframes name ks
+  return $ Word name
 
 -- * Media query
 
