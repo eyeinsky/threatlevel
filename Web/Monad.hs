@@ -39,6 +39,8 @@ declareFields [d|
     }
   |]
 
+type Conf = JS.Config
+
 instance Default State where
   def = State def idents
 
@@ -46,15 +48,15 @@ instance Monoid Writer where
   mempty = Writer mempty mempty
   mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
 
-newtype WebT m a = WebT { unWebT :: RWS.RWST Br.Browser Writer State m a }
+newtype WebT m a = WebT { unWebT :: RWS.RWST Conf Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)
 
 -- | The main runner
-runWebMT :: Br.Browser -> State -> WebT m a -> m (a, State, Writer)
+runWebMT :: Conf -> State -> WebT m a -> m (a, State, Writer)
 runWebMT r s wm = RWS.runRWST (unWebT wm) r s
 
 foldWM :: Foldable t
-  => Br.Browser
+  => Conf
   -> State
   -> t (WebT Identity a) -> ([a], JS.Code (), [CSS.Rule])
 foldWM r st ws = foldl step (st, []) ws & snd & final
@@ -81,27 +83,28 @@ class Monad m => MonadWeb m where
    nextId :: m TL.Text
    getState :: m State
 
+askBrowser = asks (^.Br.browser)
+
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
       c <- gets (^.jsState)
-      b <- ask
+      config <- ask
       let
-        config = JS.Config b True
         ((a, code), s') = JS.runM config c jsm
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ s')
       return a
    css m = WebT $ do
-      b <- ask
+      b <- askBrowser
       c <- Class . Static <$> IS.next cssState
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    cssRule sl m = WebT $ do
-      b <- ask
+      b <- askBrowser
       tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId m = WebT $ do
-      b <- ask
+      b <- askBrowser
       c <- Id . Static <$> IS.next cssState
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c

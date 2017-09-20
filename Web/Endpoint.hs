@@ -33,10 +33,12 @@ import Text.Boomerang.Texts
 import Text.Boomerang.TH
 import Text.Boomerang hiding ((.~))
 
+
 type I m r = W.WebT (ReaderT r m)
-runI :: r -> W.Browser -> W.State -> I m r a -> m (a, W.State, W.Writer)
-runI r br st m = m
-  & W.runWebMT br st
+
+runI :: W.Conf -> r -> W.State -> I m r a -> m (a, W.State, W.Writer)
+runI mc r st m = m
+  & W.runWebMT mc st
   & flip runReaderT r
 
 type Url = TL.Text
@@ -58,32 +60,37 @@ runT url m = runRWST (unT m) url $ (^.from strict) <$> identifierSource
 -- * Build
 
 eval
-  :: W.HasBrowser r W.Browser
-  => W.State -> UrlPath -> r -> T r -> [A r]
-eval js_css_st0 up (r :: r) (m :: T r) = let
-    b = r^.browser
+  :: ( W.HasBrowser r W.Browser
+     )
+  => W.Conf -> W.State -> UrlPath -> r -> T r -> [A r]
+eval mc js_css_st0 up (r :: r) (m :: T r) = let
     ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w)
-      = runIdentity (runI r b js_css_st0 (runT up m))
+      = runIdentity (runI mc r js_css_st0 (runT up m))
 
     self = (up, main, js_css_st1, js_css_w) :: A r
 
     re :: (Url, T r) -> [A r]
-    re (url, m') = eval js_css_st1 (appendSegment up url) r m'
+    re (url, m') = eval mc js_css_st1 (appendSegment up url) r m'
 
   in self : (re =<< subs) :: [A r]
 
 type IIO r = I IO r Re.AnyResponse
 type A r = (UrlPath, IIO r, W.State, W.Writer)
 
-build :: W.HasBrowser r W.Browser => UrlPath -> r -> T r -> [(Path, IIO r, W.State, W.Writer)]
-build domain r m = eval def domain r m <&> \a -> a & _1 %~ Re.toTextList
+build
+  :: ( W.HasBrowser r W.Browser
+     )
+  => W.Conf -> UrlPath -> r -> T r -> [(Path, IIO r, W.State, W.Writer)]
+build mc domain r m = eval mc def domain r m <&> \a -> a & _1 %~ Re.toTextList
 
 -- * Run
 
-run :: Functor f => r -> Browser -> (Path, I f r Re.AnyResponse, W.State, W.Writer) -> f Re.AnyResponse
-run r b (_, i_io, js_css_st, js_css_wr) = merge <$> res
+run
+  :: (Functor f)
+  => W.Conf -> r -> (Path, I f r Re.AnyResponse, W.State, W.Writer) -> f Re.AnyResponse
+run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
   where
-    res = runI r b js_css_st i_io
+    res = runI mc r js_css_st i_io
     merge (Re.HtmlDocument doc, st, wr) = Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
     merge (x, _, _) = x
 
@@ -97,17 +104,18 @@ run r b (_, i_io, js_css_st, js_css_wr) = merge <$> res
 -- * To handler
 
 toHandler
-  :: forall r. (W.HasBrowser r W.Browser, HasDynPath r Path)
-  => UrlPath -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
-toHandler domain conf site req = traverse (run conf' browser') res
+  :: ( W.HasBrowser r W.Browser
+     , HasDynPath r Path
+     )
+  => W.Conf -> UrlPath -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
+toHandler mc domain conf site req = traverse (run mc conf') res
   where
-    app = build domain conf site
+    app = build mc domain conf site
     found = Tr.lookupPrefix path $ Tr.fromList $ (\x -> (Pr.tail $ view _1 x, x)) <$> app
     (res, conf') = case found of
       Just (p, mv, _) -> (mv, conf & dynPath .~ p)
       _ -> (Nothing, conf)
 
-    browser' = conf^.browser
     path = Wai.pathInfo req <&> (^.from strict)
 
 -- * Dyn path
