@@ -25,36 +25,33 @@ import qualified Identifiers as IS
 
 -- ** WebT
 
-tlIdentifierSource = map TL.fromStrict IS.identifierSource
+declareFields [d|
+  data State = State
+    { stateJsState :: JS.State
+    , stateCssState :: [TL.Text]
+    }
+  |]
 
-declareLenses [d|
-   data State = State
-      { jsCounter :: JS.State
-      , cssCounter :: [TL.Text]
-      }
+declareFields [d|
+  data Writer = Writer
+    { writerJsCode :: JS.Code ()
+    , writerCssCode :: [CSS.Rule]
+    }
+  |]
 
-   instance Default State where
-      def = State def tlIdentifierSource
+instance Default State where
+  def = State def idents
 
-   data Writer = Writer
-      { jsCode :: JS.Code ()
-      , cssCode :: [CSS.Rule]
-      }
-
-   instance Monoid Writer where
-      mempty = Writer mempty mempty
-      mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
-   |]
+instance Monoid Writer where
+  mempty = Writer mempty mempty
+  mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
 
 newtype WebT m a = WebT { unWebT :: RWS.RWST Br.Browser Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)
 
+-- | The main runner
 runWebMT :: Br.Browser -> State -> WebT m a -> m (a, State, Writer)
 runWebMT r s wm = RWS.runRWST (unWebT wm) r s
-
-run :: Br.Browser -> WebT m a -> WebMonadResult m a
-run r wm = RWS.runRWST (unWebT wm) r state
-   where state = State def tlIdentifierSource
 
 foldWM :: Foldable t
   => Br.Browser
@@ -87,17 +84,17 @@ class Monad m => MonadWeb m where
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
-      c <- gets (^.jsCounter)
+      c <- gets (^.jsState)
       b <- ask
       let
-        config =  JS.Config b True
+        config = JS.Config b True
         ((a, code), s') = JS.runM config c jsm
       tell $ mempty & jsCode .~ code
-      modify' (jsCounter .~ s')
+      modify' (jsState .~ s')
       return a
    css m = WebT $ do
       b <- ask
-      c <- Class . Static <$> IS.next cssCounter
+      c <- Class . Static <$> IS.next cssState
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
    cssRule sl m = WebT $ do
@@ -105,10 +102,10 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId m = WebT $ do
       b <- ask
-      c <- Id . Static <$> IS.next cssCounter
+      c <- Id . Static <$> IS.next cssState
       tell $ mempty & cssCode .~ CSSM.run b c m
       return c
-   nextId = WebT $ Pr.head <$> gets (^.cssCounter)
+   nextId = WebT $ Pr.head <$> gets (^.cssState)
    getState = WebT get
 
 -- ** Instances
@@ -157,3 +154,6 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
 
 newId :: MonadWeb m => m Id
 newId = cssId $ return ()
+
+idents :: [TL.Text]
+idents = map TL.fromStrict IS.identifierSource
