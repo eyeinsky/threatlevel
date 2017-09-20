@@ -14,7 +14,7 @@ import qualified Data.DList as D
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import HTML.Core hiding (Value)
+import DOM.Core hiding (Value)
 import Render (renderM, Render, (<+>))
 import qualified Render as R
 import qualified CSS.MediaQuery as MediaQuery

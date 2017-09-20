@@ -18,6 +18,7 @@ import DOM.Event
 data XML ns a c where
   Element :: TagName -> a -> [XML ns a c] -> XML ns a c
   Text :: TL.Text -> XML ns a c
+  Raw :: TL.Text -> XML ns a c
   Dyn :: JS.Expr a -> XML ns a c
   Embed :: c (XML ns' a' c) => XML ns' a' c -> XML ns a c
 
@@ -40,6 +41,9 @@ dyn expr = tell [Dyn (JS.Cast expr)]
 
 text :: TL.Text -> Writer [XML ns a c] ()
 text tl = tell [Text tl]
+
+raw :: TL.Text -> Writer [XML ns a c] ()
+raw tl = tell [Raw tl]
 
 embed
   :: (c (XML ns' a' c), c (XML ns a c))

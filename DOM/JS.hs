@@ -13,7 +13,7 @@ import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
-import HTML.Core
+import HTML
 import DOM.Core
 import DOM.Event
 import XML
@@ -247,6 +247,16 @@ instance RenderJSM (HTML Both) where
       forM_ ts $ bare . flip appendChild t
       return t
     Text txt -> return $ createTextNode (ulit txt)
+    Raw txt -> do
+      tmp <- new $ createElement "div"
+      innerHTML tmp .= ulit txt
+      nodes <- new $ tmp !. "childNodes"
+      frag <- fmap Cast $ new $ createDocumentFragment
+      i <- new 0
+      JS.for (JS.length nodes JS..> 0) $ do
+        bare $ appendChild (nodes .! 0) frag
+        i .+= 1
+      return frag
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a
     where
@@ -283,6 +293,8 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       forM_ ts $ bare . flip appendChild t
       return t
     Text txt -> return $ createTextNode (ulit txt)
+    Raw txt -> error "XML SVG AttributeSet Both: Raw not implemented"
+    -- ^ fix: see implementation for HTML Both, would that work for svg too?
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a
     where

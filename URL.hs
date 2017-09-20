@@ -96,7 +96,7 @@ declareFields [d|
 
 localhost = URL (Proto "http") auth (Path []) (Params []) (Fragment "")
   where
-    auth = Authority Nothing (Domain "localhost") $ Port 80
+    auth = Authority Nothing (Domain "localhost") 80
 
 -- ** Lens
 
