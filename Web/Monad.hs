@@ -42,7 +42,7 @@ declareFields [d|
 type Conf = JS.Config
 
 instance Default State where
-  def = State def idents
+  def = State def def
 
 instance Monoid Writer where
   mempty = Writer mempty mempty
@@ -157,6 +157,3 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
 
 newId :: MonadWeb m => m Id
 newId = cssId $ return ()
-
-idents :: [TL.Text]
-idents = map TL.fromStrict IS.identifierSource
