@@ -28,7 +28,7 @@ import qualified Identifiers as IS
 declareFields [d|
   data State = State
     { stateJsState :: JS.State
-    , stateCssState :: [TL.Text]
+    , stateCssState :: CSSM.State
     }
   |]
 
@@ -83,6 +83,27 @@ class Monad m => MonadWeb m where
    nextId :: m TL.Text
    getState :: m State
 
+cssF mk m = WebT $ do
+  state0 <- gets (^.cssState)
+  conf <- askBrowser
+  let
+    (ident : rest) = state0^.CSSM.idents
+    state1 = state0 & CSSM.idents .~ rest
+    name = mk ident
+    conf' = CSSM.Conf (CSS.selFrom name) conf
+    (rules, state2) = CSSM.runCSSM conf' state1 m
+  modify (cssState .~ state2)
+  tell (mempty & cssCode .~ rules)
+  return name
+
+css' = cssF (Class . Static)
+cssId' = cssF (Id . Static)
+
+
+-- step lens state = let
+--   (x : xs) = state^.lens
+--   in (x, state & lens .~ xs)
+
 askBrowser = asks (^.Br.browser)
 
 -- | Main instance
@@ -95,20 +116,12 @@ instance (Monad m) => MonadWeb (WebT m) where
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ s')
       return a
-   css m = WebT $ do
-      b <- askBrowser
-      c <- Class . Static <$> IS.next cssState
-      tell $ mempty & cssCode .~ CSSM.run b c m
-      return c
+   css = css'
    cssRule sl m = WebT $ do
       b <- askBrowser
       tell $ mempty & cssCode .~ CSSM.run b sl m
-   cssId m = WebT $ do
-      b <- askBrowser
-      c <- Id . Static <$> IS.next cssState
-      tell $ mempty & cssCode .~ CSSM.run b c m
-      return c
-   nextId = WebT $ Pr.head <$> gets (^.cssState)
+   cssId = cssF (Id . Static)
+   nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)
    getState = WebT get
 
 -- ** Instances
