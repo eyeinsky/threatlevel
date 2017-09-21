@@ -4,7 +4,7 @@ module CSS
   , module DOM.Core
   , resetCSS
   , setBoxSizing
-  , keyframes, keyframe, browser, selector
+  , keyframes, keyframes', keyframe, browser, selector
   , media
   , DeclM, renderDecls
   ) where

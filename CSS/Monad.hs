@@ -132,6 +132,10 @@ keyframe n dm = do
 keyframes :: KM () -> CSSM Value
 keyframes km = do
   name <- Idents.next animationIdents
+  keyframes' name km
+
+keyframes' :: TL.Text -> KM () -> CSSM Value
+keyframes' name km = do
   ks <- asks (view browser) <&> runReader (execWriterT km)
   tellRule $ Keyframes name ks
   return $ Word name
