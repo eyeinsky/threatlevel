@@ -1,13 +1,13 @@
 module CSS.Monad where
 
-import Prelude2
 import qualified Data.Text.Lazy as TL
-
 import Control.Monad.Reader
-import Control.Monad.State
 import Control.Monad.Writer
-import Control.Monad.Identity
+import Control.Monad.RWS
 
+import Identifiers as Idents
+
+import Pr
 import Web.Browser
 import CSS.Internal
 import qualified CSS.MediaQuery as MediaQuery
@@ -16,11 +16,26 @@ import qualified CSS.MediaQuery as MediaQuery
 -- * DSL setup
 
 declareFields [d|
-  data R = R
-    { rSelector :: Selector
-    , rBrowser :: Browser
+  data Conf = Conf
+    { confSelector :: Selector
+    , confBrowser :: Browser
     }
   |]
+
+declareFields [d|
+  data State = State
+    { stateIdents :: [TL.Text]
+    , stateAnimationIdents :: [TL.Text]
+    }
+  |]
+
+instance Default State where
+  def = State idents' animationIdents'
+    where
+      idents' = map TL.fromStrict Idents.identifierSource
+      animationIdents' = Idents.identifiersFilter forbidden <&> TL.fromStrict
+      forbidden = ["none", "unset", "initial", "inherit"]
+      -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
 
 declareFields [d|
   data CSSW = CSSW
@@ -29,16 +44,25 @@ declareFields [d|
     }
   |]
 
+instance Monoid CSSW where
+  mempty = CSSW mempty mempty
+  mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
+
 type DM = Writer [Declaration]
 
-type CSSM = WriterT CSSW (ReaderT R Identity)
+type CSSM = RWST Conf CSSW State Identity
+type M = CSSM
+
+runCSSM :: Conf -> State -> CSSM () -> ([Rule], State)
+runCSSM r s m = (r' : cssw^.rules, state)
+  where
+    (ret, state, cssw) = runRWS m r s
+    r' = mkRule (r^.selector) (cssw^.decls)
 
 -- * For export
 
-type M = CSSM
-
 run :: SelectorFrom a => Browser -> a -> CSSM () -> [Rule]
-run b s m = runCSSM (R (selFrom s) b) m
+run b s m = runCSSM (Conf (selFrom s) b) def m & fst
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
@@ -53,16 +77,6 @@ tellRule =  tellRules . pure
 
 tellDecls ds = tell $ mempty & decls .~ ds
 
-runCSSM :: R -> CSSM () -> [Rule]
-runCSSM r m = r' : cssw^.rules
-  where
-    cssw = runReader (execWriterT m) r
-    r' = mkRule (r^.selector) (cssw^.decls)
-
-instance Monoid CSSW where
-  mempty = CSSW mempty mempty
-  mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
-
 apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
 apply f s = go s
   where
@@ -75,7 +89,7 @@ pseudo :: TL.Text -> CSSM () -> CSSM ()
 pseudo t m = do
   conf <- ask
   let hoovered = apply (pseudo' t) (conf^.selector)
-  tellRules $ runCSSM (R hoovered $ conf^.browser) m
+  tellRules' (Conf hoovered $ conf^.browser) m
   where
     pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
     pseudo' t s = s & pseudos %~ (Pseudo t:)
@@ -83,8 +97,15 @@ pseudo t m = do
 combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
 combinator c d m = do
   conf <- ask
-  let r = R (Combined c (conf^.selector) d) (conf^.browser)
-  tellRules $ runCSSM r m
+  let r = Conf (Combined c (conf^.selector) d) (conf^.browser)
+  tellRules' r m
+
+-- | Tell rules and thread state
+tellRules' r m = do
+  state0 <- get
+  let (rules, state1) = runCSSM r state0 m
+  put state1
+  tellRules rules
 
 -- * Keyframe monad
 
@@ -108,14 +129,21 @@ keyframe n dm = do
   dw <- ask <&> runReader (execWriterT dm)
   tell $ pure $ KeyframeBlock (KPercent n) (dw^.decls)
 
-keyframes :: TL.Text -> KM () -> CSSM ()
-keyframes name km = do
+keyframes :: KM () -> CSSM Value
+keyframes km = do
+  name <- Idents.next animationIdents
   ks <- asks (view browser) <&> runReader (execWriterT km)
   tellRule $ Keyframes name ks
+  return $ Word name
 
 -- * Media query
 
 media :: TL.Text -> CSSM () -> CSSM ()
-media e dm = ask >>= tellRule . MediaQuery expr . flip runCSSM dm
+media e dm = do
+  conf <- ask
+  state0 <- get
+  let (rules, state1) = runCSSM conf state0 dm
+  tellRule $ MediaQuery expr rules
+  put state1
   where
     expr = MediaQuery.Expr e

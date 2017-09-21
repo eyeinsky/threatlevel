@@ -15,6 +15,10 @@ packages:
   extra-dep: true
 - location: '../ds'
   extra-dep: true
+- location:
+    git: git://git-daemon/rapid
+    commit: 858411702bf2a3bec9a459d4002b06e3956ed7ff
+  extra-dep: true
 extra-deps: []
 flags: {}
 extra-package-dbs: []
