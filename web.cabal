@@ -156,3 +156,45 @@ test-suite test
     , TypeInType
     , TypeOperators
     , TypeSynonymInstances
+    , InstanceSigs
+
+executable examples
+  hs-source-dirs:      examples
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       web, web-js, hs-minu, wai, text, mtl, rapid
+  default-language:    Haskell2010
+  default-extensions:
+      Arrows
+    , BangPatterns
+    , ConstraintKinds
+    , DataKinds
+    , DefaultSignatures
+    , DeriveDataTypeable
+    , DeriveFunctor
+    , DeriveGeneric
+    , EmptyDataDecls
+    , ExtendedDefaultRules
+    , FlexibleContexts
+    , FlexibleInstances
+    , FunctionalDependencies
+    , GADTs
+    , GeneralizedNewtypeDeriving
+    , InstanceSigs
+    , KindSignatures
+    , MultiParamTypeClasses
+    , NamedFieldPuns
+    , NoImplicitPrelude
+    , NoMonomorphismRestriction
+    , OverloadedStrings
+    , PolyKinds
+    , QuasiQuotes
+    , RecursiveDo
+    , ScopedTypeVariables
+    , StandaloneDeriving
+    , TemplateHaskell
+    , TupleSections
+    , TypeFamilies
+    , TypeInType
+    , TypeOperators
+    , TypeSynonymInstances
