@@ -2,9 +2,8 @@ module CSS.Monad where
 
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
-import Control.Monad.State (evalStateT)
 import Control.Monad.Writer
-import Control.Monad.Identity
+import Control.Monad.RWS
 
 import Identifiers as Idents
 
@@ -17,9 +16,9 @@ import qualified CSS.MediaQuery as MediaQuery
 -- * DSL setup
 
 declareFields [d|
-  data R = R
-    { rSelector :: Selector
-    , rBrowser :: Browser
+  data Conf = Conf
+    { confSelector :: Selector
+    , confBrowser :: Browser
     }
   |]
 
@@ -27,13 +26,6 @@ declareFields [d|
   data State = State
     { stateIdents :: [TL.Text]
     , stateAnimationIdents :: [TL.Text]
-    }
-  |]
-
-declareFields [d|
-  data CSSW = CSSW
-    { cSSWRules :: [Rule]
-    , cSSWDecls :: [Declaration]
     }
   |]
 
@@ -45,16 +37,32 @@ instance Default State where
       forbidden = ["none", "unset", "initial", "inherit"]
       -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
 
+declareFields [d|
+  data CSSW = CSSW
+    { cSSWRules :: [Rule]
+    , cSSWDecls :: [Declaration]
+    }
+  |]
+
+instance Monoid CSSW where
+  mempty = CSSW mempty mempty
+  mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
+
 type DM = Writer [Declaration]
 
-type CSSM = WriterT CSSW (StateT State (ReaderT R Identity))
+type CSSM = RWST Conf CSSW State Identity
+type M = CSSM
+
+runCSSM :: Conf -> State -> CSSM () -> ([Rule], State)
+runCSSM r s m = (r' : cssw^.rules, state)
+  where
+    (ret, state, cssw) = runRWS m r s
+    r' = mkRule (r^.selector) (cssw^.decls)
 
 -- * For export
 
-type M = CSSM
-
 run :: SelectorFrom a => Browser -> a -> CSSM () -> [Rule]
-run b s m = runCSSM (R (selFrom s) b) def m & fst
+run b s m = runCSSM (Conf (selFrom s) b) def m & fst
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
@@ -69,18 +77,6 @@ tellRule =  tellRules . pure
 
 tellDecls ds = tell $ mempty & decls .~ ds
 
-runCSSM :: R -> State -> CSSM () -> ([Rule], State)
-runCSSM r s m = (r' : cssw^.rules, state)
-  where
-    a0 = execWriterT m
-    a1 = runStateT a0 s
-    (cssw, state) = runReader a1 r
-    r' = mkRule (r^.selector) (cssw^.decls)
-
-instance Monoid CSSW where
-  mempty = CSSW mempty mempty
-  mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
-
 apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
 apply f s = go s
   where
@@ -93,7 +89,7 @@ pseudo :: TL.Text -> CSSM () -> CSSM ()
 pseudo t m = do
   conf <- ask
   let hoovered = apply (pseudo' t) (conf^.selector)
-  tellRules' (R hoovered $ conf^.browser) m
+  tellRules' (Conf hoovered $ conf^.browser) m
   where
     pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
     pseudo' t s = s & pseudos %~ (Pseudo t:)
@@ -101,7 +97,7 @@ pseudo t m = do
 combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
 combinator c d m = do
   conf <- ask
-  let r = R (Combined c (conf^.selector) d) (conf^.browser)
+  let r = Conf (Combined c (conf^.selector) d) (conf^.browser)
   tellRules' r m
 
 -- | Tell rules and thread state
