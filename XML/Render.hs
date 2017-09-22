@@ -9,11 +9,13 @@ import Render
 import XML.Core
 import DOM.Core
 import DOM.Event
+import qualified JS
+import qualified JS.Render
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
     Custom k v -> eq k v
-    OnEvent et expr -> eq (toOn et) (render expr)
+    OnEvent et expr -> eq (toOn et) (renderJS expr)
     Data k v -> eq ("data-" <> k) v
 
 eq k v = k <> "=" <> q v
@@ -44,7 +46,7 @@ instance Render (XMLA ns Both) where
         f attrText = TL.null attrText ? "" $ (" " <> attrText)
         tag = static $ unTagName n
         rest = case htmls of
-          _ : _ -> let sub = concat (map render htmls)
+          _ : _ -> let sub = concat (map render' htmls)
             in ">" <> sub <> "</" <> tag <> ">"
           _ -> "/>"
     Text tl -> pure $ htmlTextEscape tl
@@ -53,15 +55,17 @@ instance Render (XMLA ns Both) where
     Embed a -> renderM a
 
 instance Render [XMLA ns Both] where
-  renderM = pure . concat . map render
+  renderM = pure . concat . map render'
 
 instance Render (XMLM ns Both) where
-  renderM htmlm = pure . render . execWriter $ htmlm
+  renderM htmlm = pure . render' . execWriter $ htmlm
 
 -- * Helper
 
-renderRaw :: Render a => a -> Writer [XML ns b c] ()
-renderRaw x = text (render x)
+renderRaw
+  :: (Render a, Conf a ~ Conf (XML ns b c))
+  => Conf a -> a -> Writer [XML ns b c] ()
+renderRaw conf a = text (render conf a)
 
 htmlTextEscapeMap :: [(Char, TL.Text)]
 htmlTextEscapeMap = map (second $ \x -> "&" <> x <> ";") [
@@ -79,3 +83,5 @@ htmlTextEscape t = foldl f t map'
   where
     f t (a, b) = TL.replace a b t
     map' = map (first TL.singleton) htmlTextEscapeMap
+
+renderJS = render JS.Render.Minify

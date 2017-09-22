@@ -2,6 +2,7 @@ module Web.FRP where
 
 import Prelude hiding (length)
 import JS
+import JS.Render
 
 point = do
   id <- new $ ulit (-1)

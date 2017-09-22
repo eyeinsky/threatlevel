@@ -19,7 +19,7 @@ import qualified Web.Browser as Br
 import qualified JS
 
 import DOM
-import Render
+import Render hiding (Conf)
 
 import qualified Identifiers as IS
 
@@ -99,13 +99,6 @@ cssF mk m = WebT $ do
 css' = cssF (Class . Static)
 cssId' = cssF (Id . Static)
 
-
--- step lens state = let
---   (x : xs) = state^.lens
---   in (x, state & lens .~ xs)
-
-askBrowser = asks (^.Br.browser)
-
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
@@ -118,7 +111,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       return a
    css = css'
    cssRule sl m = WebT $ do
-      b <- askBrowser
+      b <- asks (^.Br.browser)
       tell $ mempty & cssCode .~ CSSM.run b sl m
    cssId = cssF (Id . Static)
    nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)

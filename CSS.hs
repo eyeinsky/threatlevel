@@ -23,7 +23,7 @@ import DOM.Core hiding (Value) -- don't export attribute value, but css value
 import Render
 
 renderDecls :: Browser -> DeclM a -> Text
-renderDecls r dm = render $ view decls $ execDeclM r dm
+renderDecls r dm = render () $ view decls $ execDeclM r dm
 
 -- * Useful styles
 

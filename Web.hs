@@ -18,7 +18,7 @@ import Web.CSS (reset)
 import HTML hiding (M, Value, content, font, em, id)
 import Web.Browser
 import Web.Monad
-import Render
+import Render hiding (Conf)
 
 -- * Inline styling
 

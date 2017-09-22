@@ -17,6 +17,7 @@ import qualified Data.Text.Lazy.Lens as LL
 import qualified HTTP.Header as Hdr
 import HTTP.Response hiding (redirect, JSON)
 import qualified JS
+import qualified JS.Render
 import qualified HTML
 import URL
 import Render
@@ -50,7 +51,7 @@ data AnyResponse where
 instance ToResponse AnyResponse where
   toResponse ar = case ar of
      HtmlDocument a -> toResponse a
-     JS code -> Response 200 [utf8textHdr "plain"] (render code^.re LL.utf8)
+     JS code -> Response 200 [utf8textHdr "plain"] (render JS.Render.Minify code^.re LL.utf8)
      JSON a -> Response 200 [jh] (Aeson.encode a)
      Raw a h b -> Response a h b
     where jh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")

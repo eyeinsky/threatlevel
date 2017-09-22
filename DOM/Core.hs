@@ -7,6 +7,7 @@ import qualified Data.Text.Lazy as TL
 
 import qualified JS
 import Render
+import JS.Render
 
 data TagName = TagName { unTagName :: Value }
 data Id      = Id { unId :: Value }
@@ -31,7 +32,7 @@ value2either v = case v of
 
 static v = case v of
   Static s -> s
-  Dynamic a -> error $ show $ render a
+  Dynamic a -> error $ show $ render Minify a
 
 instance IsString Value where
   fromString = Static . fromString

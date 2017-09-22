@@ -13,14 +13,18 @@ import Prelude2.Has (HasId(..))
 import qualified JS
 import DOM.Core
 import DOM.Event
-
+import qualified Render
 
 data XML ns a c where
   Element :: TagName -> a -> [XML ns a c] -> XML ns a c
   Text :: TL.Text -> XML ns a c
   Raw :: TL.Text -> XML ns a c
   Dyn :: JS.Expr a -> XML ns a c
-  Embed :: c (XML ns' a' c) => XML ns' a' c -> XML ns a c
+  Embed
+    :: ( c (XML ns' a' c)
+       , Render.Conf (XML ns a c) ~ Render.Conf (XML ns' a' c)
+       )
+    => XML ns' a' c -> XML ns a c
 
 makePrisms ''XML
 contents = _Element._3
@@ -46,7 +50,9 @@ raw :: TL.Text -> Writer [XML ns a c] ()
 raw tl = tell [Raw tl]
 
 embed
-  :: (c (XML ns' a' c), c (XML ns a c))
+  :: ( c (XML ns' a' c), c (XML ns a c)
+     , Render.Conf (XML ns' a' c) ~ Render.Conf (XML ns a c)
+     )
   => Writer [XML ns' a' c] a1 -> Writer [XML ns a c] ()
 embed xml = tell $ map Embed $ execWriter xml
 

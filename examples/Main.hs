@@ -43,7 +43,8 @@ main = runServer $ Server Nothing [("name", endpointHandler)] [("name", auth, 80
     endpointHandler :: Authority -> IO Handler
     endpointHandler auth = do
       -- init & binds
-      return (toHandler' (JS.Config Unknown True) localhost (Conf mempty Unknown) testRawHtml)
+      let conf = JS.Config Unknown True $ Indent 2
+      return (toHandler' conf localhost (Conf mempty Unknown) testRawHtml)
 
 
 site = T $ do

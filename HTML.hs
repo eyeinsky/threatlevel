@@ -11,7 +11,7 @@ import Data.Text.Lazy.Lens (utf8)
 
 import Pr hiding (head)
 import XML
-import Render
+import Render hiding (Conf)
 import DOM.Core
 import HTML.Core hiding ((!), M, map, embed)
 import HTTP.Response (ToResponse(..), Response(..), utf8textHdr)
@@ -22,7 +22,7 @@ instance ToResponse Document where
   toResponse (Document h b) = Response 200 [utf8textHdr "html"] $ tl^.re utf8
     where
       html' = html (head h >> b)
-      tl = "<!DOCTYPE html>" <> render html'
+      tl = "<!DOCTYPE html>" <> render () html'
 
 instance Render Document where
   renderM (Document h b) = tl

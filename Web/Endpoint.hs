@@ -21,6 +21,7 @@ import Render
 import Identifiers (identifierSource)
 
 import Web.Browser (browser)
+import qualified JS.DSL
 import qualified JS
 import DOM
 
@@ -97,8 +98,8 @@ run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
     collapse :: W.Writer -> W.Document -> W.Document
     collapse code doc
       = doc
-      & add (W.style $ W.raw $ render $ code ^. W.cssCode)
-      & add (W.script $ W.raw $ render $ putOnload $ code ^. W.jsCode)
+      & add (W.style $ W.raw $ render () $ code ^. W.cssCode)
+      & add (W.script $ W.raw $ render (mc^.W.jsConf.JS.renderConf) $ putOnload $ code ^. W.jsCode)
       where add w = W.head' %~ (>> w)
 
 -- * To handler
