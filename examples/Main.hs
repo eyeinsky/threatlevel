@@ -18,6 +18,7 @@ import HTTP.Response
 import qualified Web.Response as Re
 import Web.Endpoint
 import JS hiding (browser)
+import qualified JS.Render
 
 declareFields [d|
   data Conf = Conf
@@ -43,8 +44,12 @@ main = runServer $ Server Nothing [("name", endpointHandler)] [("name", auth, 80
     endpointHandler :: Authority -> IO Handler
     endpointHandler auth = do
       -- init & binds
-      let conf = JS.Config Unknown True $ Indent 2
-      return (toHandler' conf localhost (Conf mempty Unknown) testRawHtml)
+      let
+        browser = Unknown
+        jsConf = JS.Conf Unknown True $ JS.Render.Indent 2
+        mwConf = Web.Conf jsConf browser
+        userConf = Main.Conf mempty Unknown :: Main.Conf
+      return (toHandler' mwConf localhost userConf testRawHtml)
 
 
 site = T $ do
@@ -103,7 +108,7 @@ testRawHtml = T $ do
 
 toHandler'
   :: (HasDynPath r Web.Endpoint.Path, HasBrowser r Browser)
-  => JS.Config -> UrlPath -> r -> T r -> Wai.Request -> IO Raw
+  => Web.Conf -> UrlPath -> r -> T r -> Wai.Request -> IO Raw
 toHandler' mc host conf site req = toHandler mc host conf' site req <&> fromJust ^ toResponse ^ toRaw
   where
     hdrs = Wai.requestHeaders req

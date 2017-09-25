@@ -39,7 +39,15 @@ declareFields [d|
     }
   |]
 
-type Conf = JS.Config
+declareFields [d|
+  data Conf = Conf
+    { confJsConf :: JS.Conf
+    , confCssConf :: Br.Browser
+    }
+  |]
+
+instance Br.HasBrowser Conf Br.Browser where
+  browser = cssConf
 
 instance Default State where
   def = State def def
@@ -85,7 +93,7 @@ class Monad m => MonadWeb m where
 
 cssF mk m = WebT $ do
   state0 <- gets (^.cssState)
-  conf <- askBrowser
+  conf <- asks (^.Br.browser)
   let
     (ident : rest) = state0^.CSSM.idents
     state1 = state0 & CSSM.idents .~ rest
@@ -102,13 +110,12 @@ cssId' = cssF (Id . Static)
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
-      c <- gets (^.jsState)
-      config <- ask
-      let
-        ((a, code), s') = JS.runM config c jsm
+      state0 <- gets (^.jsState)
+      conf <- asks (^.jsConf)
+      let ((result, code), state1) = JS.runM conf state0 jsm
       tell $ mempty & jsCode .~ code
-      modify' (jsState .~ s')
-      return a
+      modify' (jsState .~ state1)
+      return result
    css = css'
    cssRule sl m = WebT $ do
       b <- asks (^.Br.browser)
