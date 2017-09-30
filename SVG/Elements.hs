@@ -9,6 +9,11 @@ import DOM.Core
 data SVG
 type Svg = Writer [XML SVG AttributeSet Both] ()
 
+svg :: Svg -> Svg
+svg c = let
+  el = tag "svg" & contents .~ execWriter c
+  in tell [el] ! Custom "xmlns" "http://www.w3.org/2000/svg"
+
 concat <$> mapM (mk [t|Svg|] . view (from packed) . kebab2camel) [
   -- https://developer.mozilla.org/en-US/docs/Web/SVG/Element
     "a"
@@ -92,7 +97,7 @@ concat <$> mapM (mk [t|Svg|] . view (from packed) . kebab2camel) [
   , "solidcolor"
   , "stop"
   , "style"
-  , "svg"
+  -- , "svg"
   , "switch"
   , "symbol"
   , "text"
