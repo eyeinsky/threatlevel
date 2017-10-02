@@ -46,6 +46,9 @@ declareFields [d|
     }
   |]
 
+instance Default Conf where
+  def = Conf def Br.Unknown
+
 instance Br.HasBrowser Conf Br.Browser where
   browser = cssConf
 
