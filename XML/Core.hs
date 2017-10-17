@@ -88,6 +88,11 @@ cls_ cs = AttrClass cs
 type XMLA ns c = XML ns AttributeSet c
 type XMLM ns c = Writer [XMLA ns c] ()
 
+instance Monoid (XMLM ns c) where
+  mempty = todo
+  mappend a b = a >> b
+
+
 -- * Add attributes with !
 
 class Attributable a where

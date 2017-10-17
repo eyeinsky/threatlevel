@@ -1,6 +1,14 @@
 module XML
-  ( module Export
+  ( module XML
+  , module Export
   ) where
 
 import XML.Core as Export
 import XML.Render as Export
+
+import Pr
+
+-- showHtml :: Show s => s -> XML ns a c
+showHtml = showXml
+
+showXml = to show.packed.to text
