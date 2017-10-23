@@ -22,7 +22,7 @@ import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
 import HTTP.Common hiding (un)
-import URL
+import URL.ToPayload as URL
 
 getRequestBody :: Request -> IO BL.ByteString
 getRequestBody req = BL.fromChunks <$> loop
@@ -60,7 +60,7 @@ runDomains bindPort sites = do
       in respond =<< fromMaybe noDomain (($ req) <$> resp)
     )
 
-mkPort port = setPort (fromIntegral $ port^.un) $ defaultSettings
+mkPort port = setPort (fromIntegral $ port^.URL.un) $ defaultSettings
 
 -- ** Helpers
 

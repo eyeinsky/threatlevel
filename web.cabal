@@ -18,7 +18,7 @@ library
     , HTTP.Header
     , HTTP.Response
     , HTTP.Response.InlineFile
-    , URL
+    , URL.ToPayload
     , Warp_Helpers
     , Web
     , CSS
@@ -75,6 +75,7 @@ library
     , warp
     , warp-tls
     , web-browser
+    , web-url
     , web-js
     , render
   default-extensions:

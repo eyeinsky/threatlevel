@@ -5,6 +5,8 @@ packages:
   extra-dep: true
 - location: '../web-browser'
   extra-dep: true
+- location: '../web-url'
+  extra-dep: true
 - location: '../web-js'
   extra-dep: true
 - location:

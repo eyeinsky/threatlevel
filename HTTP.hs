@@ -23,4 +23,4 @@ import HTTP.Netw
 import HTTP.Request
 import HTTP.Response
 import HTTP.Util
-import URL
+import URL.ToPayload as URL

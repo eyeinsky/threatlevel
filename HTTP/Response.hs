@@ -38,7 +38,7 @@ import qualified HTTP.Header as H
 import qualified HTTP.Header as Hdr
 
 import HTTP.Common
-import URL
+import URL.ToPayload
 
 -- * Opaque
 
