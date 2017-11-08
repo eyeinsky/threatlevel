@@ -163,7 +163,7 @@ executable examples
   hs-source-dirs:      examples
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       web, web-js, hs-minu, wai, text, mtl, rapid
+  build-depends:       web, web-js, web-url, hs-minu, wai, text, mtl, rapid
   default-language:    Haskell2010
   default-extensions:
       Arrows

@@ -30,15 +30,15 @@ appendSegment :: UrlPath -> TL.Text -> UrlPath
 appendSegment url segm = appendSegments url (pure segm)
 
 appendSegments :: UrlPath -> [TL.Text] -> UrlPath
-appendSegments url segms = url & path.segments %~ (<> segms)
+appendSegments url segms = url & path.segments %~ (<> map TL.toStrict segms)
 
 renderUrlPath :: UrlPath -> TL.Text
 renderUrlPath url = toPayload url
 
 toTextList :: UrlPath -> [TL.Text]
-toTextList url = domain : url^.URL.path.URL.segments
+toTextList url = domain : map TL.fromStrict (url^.URL.path.URL.segments)
    where
-     domain = toPayload (url^.proto) <> protoSep <> toPayload (url^.authority)
+     domain = toPayload (url^.proto) <> "://" <> toPayload (url^.authority)
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse

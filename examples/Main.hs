@@ -8,6 +8,8 @@ import qualified Network.Wai as Wai
 import Rapid
 
 import Prelude2 hiding (div)
+import URL hiding (T)
+
 import Web
 import DOM
 import HTML
@@ -32,7 +34,7 @@ update = rapid 0 (\r ->
 
 main = runServer $ Server Nothing [("name", endpointHandler)] [("name", auth, 8080)]
   where
-    rootUrl =  localhost & port .~ 8080
+    rootUrl = localhost & port .~ 8080
     auth = rootUrl^.authority
 
     simpleHandler :: Authority -> IO Handler

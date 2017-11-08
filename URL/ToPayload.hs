@@ -6,6 +6,7 @@ module URL.ToPayload
 import Pr hiding (null, un)
 import qualified Prelude2 as P
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text as T
 import Data.Text.Format
 
 import URL hiding (T)
@@ -53,7 +54,7 @@ instance ToPayload URL where
             po = authority^.port.un
 
 instance ToPayload Authority where
-   toPayload a = HTTP.Common.concat
+   toPayload a = TL.concat
      [ maybe "" mkAuth $ a^.authentication
      , r $ a^.host
      , ":"
@@ -62,26 +63,31 @@ instance ToPayload Authority where
      where
        r = toPayload
 
-mkAuth (u, p) = u <> ":" <> p <> "@"
+mkAuth (u, p) = TL.fromStrict $ u <> ":" <> p <> "@"
 
 instance ToPayload Proto where
-   toPayload (Proto a) = a
+   toPayload (Proto a) = TL.fromStrict a
 
 instance ToPayload Host where
    toPayload h = case h of
-      Domain t -> t
+      Domain t -> TL.fromStrict t
       IP4 a b c d -> format "{}.{}.{}.{}" (a,b,c,d)
 
 instance ToPayload Port where
    toPayload (Port w16) = pack (show w16)
 
 instance ToPayload Path where
-   toPayload (Path p) = "/" <> TL.intercalate "/" p -- toPayload for Request => hast to start with /
+   toPayload (Path p) = "/" <> TL.intercalate "/" (map TL.fromStrict p)
+   -- toPayload for Request => hast to start with /
 
 instance ToPayload Params where
    toPayload (Params ps) = P.null ps ? "" $ expl
-      where expl = "?" <> TL.intercalate "&" (map (pair "=") ps)
+      where
+        expl = "?" <> TL.intercalate "&" (map f ps)
+        f (a, b) = maybe a' (\b' -> a' <> "=" <> TL.fromStrict b') b
+          where
+            a' = TL.fromStrict a
 
 instance ToPayload Fragment where
-   toPayload (Fragment a) = null a ? "" $ expl
+   toPayload (Fragment a) = TL.fromStrict $ T.null a ? "" $ expl
       where expl = "#" <> a
