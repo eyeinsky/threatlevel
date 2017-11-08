@@ -17,14 +17,14 @@ deriving instance Hashable Port
 instance ToPayload BaseURL where
    toPayload (BaseURL proto@ (Proto proto') host port @(Port port')) =
          toPayload proto
-      <> protoSep
+      <> "://"
       <> toPayload host
       <> portPayload
      where
        portPayload
          | proto' == "http" && port' == 80 = ""
          | proto' == "https" && port' == 443 = ""
-         | otherwise = portSep <> toPayload port
+         | otherwise = ":" <> toPayload port
 
 withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
      toPayload host
@@ -33,12 +33,12 @@ withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
     portPayload
       | proto' == "http" && port' == 80 = ""
       | proto' == "https" && port' == 443 = ""
-      | otherwise = portSep <> toPayload port
+      | otherwise = ":" <> toPayload port
 
 instance ToPayload URL where
    toPayload (URL proto authority path params fragment) =
       HTTP.Common.concat
-        [ r proto, protoSep
+        [ r proto, "://"
         , auth, authority^.host.to r, portPayload
         , r path, r params, r fragment]
       where
@@ -47,7 +47,7 @@ instance ToPayload URL where
         portPayload
           | pr == "http" && po == 80 = ""
           | pr == "https" && po == 443 = ""
-          | otherwise = portSep <> toPayload (authority^.port)
+          | otherwise = ":" <> toPayload (authority^.port)
           where
             pr = proto^.un
             po = authority^.port.un
@@ -56,7 +56,7 @@ instance ToPayload Authority where
    toPayload a = HTTP.Common.concat
      [ maybe "" mkAuth $ a^.authentication
      , r $ a^.host
-     , portSep
+     , ":"
      , r $ a^.port
      ]
      where
