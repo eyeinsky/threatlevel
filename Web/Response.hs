@@ -25,12 +25,10 @@ import HTTP.Common (ToPayload(..))
 
 -- * Url path
 
-type UrlPath = URL.URL
+renderURL :: URL -> TL.Text
+renderURL url = toPayload url
 
-renderUrlPath :: UrlPath -> TL.Text
-renderUrlPath url = toPayload url
-
-toTextList :: UrlPath -> [TL.Text]
+toTextList :: URL -> [TL.Text]
 toTextList url = domain : map TL.fromStrict (url^.URL.path.URL.segments)
    where
      domain = toPayload (url^.proto) <> "://" <> toPayload (url^.authority)
@@ -56,8 +54,8 @@ renderedPage = Raw 200 [utf8textHdr "html"]
 text text = Raw 200 [utf8textHdr "plain"] (text^.re LL.utf8)
 js code = JS code
 json a = JSON a
-redirect :: UrlPath -> AnyResponse
-redirect url = redirectRaw $ renderUrlPath url
+redirect :: URL -> AnyResponse
+redirect url = redirectRaw $ renderURL url
 
 redirectRaw :: TL.Text -> AnyResponse
 redirectRaw url = Raw 303 [Hdr.hdr Hdr.Location url] ""

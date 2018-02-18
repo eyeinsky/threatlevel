@@ -11,6 +11,7 @@ import Data.DList as DList
 import HTTP.Common (ToPayload(..))
 
 import qualified URL
+import URL (URL)
 import qualified Web as W
 import Web (Browser)
 import qualified HTTP.Header as Hdr
@@ -26,7 +27,7 @@ import qualified JS
 import DOM
 
 import qualified Web.Response as Re
-import Web.Response (UrlPath, renderUrlPath)
+import Web.Response (renderURL)
 import qualified Network.Wai as Wai
 import qualified Trie as Tr
 
@@ -54,7 +55,7 @@ tellWriter :: MonadWriter [(Url, T r)] m => Url -> T r -> m ()
 tellWriter u m = tell [(u, m)]
 
 data T r where
-  T :: RWST UrlPath (Writer r) State (I Identity r) (I IO r Re.AnyResponse) -> T r
+  T :: RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse) -> T r
 unT (T a) = a
 runT url m = runRWST (unT m) url $ (^.from strict) <$> identifierSource
 
@@ -63,7 +64,7 @@ runT url m = runRWST (unT m) url $ (^.from strict) <$> identifierSource
 eval
   :: ( W.HasBrowser r W.Browser
      )
-  => W.Conf -> W.State -> UrlPath -> r -> T r -> [A r]
+  => W.Conf -> W.State -> URL -> r -> T r -> [A r]
 eval mc js_css_st0 up (r :: r) (m :: T r) = let
     ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w)
       = runIdentity (runI mc r js_css_st0 (runT up m))
@@ -71,17 +72,17 @@ eval mc js_css_st0 up (r :: r) (m :: T r) = let
     self = (up, main, js_css_st1, js_css_w) :: A r
 
     re :: (Url, T r) -> [A r]
-    re (url, m') = eval mc js_css_st1 (up & URL.path %~ (<> URL.Path [url^.from lazy])) r m
+    re (url, m') = eval mc js_css_st1 (up & URL.path <>~ URL.Path [url^.from lazy]) r m
 
   in self : (re =<< subs) :: [A r]
 
 type IIO r = I IO r Re.AnyResponse
-type A r = (UrlPath, IIO r, W.State, W.Writer)
+type A r = (URL, IIO r, W.State, W.Writer)
 
 build
   :: ( W.HasBrowser r W.Browser
      )
-  => W.Conf -> UrlPath -> r -> T r -> [(Path, IIO r, W.State, W.Writer)]
+  => W.Conf -> URL -> r -> T r -> [(Path, IIO r, W.State, W.Writer)]
 build mc domain r m = eval mc def domain r m <&> \a -> a & _1 %~ Re.toTextList
 
 -- * Run
@@ -108,7 +109,7 @@ toHandler
   :: ( W.HasBrowser r W.Browser
      , HasDynPath r Path
      )
-  => W.Conf -> UrlPath -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
+  => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
 toHandler mc domain conf site req = traverse (run mc conf') res
   where
     app = build mc domain conf site
@@ -127,8 +128,8 @@ parseDyn
   -> f (Either TextsError r)
 parseDyn parser = asks (view dynPath) <&> parseTexts parser . Pr.map (view (from lazy))
 
-renderDyn :: Boomerang e [T.Text] () (r :- ()) -> r -> UrlPath -> UrlPath
-renderDyn pp dt url = url & URL.path %~ (<> URL.Path (fromJust a))
+renderDyn :: Boomerang e [T.Text] () (r :- ()) -> r -> URL -> URL
+renderDyn pp dt url = url & URL.path <>~ URL.Path (fromJust a)
   where
     a = unparseTexts pp dt
 
@@ -147,13 +148,13 @@ api m = do
       return (full, top)
 
 xhrPost m = do
-  url :: UrlPath <- api m
-  lift . W.js . fmap JS.Par . JS.func $ \data_ -> xhrJs "post" (JS.ulit $ renderUrlPath $ url) data_
+  url :: URL <- api m
+  lift . W.js . fmap JS.Par . JS.func $ \data_ -> xhrJs "post" (JS.ulit $ renderURL $ url) data_
 
-pin :: (MonadWriter [(Url, T r)] m, MonadReader UrlPath m)
+pin :: (MonadWriter [(Url, T r)] m, MonadReader URL m)
   => Url
-  -> RWST UrlPath (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
-  -> m UrlPath
+  -> RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
+  -> m URL
 pin name m = do
   full <- nextFullWith name
   tellWriter name $ T $ m
@@ -163,7 +164,7 @@ page = api . return . return . Re.page
 
 next = get >>= \(x : xs) -> put xs *> return x
 
-nextFullWith :: MonadReader UrlPath m => Url -> m UrlPath
+nextFullWith :: MonadReader URL m => Url -> m URL
 nextFullWith top = do
   url <- ask
   url & URL.path %~ (<> URL.Path [top^.from lazy]) & return
