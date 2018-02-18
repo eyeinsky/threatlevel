@@ -178,7 +178,7 @@ p1.once(p3)
 -- * Helpers
 
 toHandler'
-  :: (WE.HasDynPath r WE.Path, HasBrowser r Browser)
+  :: (WE.HasDynPath r [Segment], HasBrowser r Browser)
   => Web.Conf -> URL.URL -> r -> WE.T r -> Wai.Request -> IO Raw
 toHandler' mc host conf site req = WE.toHandler mc host conf' site req <&> fromJust ^ toResponse ^ toRaw
   where

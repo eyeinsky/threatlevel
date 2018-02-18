@@ -43,8 +43,6 @@ runI mc r st m = m
   & W.runWebMT mc st
   & flip runReaderT r
 
-type Path = [Segment]
-
 type State = [Segment]
 type Writer r = [(Segment, T r)]
 
@@ -58,35 +56,31 @@ runT url m = runRWST (unT m) url identifierSource
 
 -- * Build
 
-eval
-  :: ( W.HasBrowser r W.Browser
-     )
-  => W.Conf -> W.State -> URL -> r -> T r -> [A r]
-eval mc js_css_st0 up (r :: r) (m :: T r) = let
+type EHandler r = I IO r Re.AnyResponse
+type HandlePoint r = (URL, EHandler r, W.State, W.Writer)
+
+eval :: (W.HasBrowser r W.Browser)
+  => W.Conf -> W.State -> URL -> r -> T r -> [HandlePoint r]
+eval mc js_css_st0 url (r :: r) (m :: T r) = let
     ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w)
-      = runIdentity (runI mc r js_css_st0 (runT up m))
+      = runIdentity (runI mc r js_css_st0 (runT url m))
 
-    self = (up, main, js_css_st1, js_css_w) :: A r
+    self = (url, main, js_css_st1, js_css_w) :: HandlePoint r
 
-    re :: (Segment, T r) -> [A r]
-    re (url, m') = eval mc js_css_st1 (up & URL.segments <>~ [url]) r m
+    re :: (Segment, T r) -> [HandlePoint r]
+    re (segm, m') = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r m
 
-  in self : (re =<< subs) :: [A r]
+  in self : (re =<< subs) :: [HandlePoint r]
 
-type IIO r = I IO r Re.AnyResponse
-type A r = (URL, IIO r, W.State, W.Writer)
-
-build
-  :: ( W.HasBrowser r W.Browser
-     )
-  => W.Conf -> URL -> r -> T r -> [(Path, IIO r, W.State, W.Writer)]
+build :: (W.HasBrowser r W.Browser)
+  => W.Conf -> URL -> r -> T r -> [([Segment], EHandler r, W.State, W.Writer)]
 build mc domain r m = eval mc def domain r m <&> \a -> a & _1 %~ Re.toTextList
 
 -- * Run
 
 run
   :: (Functor f)
-  => W.Conf -> r -> (Path, I f r Re.AnyResponse, W.State, W.Writer) -> f Re.AnyResponse
+  => W.Conf -> r -> ([Segment], I f r Re.AnyResponse, W.State, W.Writer) -> f Re.AnyResponse
 run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
   where
     res = runI mc r js_css_st i_io
@@ -104,7 +98,7 @@ run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
 
 toHandler
   :: ( W.HasBrowser r W.Browser
-     , HasDynPath r Path
+     , HasDynPath r [Segment]
      )
   => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
 toHandler mc domain conf site req = traverse (run mc conf') res
