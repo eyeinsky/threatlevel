@@ -26,11 +26,6 @@ import HTTP.Common (ToPayload(..))
 -- * Url path
 
 type UrlPath = URL.URL
-appendSegment :: UrlPath -> TL.Text -> UrlPath
-appendSegment url segm = appendSegments url (pure segm)
-
-appendSegments :: UrlPath -> [TL.Text] -> UrlPath
-appendSegments url segms = url & path.segments %~ (<> map TL.toStrict segms)
 
 renderUrlPath :: UrlPath -> TL.Text
 renderUrlPath url = toPayload url

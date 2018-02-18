@@ -26,7 +26,7 @@ import qualified JS
 import DOM
 
 import qualified Web.Response as Re
-import Web.Response (UrlPath, renderUrlPath, appendSegment, appendSegments)
+import Web.Response (UrlPath, renderUrlPath)
 import qualified Network.Wai as Wai
 import qualified Trie as Tr
 
@@ -49,8 +49,8 @@ type Urls = [Url]
 
 type State = Urls
 type Writer r = [(Url, T r)]
-getWriter :: Url -> Writer r -> Maybe (T r)
-getWriter p m = lookup p m
+
+tellWriter :: MonadWriter [(Url, T r)] m => Url -> T r -> m ()
 tellWriter u m = tell [(u, m)]
 
 data T r where
@@ -71,7 +71,7 @@ eval mc js_css_st0 up (r :: r) (m :: T r) = let
     self = (up, main, js_css_st1, js_css_w) :: A r
 
     re :: (Url, T r) -> [A r]
-    re (url, m') = eval mc js_css_st1 (appendSegment up url) r m'
+    re (url, m') = eval mc js_css_st1 (up & URL.path %~ (<> URL.Path [url^.from lazy])) r m
 
   in self : (re =<< subs) :: [A r]
 
@@ -128,10 +128,9 @@ parseDyn
 parseDyn parser = asks (view dynPath) <&> parseTexts parser . Pr.map (view (from lazy))
 
 renderDyn :: Boomerang e [T.Text] () (r :- ()) -> r -> UrlPath -> UrlPath
-renderDyn pp dt prefix = appendSegments prefix b
+renderDyn pp dt url = url & URL.path %~ (<> URL.Path (fromJust a))
   where
     a = unparseTexts pp dt
-    b = Pr.map (view $ from strict) $ fromJust a
 
 -- * API
 
@@ -166,8 +165,8 @@ next = get >>= \(x : xs) -> put xs *> return x
 
 nextFullWith :: MonadReader UrlPath m => Url -> m UrlPath
 nextFullWith top = do
-  prefix <- ask
-  appendSegment prefix top & return
+  url <- ask
+  url & URL.path %~ (<> URL.Path [top^.from lazy]) & return
 
 class HasDynPath s a | s -> a where
   dynPath :: Lens' s a
