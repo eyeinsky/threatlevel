@@ -28,10 +28,10 @@ import HTTP.Common (ToPayload(..))
 renderURL :: URL -> TL.Text
 renderURL url = toPayload url
 
-toTextList :: URL -> [TL.Text]
-toTextList url = domain : map TL.fromStrict (url^.URL.path.URL.segments)
+toTextList :: URL -> [Segment]
+toTextList url = domain : url^.URL.segments
    where
-     domain = toPayload (url^.proto) <> "://" <> toPayload (url^.authority)
+     domain = TL.toStrict $ toPayload (url^.proto) <> "://" <> toPayload (url^.authority)
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse

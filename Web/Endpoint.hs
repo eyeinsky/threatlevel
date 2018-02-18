@@ -4,14 +4,14 @@ module Web.Endpoint
   ) where
 
 
-import Pr hiding (Reader, Writer, State)
+import Pr hiding (Reader, Writer, State, (/))
 
 import Control.Monad.State (get, put)
 import Data.DList as DList
 import HTTP.Common (ToPayload(..))
 
 import qualified URL
-import URL (URL)
+import URL (URL, Segment)
 import qualified Web as W
 import Web (Browser)
 import qualified HTTP.Header as Hdr
@@ -43,21 +43,18 @@ runI mc r st m = m
   & W.runWebMT mc st
   & flip runReaderT r
 
-type Url = TL.Text
+type Path = [Segment]
 
-type Path = [Url]
-type Urls = [Url]
+type State = [Segment]
+type Writer r = [(Segment, T r)]
 
-type State = Urls
-type Writer r = [(Url, T r)]
-
-tellWriter :: MonadWriter [(Url, T r)] m => Url -> T r -> m ()
-tellWriter u m = tell [(u, m)]
+(/) :: MonadWriter [(Segment, T r)] m => Segment -> T r -> m ()
+segment / endpoint = tell [(segment, endpoint)]
 
 data T r where
   T :: RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse) -> T r
 unT (T a) = a
-runT url m = runRWST (unT m) url $ (^.from strict) <$> identifierSource
+runT url m = runRWST (unT m) url identifierSource
 
 -- * Build
 
@@ -71,8 +68,8 @@ eval mc js_css_st0 up (r :: r) (m :: T r) = let
 
     self = (up, main, js_css_st1, js_css_w) :: A r
 
-    re :: (Url, T r) -> [A r]
-    re (url, m') = eval mc js_css_st1 (up & URL.path <>~ URL.Path [url^.from lazy]) r m
+    re :: (Segment, T r) -> [A r]
+    re (url, m') = eval mc js_css_st1 (up & URL.segments <>~ [url]) r m
 
   in self : (re =<< subs) :: [A r]
 
@@ -118,56 +115,47 @@ toHandler mc domain conf site req = traverse (run mc conf') res
       Just (p, mv, _) -> (mv, conf & dynPath .~ p)
       _ -> (Nothing, conf)
 
-    path = Wai.pathInfo req <&> (^.from strict)
+    path = Wai.pathInfo req
 
 -- * Dyn path
 
 parseDyn
-  :: (MonadReader s f, HasDynPath s [TL.Text])
-  => Boomerang TextsError [T.Text] () (r :- ())
+  :: (MonadReader s f, HasDynPath s [Segment])
+  => Boomerang TextsError [Segment] () (r :- ())
   -> f (Either TextsError r)
-parseDyn parser = asks (view dynPath) <&> parseTexts parser . Pr.map (view (from lazy))
+parseDyn parser = asks (view dynPath) <&> parseTexts parser
 
-renderDyn :: Boomerang e [T.Text] () (r :- ()) -> r -> URL -> URL
-renderDyn pp dt url = url & URL.path <>~ URL.Path (fromJust a)
-  where
-    a = unparseTexts pp dt
+renderDyn :: Boomerang e [Segment] () (r :- ()) -> r -> URL -> URL
+renderDyn pp dt url = url & URL.segments <>~ fromJust (unparseTexts pp dt)
 
 -- * API
 
+currentUrl :: MonadReader URL m => m URL
 currentUrl = ask
 
-api m = do
-  (full, top) <- next'
-  tellWriter top $ T $ m
-  return full
-  where
-    next' = do
-      top <- next
-      full <- nextFullWith top
-      return (full, top)
+api :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
+  => RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
+  -> m URL
+api m = next >>= flip pin m
 
 xhrPost m = do
   url :: URL <- api m
   lift . W.js . fmap JS.Par . JS.func $ \data_ -> xhrJs "post" (JS.ulit $ renderURL $ url) data_
 
-pin :: (MonadWriter [(Url, T r)] m, MonadReader URL m)
-  => Url
+-- | Add segment with api endpoint and return its full url
+pin :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
+  => Segment
   -> RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
   -> m URL
-pin name m = do
-  full <- nextFullWith name
-  tellWriter name $ T $ m
-  return full
+pin name m = name / T m *> nextFullWith name
 
 page = api . return . return . Re.page
 
+next :: MonadState [Segment] m => m Segment
 next = get >>= \(x : xs) -> put xs *> return x
 
-nextFullWith :: MonadReader URL m => Url -> m URL
-nextFullWith top = do
-  url <- ask
-  url & URL.path %~ (<> URL.Path [top^.from lazy]) & return
+nextFullWith :: MonadReader URL m => Segment -> m URL
+nextFullWith top = ask <&> URL.segments <>~ [top]
 
 class HasDynPath s a | s -> a where
   dynPath :: Lens' s a
