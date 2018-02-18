@@ -7,7 +7,6 @@ module Web.Endpoint
 import Pr hiding (Reader, Writer, State, (/))
 
 import Control.Monad.State (get, put)
-import Data.DList as DList
 import HTTP.Common (ToPayload(..))
 
 import qualified URL
@@ -24,7 +23,7 @@ import Identifiers (identifierSource)
 import Web.Browser (browser)
 import qualified JS.DSL
 import qualified JS
-import DOM
+import DOM hiding (M)
 
 import qualified Web.Response as Re
 import Web.Response (renderURL)
@@ -36,10 +35,10 @@ import Text.Boomerang.TH
 import Text.Boomerang hiding ((.~))
 
 
-type I m r = W.WebT (ReaderT r m)
+type M m r = W.WebT (ReaderT r m)
 
-runI :: W.Conf -> r -> W.State -> I m r a -> m (a, W.State, W.Writer)
-runI mc r st m = m
+runM :: W.Conf -> r -> W.State -> M m r a -> m (a, W.State, W.Writer)
+runM mc r st m = m
   & W.runWebMT mc st
   & flip runReaderT r
 
@@ -50,42 +49,46 @@ type Writer r = [(Segment, T r)]
 segment / endpoint = tell [(segment, endpoint)]
 
 data T r where
-  T :: RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse) -> T r
-unT (T a) = a
-runT url m = runRWST (unT m) url identifierSource
+  T :: RWST URL (Writer r) State (M Identity r) (EHandler r) -> T r
+runT url (T m) = runRWST m url identifierSource
 
 -- * Build
 
-type EHandler r = I IO r Re.AnyResponse
-type HandlePoint r = (URL, EHandler r, W.State, W.Writer)
+type EHandler r = Wai.Request -> M IO r Re.AnyResponse
+type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
 
 eval :: (W.HasBrowser r W.Browser)
   => W.Conf -> W.State -> URL -> r -> T r -> [HandlePoint r]
 eval mc js_css_st0 url (r :: r) (m :: T r) = let
     ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w)
-      = runIdentity (runI mc r js_css_st0 (runT url m))
+      = runIdentity (runM mc r js_css_st0 (runT url m))
 
-    self = (url, main, js_css_st1, js_css_w) :: HandlePoint r
+    self = (url, (main, js_css_st1, js_css_w)) :: HandlePoint r
 
     re :: (Segment, T r) -> [HandlePoint r]
-    re (segm, m') = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r m
+    re (segm, sub) = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r sub
 
   in self : (re =<< subs) :: [HandlePoint r]
 
 build :: (W.HasBrowser r W.Browser)
-  => W.Conf -> URL -> r -> T r -> [([Segment], EHandler r, W.State, W.Writer)]
-build mc domain r m = eval mc def domain r m <&> \a -> a & _1 %~ Re.toTextList
+  => W.Conf -> URL -> r -> T r -> Tr.Trie Segment (EHandler r, W.State, W.Writer)
+build mc domain r m = Tr.fromList list
+  where
+    list = eval mc def domain r m <&> _1 %~ tail . Re.toTextList
 
 -- * Run
 
-run
-  :: (Functor f)
-  => W.Conf -> r -> ([Segment], I f r Re.AnyResponse, W.State, W.Writer) -> f Re.AnyResponse
-run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
+handle
+  :: W.Conf
+  -> r
+  -> Wai.Request
+  -> (EHandler r, W.State, W.Writer)
+  -> IO Re.AnyResponse
+handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
   where
-    res = runI mc r js_css_st i_io
+    res = runM mc r js_css_st (i_io req)
     merge (Re.HtmlDocument doc, st, wr) = Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
-    merge (x, _, _) = x
+    merge (other, _, _) = other
 
     collapse :: W.Writer -> W.Document -> W.Document
     collapse code doc
@@ -97,19 +100,17 @@ run mc r (_, i_io, js_css_st, js_css_wr) = merge <$> res
 -- * To handler
 
 toHandler
-  :: ( W.HasBrowser r W.Browser
-     , HasDynPath r [Segment]
-     )
+  :: forall r. (W.HasBrowser r W.Browser, HasDynPath r [Segment])
   => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
-toHandler mc domain conf site req = traverse (run mc conf') res
+toHandler mc domain conf0 site req = traverse (handle mc runtimeConf req) res
   where
-    app = build mc domain conf site
-    found = Tr.lookupPrefix path $ Tr.fromList $ (\x -> (Pr.tail $ view _1 x, x)) <$> app
-    (res, conf') = case found of
-      Just (p, mv, _) -> (mv, conf & dynPath .~ p)
-      _ -> (Nothing, conf)
+    app = build mc domain conf0 site
+    path = Wai.pathInfo req :: [Segment]
+    res :: Maybe (EHandler r, W.State, W.Writer)
+    (res, runtimeConf) = case Tr.lookupPrefix path app of
+      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf0 & dynPath .~ pathSuffix)
+      _ -> (Nothing, conf0)
 
-    path = Wai.pathInfo req
 
 -- * Dyn path
 
@@ -128,9 +129,17 @@ currentUrl :: MonadReader URL m => m URL
 currentUrl = ask
 
 api :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
-  => RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
+  => RWST URL (Writer r) State (M Identity r) (EHandler r)
   -> m URL
-api m = next >>= flip pin m
+api m = do
+  (full, top) <- next'
+  top / T m
+  return full
+  where
+    next' = do
+      top <- next
+      full <- nextFullWith top
+      return (full, top)
 
 xhrPost m = do
   url :: URL <- api m
@@ -139,11 +148,11 @@ xhrPost m = do
 -- | Add segment with api endpoint and return its full url
 pin :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
   => Segment
-  -> RWST URL (Writer r) State (I Identity r) (I IO r Re.AnyResponse)
+  -> RWST URL (Writer r) State (M Identity r) (EHandler r)
   -> m URL
 pin name m = name / T m *> nextFullWith name
 
-page = api . return . return . Re.page
+page = api . return . (\response _ -> return response) . Re.page
 
 next :: MonadState [Segment] m => m Segment
 next = get >>= \(x : xs) -> put xs *> return x
