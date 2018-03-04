@@ -219,21 +219,29 @@ deriving instance Show Pseudo
 
 -- * Convenience
 
+-- | Conversion from something to Selector
 class SelectorFrom a where selFrom :: a -> Selector
 instance SelectorFrom Selector where
-   selFrom a = a
-instance SelectorFrom SimpleSelector where
-   selFrom a = Simple a
-instance SelectorFrom TagName where
-   selFrom a = selFrom $ SimpleSelector (Just a) Nothing [] []
-instance SelectorFrom [Class] where
-   selFrom a = selFrom $ SimpleSelector Nothing Nothing a []
-instance SelectorFrom Class where
-   selFrom a = selFrom $ SimpleSelector Nothing Nothing [a] []
-instance SelectorFrom Id where
-   selFrom a = selFrom $ SimpleSelector Nothing (Just a) [] []
-instance SelectorFrom Pseudo where
-   selFrom a = selFrom $ SimpleSelector Nothing Nothing [] [a]
+   selFrom = id
+instance {-# OVERLAPPABLE #-} SimpleSelectorFrom a => SelectorFrom a where
+   selFrom a = Simple (ssFrom a)
+
+-- | Conversion from something to SimpleSelector
+class SimpleSelectorFrom a where
+  ssFrom :: a -> SimpleSelector
+instance SimpleSelectorFrom SimpleSelector where
+  ssFrom = id
+instance SimpleSelectorFrom TagName where
+  ssFrom a = SimpleSelector (Just a) Nothing [] []
+instance SimpleSelectorFrom [Class] where
+  ssFrom a = SimpleSelector Nothing Nothing a []
+instance SimpleSelectorFrom Class where
+  ssFrom a = SimpleSelector Nothing Nothing [a] []
+instance SimpleSelectorFrom Id where
+  ssFrom a = SimpleSelector Nothing (Just a) [] []
+instance SimpleSelectorFrom Pseudo where
+  ssFrom a = SimpleSelector Nothing Nothing [] [a]
+
 
 instance IsString Class where
   fromString = Class . fromString

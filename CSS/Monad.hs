@@ -94,10 +94,12 @@ pseudo t m = do
     pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
     pseudo' t s = s & pseudos %~ (Pseudo t:)
 
-combinator :: SOp -> SimpleSelector -> CSSM () -> CSSM ()
-combinator c d m = do
+combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM () -> CSSM ()
+combinator c d m = let
+  ss = ssFrom d
+  in do
   conf <- ask
-  let r = Conf (Combined c (conf^.selector) d) (conf^.browser)
+  let r = Conf (Combined c (conf^.selector) ss) (conf^.browser)
   tellRules' r m
 
 -- | Tell rules and thread state
