@@ -35,7 +35,7 @@ toTextList url = domain : url^.URL.segments
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
-  JS :: JS.Code a -> AnyResponse
+  JS :: JS.Expr a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: Int -> [Hdr.Header] -> BL.ByteString -> AnyResponse
 
