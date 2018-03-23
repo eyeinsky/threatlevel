@@ -35,7 +35,7 @@ toTextList url = domain : url^.URL.segments
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
-  JS :: JS.Expr a -> AnyResponse
+  JS :: JS.Render.Conf -> JS.Expr a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: Int -> [Hdr.Header] -> BL.ByteString -> AnyResponse
 
@@ -44,7 +44,7 @@ data AnyResponse where
 instance ToResponse AnyResponse where
   toResponse ar = case ar of
      HtmlDocument a -> toResponse a
-     JS code -> Response 200 [utf8textHdr "plain"] (render JS.Render.Minify code^.re LL.utf8)
+     JS conf code -> Response 200 [utf8textHdr "plain"] (render conf code^.re LL.utf8)
      JSON a -> Response 200 [jh] (Aeson.encode a)
      Raw a h b -> Response a h b
     where jh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
@@ -52,7 +52,7 @@ instance ToResponse AnyResponse where
 page html = HtmlDocument $ HTML.docBody $ html
 renderedPage = Raw 200 [utf8textHdr "html"]
 text text = Raw 200 [utf8textHdr "plain"] (text^.re LL.utf8)
-js code = JS code
+js conf code = JS conf code
 json a = JSON a
 redirect :: URL -> AnyResponse
 redirect url = redirectRaw $ renderURL url
