@@ -58,3 +58,11 @@ og name value = property ("og:" <> name) value
 
 docBody :: Html -> Document
 docBody = Document (return ())
+
+-- | Additional shorthands
+
+checkbox :: Html
+checkbox = input ! type_ "checkbox" $ pure ()
+
+placeholder :: TL.Text -> Attribute
+placeholder = Custom "placeholder"
