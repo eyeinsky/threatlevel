@@ -10,6 +10,7 @@ import Control.Monad.Writer (execWriter)
 import Web.Browser
 import JS
 import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
+import qualified JS.Render
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
@@ -191,18 +192,19 @@ xhrRaw meth uri data_ callback = do
   bare (call (xhr !. "open") [Cast meth, uri, ulit True])
   bare $ call1 (xhr !. "send") data_
 
-xhrJs :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
-xhrJs meth uri data_ callback = do
+xhrJs :: Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
+xhrJs meth uri data_ args = do
+  rc :: JS.Render.Conf <- ask <&> (^.renderConf)
   wrap <- newf $ \(resp :: Expr ()) -> do
-    let text = responseText resp
-    bare $ call1 (ex "eval") text
-    ifonly (Cast callback) $ bare $ call0 callback
+    let funcText = responseText resp
+        argsText = ulit $ runReader (JS.Render.unargs args) rc
+    bare $ call1 (ex "eval") $ funcText + argsText
   xhrRaw meth uri data_ wrap
 
 responseText resp = resp !. "target" !. "responseText"
 
-xhrGet uri callback = xhrJs "GET" uri Undefined callback
-xhrPost uri data_ callback = xhrJs "GET" uri data_ callback
+xhrGet uri args = xhrJs "GET" uri Undefined args
+xhrPost uri data_ args = xhrJs "GET" uri data_ args
 
 -- ** DOM/Event
 
