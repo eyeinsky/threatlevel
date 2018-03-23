@@ -131,15 +131,7 @@ currentUrl = ask
 api :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
   => RWST URL (Writer r) State (M Identity r) (EHandler r)
   -> m URL
-api m = do
-  (full, top) <- next'
-  top / T m
-  return full
-  where
-    next' = do
-      top <- next
-      full <- nextFullWith top
-      return (full, top)
+api m = next >>= flip pin m
 
 xhrPost' m = do
   url :: URL <- api m
