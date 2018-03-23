@@ -26,6 +26,7 @@ data MouseEvent
    | MouseUp
    | MouseOver
    | MouseMove
+   | MouseEnter
    | MouseOut
    | DragStart
    | Drag
