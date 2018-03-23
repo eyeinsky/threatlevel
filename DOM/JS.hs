@@ -201,6 +201,8 @@ xhrJs meth uri data_ callback = do
 
 responseText resp = resp !. "target" !. "responseText"
 
+xhrGet uri callback = xhrJs "GET" uri Undefined callback
+xhrPost uri data_ callback = xhrJs "GET" uri data_ callback
 
 -- ** DOM/Event
 
@@ -226,12 +228,12 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
 preventDefault :: Event e => Expr e -> Expr ()
 preventDefault e = call0 (e !. "preventDefault")
 
-mkEventListener :: Event e => TL.Text -> Expr Tag -> e -> Expr b -> Expr c
-mkEventListener a el et h = call (el !. a) [etStr, h]
+mkEventListener :: Event e => TL.Text -> Expr Tag -> e -> [Expr b] -> Expr c
+mkEventListener a el et li = call (el !. a) (etStr : li)
   where etStr = ulit $ eventString et
 
-addEventListener = mkEventListener "addEventListener"
-removeEventListener = mkEventListener "removeEventListener"
+addEventListener el et handler = mkEventListener "addEventListener" el et [handler]
+removeEventListener el et handler = mkEventListener "removeEventListener" el et handler
 
 alert :: Expr a -> Expr b
 alert x = call1 (ex "alert") x

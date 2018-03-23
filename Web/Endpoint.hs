@@ -141,9 +141,9 @@ api m = do
       full <- nextFullWith top
       return (full, top)
 
-xhrPost m = do
+xhrPost' m = do
   url :: URL <- api m
-  lift . W.js . fmap JS.Par . JS.func $ \data_ -> xhrJs "post" (JS.ulit $ renderURL $ url) data_
+  lift . W.js . fmap JS.Par . JS.func $ \data_ -> xhrPost (JS.ulit $ renderURL $ url) data_
 
 -- | Add segment with api endpoint and return its full url
 pin :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
