@@ -57,6 +57,12 @@ json a = JSON a
 redirect :: URL -> AnyResponse
 redirect url = redirectRaw $ renderURL url
 
+-- file' :: MonadIO m FilePath -> IO AnyResponse
+file' path = do
+  bytes <- liftIO $ BL.readFile path
+  let ct = path^.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
+  return $ Raw 200 [Hdr.hdr Hdr.ContentType $ ct] bytes
+
 redirectRaw :: TL.Text -> AnyResponse
 redirectRaw url = Raw 303 [Hdr.hdr Hdr.Location url] ""
 
