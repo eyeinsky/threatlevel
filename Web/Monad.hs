@@ -93,6 +93,7 @@ class Monad m => MonadWeb m where
    cssId :: CSSM.M () -> m Id
    nextId :: m TL.Text
    getState :: m State
+   getConf :: m Conf
 
 cssF mk m = WebT $ do
   state0 <- gets (^.cssState)
@@ -126,6 +127,8 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssId = cssF (Id . Static)
    nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)
    getState = WebT get
+   getConf = WebT ask
+
 
 -- ** Instances
 
@@ -160,6 +163,7 @@ instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
   cssId = lift . cssId
   nextId = lift $ nextId
   getState = lift getState
+  getConf = lift getConf
 
 instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   js = lift . js
@@ -168,6 +172,7 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   cssId = lift . cssId
   nextId = lift $ nextId
   getState = lift getState
+  getConf = lift getConf
 
 -- ** Helpers
 
