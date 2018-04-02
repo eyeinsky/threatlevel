@@ -39,6 +39,32 @@ requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 
 -- * Finding elements
 
+class JSSelector a where
+  jsSelectorFrom :: a -> Expr JS.String
+instance JSSelector (Expr JS.String) where
+  jsSelectorFrom a = a
+instance {-# OVERLAPPABLE #-} CSS.SelectorFrom a => JSSelector a where
+  jsSelectorFrom s = ulit $ render' $ CSS.selFrom s
+
+matches :: JSSelector a => a -> Expr D.Tag -> Expr JS.Bool
+matches s e = call1 (e !. "matches") (jsSelectorFrom s)
+
+querySelector :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
+querySelector s e = call1 (e !. "querySelector") (jsSelectorFrom s)
+
+querySelectorAll :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
+querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
+
+queryParents :: JSSelector a => a -> Expr D.Tag -> Expr c
+queryParents s e = let
+  str = jsSelectorFrom s
+  in flip call [Cast str, e] $ funcPure $ \(selector :: Expr JS.String) elem -> do
+    e' <- new elem
+    r <- new Null
+    JS.for (e' !. "matches") $ do
+      ifelse (matches selector e') (do r .= e'; bare $ ex "break") (e' .= DOM.JS.parentNode e')
+    retrn e'
+
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
 instance FindBy Id where
@@ -65,10 +91,6 @@ valueExpr v = case v of
 
 docCall' f a = call1 (document !. f) a
 docCall f a = docCall' f (ulit a)
-
--- |
-findUnder :: FindBy a => Expr Tag -> a -> Expr Tag
-findUnder e a = todo
 
 --
 
