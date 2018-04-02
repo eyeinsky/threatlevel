@@ -271,7 +271,7 @@ instance RenderJSM (HTML Both) where
         Custom _ v -> e !. k .= ulit v
 
 createHtml :: HTML Both -> Expr Tag
-createHtml html = FuncDef [] . eval $ renderJSM html >>= retrn
+createHtml html = AnonFunc Nothing [] . eval $ renderJSM html >>= retrn
 
 createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls' m = do
@@ -282,7 +282,7 @@ createHtmls' m = do
   return f
 
 createHtmls :: Html -> Expr Tag
-createHtmls html = FuncDef [] . eval $ createHtmls' html >>= retrn
+createHtmls html = AnonFunc Nothing [] . eval $ createHtmls' html >>= retrn
 
 domExpr = createHtmls
 
@@ -333,4 +333,4 @@ onload = window !. "onload"
 putOnload :: Code a -> Code b
 putOnload code = [BareExpr $ onload =: func]
   where
-    func = FuncDef [] code :: Expr b
+    func = AnonFunc Nothing [] code :: Expr b
