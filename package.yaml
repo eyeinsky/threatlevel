@@ -38,6 +38,7 @@ default-extensions:
 - TypeInType
 - TypeOperators
 - TypeSynonymInstances
+- UndecidableInstances
 dependencies:
 - hs-minu
 - web-js
