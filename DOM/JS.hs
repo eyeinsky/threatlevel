@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 module DOM.JS where
 
 import Pr hiding ((.=), Bool, id)

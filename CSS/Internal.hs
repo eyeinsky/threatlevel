@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-missing-methods #-}
+{-# LANGUAGE UndecidableInstances #-}
 module CSS.Internal where
 
 import Pr
