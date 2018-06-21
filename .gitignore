@@ -1,3 +1,4 @@
 .vimrc
 .ghci
 *.cabal
+default.nix
