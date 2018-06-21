@@ -124,9 +124,3 @@ executables:
     - text
     - mtl
     - rapid
-tests:
-  test:
-    main: test.hs
-    source-dirs: tests
-    dependencies:
-    - web
