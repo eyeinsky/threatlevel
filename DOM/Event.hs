@@ -43,7 +43,7 @@ data KeyboardEvent
 
 -- HTML frame/object
 data HTMLFrameObjectEvent
-   = HFE_Load
+   = Load
    | Unload
    | Abort
    | Error
@@ -82,7 +82,7 @@ data Progress
    | Progress
    | Progress_Error
    | Progress_Abort
-   | Load
+   | Load_
    | LoadEnd
 
 data Touch
