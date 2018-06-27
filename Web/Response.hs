@@ -44,10 +44,9 @@ data AnyResponse where
 instance ToResponse AnyResponse where
   toResponse ar = case ar of
      HtmlDocument a -> toResponse a
-     JS conf code -> Response 200 [utf8textHdr "plain"] (render conf code^.re LL.utf8)
-     JSON a -> Response 200 [jh] (Aeson.encode a)
+     JS conf code -> Response 200 [javascript] (render conf code^.re LL.utf8)
+     JSON a -> Response 200 [HTTP.Response.json] (Aeson.encode a)
      Raw a h b -> Response a h b
-    where jh = Hdr.Header (Hdr.ContentType, "application/json; charset=UTF-8")
 
 page html = HtmlDocument $ HTML.docBody $ html
 renderedPage = Raw 200 [utf8textHdr "html"]
