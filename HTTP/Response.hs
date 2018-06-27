@@ -80,7 +80,10 @@ instance ToRaw Response where
 
 -- * Helpers
 
-utf8textHdr what = Hdr.Header (Hdr.ContentType, "text/"<>what<>"; charset=UTF-8")
+contentType val = Hdr.Header (Hdr.ContentType, val)
+javascript = contentType "application/javascript; charset=utf-8"
+json = contentType "application/json; charset=UTF-8"
+utf8textHdr what = contentType ("text/"<>what<>"; charset=UTF-8")
 
 waiAddHeaders hs r = case r of
    WaiI.ResponseBuilder st hdrs builder -> WaiI.ResponseBuilder st (hs <> hdrs) builder
