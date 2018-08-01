@@ -294,7 +294,7 @@ instance RenderJSM (HTML Both) where
         Custom _ v -> e !. k .= ulit v
 
 createHtml :: HTML Both -> Expr Tag
-createHtml html = AnonFunc Nothing [] . eval $ renderJSM html >>= retrn
+createHtml html = AnonFunc Nothing [] . snd . fst . runM def def $ renderJSM html >>= retrn
 
 createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls' m = do
@@ -305,7 +305,7 @@ createHtmls' m = do
   return f
 
 createHtmls :: Html -> Expr Tag
-createHtmls html = AnonFunc Nothing [] . eval $ createHtmls' html >>= retrn
+createHtmls html = AnonFunc Nothing [] . snd . fst . runM def def $ createHtmls' html >>= retrn
 
 domExpr = createHtmls
 

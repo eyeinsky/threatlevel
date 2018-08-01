@@ -40,11 +40,11 @@ point = do
         i .+= ulit 1
     let ter = ternary (call1 (ex "typeof") fn .=== ulit "function")
     send <- new' "send" =<< (ter <$> (do
-      func $ \ev -> do
+      func AnonFunc $ \ev -> do
         bare $ call1 fn ev
         consoleLog [id, ulit "executed"]
         bare $ call1 send0 ev
-      ) <*> (func $ \ev -> bare $ call1 send0 ev))
+      ) <*> (func AnonFunc $ \ev -> bare $ call1 send0 ev))
 
     retrn $ ulit
       [ ("add", Cast add)
