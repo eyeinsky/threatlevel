@@ -9,6 +9,8 @@ module HTML
 import Control.Monad.Writer
 import Data.Text.Lazy.Lens (utf8)
 
+import qualified Network.HTTP.Types as WT
+
 import Pr hiding (head)
 import XML
 import Render hiding (Conf)
@@ -19,7 +21,7 @@ import HTTP.Response (ToResponse(..), Response(..), utf8textHdr)
 -- * Response
 
 instance ToResponse Document where
-  toResponse (Document h b) = Response 200 [utf8textHdr "html"] $ tl^.re utf8
+  toResponse (Document h b) = Response WT.status200 [utf8textHdr "html"] $ tl^.re utf8
     where
       html' = html (head h >> b)
       tl = "<!DOCTYPE html>" <> render () html'

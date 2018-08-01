@@ -50,9 +50,9 @@ class ToRaw a where
 instance ToRaw Raw where
   toRaw = id
 
-httpResponse :: Int -> [Hdr.Header] -> BL.ByteString -> Wai.Response
-httpResponse code headers body
-  = responseBuilder (waiCode code) headers' (BBB.fromLazyByteString body)
+-- httpResponse :: Int -> [Hdr.Header] -> BL.ByteString -> Wai.Response
+httpResponse status headers body
+  = responseBuilder status headers' (BBB.fromLazyByteString body)
   where
     headers' = map Hdr.cc headers
 
@@ -66,7 +66,7 @@ waiCode code = case code of
 
 declareFields [d|
   data Response = Response
-    { responseCode :: Int
+    { responseCode :: WT.Status
     , responseHeaders :: [H.Header]
     , responseBody :: BL.ByteString
     }
