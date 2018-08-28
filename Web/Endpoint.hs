@@ -34,6 +34,8 @@ import Text.Boomerang.Texts
 import Text.Boomerang.TH
 import Text.Boomerang hiding ((.~))
 
+import qualified HTTP.Response as HR
+
 
 type M m r = W.WebT (ReaderT r m)
 
@@ -155,3 +157,18 @@ nextFullWith top = ask <&> URL.segments <>~ [top]
 class HasDynPath s a | s -> a where
   dynPath :: Lens' s a
   {-# MINIMAL dynPath #-}
+
+-- * Helpers
+
+type Confy r = (HasDynPath r [URL.Segment], W.HasBrowser r W.Browser)
+
+wrap
+  :: (Confy r, Default r)
+  => URL.URL -> T r -> Wai.Request -> (HR.Raw -> IO b) -> IO b
+wrap url site req respond = ioResp >>= respond
+  where
+    hdrs = Wai.requestHeaders req
+    browser' = maybe W.Unknown W.parseBrowser $ lookup "User-Agent" hdrs
+    runConf = def & W.browser .~ browser'
+    ioResp :: IO HR.Raw
+    ioResp = toHandler def url runConf site req <&> fromJust ^ HR.toResponse ^ HR.toRaw

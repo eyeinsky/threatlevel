@@ -4,6 +4,7 @@ module CSS
   , module DOM.Core
   , resetCSS
   , setBoxSizing
+  , centerContent
   , keyframes, keyframes', keyframe, browser, selector
   , media
   , DeclM, renderDecls
@@ -39,3 +40,10 @@ setBoxSizing b = run b (TagName "html") (boxSizing "border-box") <> run b anyTag
   where
     forAny = inherit >> before inherit >> after inherit
     inherit = boxSizing "inherit"
+
+centerContent :: CSSM ()
+centerContent = do
+  display "flex"
+  flexFlow "column nowrap"
+  justifyContent "center"
+  alignItems "center"

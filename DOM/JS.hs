@@ -38,6 +38,8 @@ setAttribute k v e = call (e !. "setAttribute") [k, v]
 requestAnimationFrame :: Expr a -> Expr b
 requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 
+documentWrite what = call1 (document !. "write") what
+
 -- * Finding elements
 
 class JSSelector a where

@@ -18,6 +18,9 @@ instance Event HTMLFrameObjectEvent
 instance Event HTMLFormEvent
 instance Event Progress
 instance Event Touch
+instance Event WorkerEvent
+instance Event ServiceWorkerEvent
+instance Event NetworkEvent
 
 data MouseEvent
    = Click
@@ -93,9 +96,27 @@ data Touch
    | TouchLeave
    | TouchCansel
 
+data WorkerEvent
+  = Message
+
+data ServiceWorkerEvent
+  = Install
+  | Activate
+  | Fetch
+  | Push
+  | NotificationClick
+  | Sync
+
+data NetworkEvent
+  = Offline
+  | Online
+
 deriving instance Show KeyboardEvent
 deriving instance Show MouseEvent
 deriving instance Show HTMLFrameObjectEvent
 deriving instance Show HTMLFormEvent
 deriving instance Show Progress
 deriving instance Show Touch
+deriving instance Show WorkerEvent
+deriving instance Show ServiceWorkerEvent
+deriving instance Show NetworkEvent

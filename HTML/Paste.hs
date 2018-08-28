@@ -142,4 +142,7 @@ Tag 	Description
 <source> 	Defines alternative media resources for the media elements like <audio> or <video>.
 <time> 	Represents a time and/or date.
 <video> 	Embeds video content in an HTML document.
+
+-- manual additions
+<template>
 |]

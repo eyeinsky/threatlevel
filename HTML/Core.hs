@@ -18,6 +18,7 @@ import DOM.Event
 import XML
 import TH
 import HTML.Paste
+import URL
 
 data Html5
 type HTML c = XML Html5 AttributeSet c
@@ -32,7 +33,7 @@ declareFields [d|
 
 -- * Attributes
 
-concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content" ]
+concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content", "action", "method", "crossorigin", "integrity", "src", "scope"]
 concat <$> mapM (mk [t|Html|]) tags
 
 --
@@ -66,3 +67,9 @@ checkbox = input ! type_ "checkbox" $ pure ()
 
 placeholder :: TL.Text -> Attribute
 placeholder = Custom "placeholder"
+
+metaNC :: TL.Text -> TL.Text -> Html
+metaNC name content = meta
+  ! Custom "name" name
+  ! Custom "content" content
+  $ pure ()

@@ -29,6 +29,8 @@ import HTTP.Common (ToPayload(..))
 renderURL :: URL -> TL.Text
 renderURL url = toPayload url
 
+href' url = HTML.href (renderURL url)
+
 toTextList :: URL -> [Segment]
 toTextList url = domain : url^.URL.segments
    where
@@ -49,6 +51,7 @@ instance ToResponse AnyResponse where
      JSON a -> Response (toEnum 200) [HTTP.Response.json] (Aeson.encode a)
      Raw a h b -> Response a h b
 
+htmlDoc head body = HtmlDocument (HTML.Document head body)
 page html = HtmlDocument $ HTML.docBody $ html
 renderedPage = Raw (toEnum 200) [utf8textHdr "html"]
 text text = Raw (toEnum 200) [utf8textHdr "plain"] (text^.re LL.utf8)
@@ -56,6 +59,8 @@ js conf code = JS conf code
 json a = JSON a
 redirect :: URL -> AnyResponse
 redirect url = redirectRaw $ renderURL url
+error :: WT.Status -> BL.ByteString -> AnyResponse
+error code message = Raw code [Hdr.hdr Hdr.ContentType "text/plain"] message
 
 file' :: MonadIO m => FilePath -> m AnyResponse
 file' path = do
