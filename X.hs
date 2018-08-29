@@ -1,11 +1,36 @@
-module X where
+module X
+  ( module X
+  , module Export
+  ) where
+
+import HTML as Export hiding (
+  -- redefined
+  href,
+  -- used in CSS
+  em, font, content, Value,
+  )
+import CSS as Export hiding (
+  -- generic
+  filter, all, transform
+  )
+import Web.Monad as Export -- hiding (href, em, font, content, Value, all, transform, filter)
+
+import qualified Data.Text as TS
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Lens as LL
+
+import qualified HTTP.Header as Hdr
+import qualified HTTP.Response as HR
 
 import Prelude2
 import Data.Default
 import Render
 import JS
-import HTML
+
+import qualified URL
+import qualified HTML
 import qualified DOM
+import qualified Web.Response as WR
 
 
 -- * DOM.Event
