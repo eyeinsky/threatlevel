@@ -19,10 +19,14 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as LL
 
+import Web.Cookie (parseCookiesText)
+import Network.Wai as Wai
+import qualified Network.HTTP.Types as Wai
+
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 
-import Prelude2
+import Prelude2 as P
 import Data.Default
 import Render
 import JS
@@ -63,3 +67,10 @@ setCookie k v = withHeaders (setCookie (TL.fromStrict v))
   where
     setCookie :: TL.Text -> [Hdr.Header] -> [Hdr.Header]
     setCookie val = (Hdr.cookie' (TL.fromStrict k) val Nothing (Just []) Nothing :)
+
+hasCookie :: TS.Text -> TS.Text -> Wai.Request -> P.Bool
+hasCookie k v req = req
+  & Wai.requestHeaders
+  ^ lookup Wai.hCookie
+  ^ fmap parseCookiesText
+  ^ maybe False (lookup k ^ maybe False (v ==))
