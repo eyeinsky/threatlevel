@@ -69,6 +69,7 @@ library:
   - XML.Core
   - XML.Render
   - X
+  - X.DOM
   other-modules:
   - Pr
   - TH
