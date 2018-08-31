@@ -229,7 +229,7 @@ xhrJs meth uri data_ args = do
 responseText resp = resp !. "target" !. "responseText"
 
 xhrGet uri args = xhrJs "GET" uri Undefined args
-xhrPost uri data_ args = xhrJs "GET" uri data_ args
+xhrPost uri data_ args = xhrJs "POST" uri data_ args
 
 -- ** DOM/Event
 
