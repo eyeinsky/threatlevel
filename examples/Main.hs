@@ -22,7 +22,7 @@ import Warp_Helpers as WH
 import URL.ToPayload
 import HTTP.Response
 import qualified Web.Response as Re
-import Web.Endpoint as WE
+import Web.Endpoint as WE hiding (M)
 
 import JS --  (M, Expr, Arguments)
 import qualified JS
@@ -180,7 +180,7 @@ p1.once(p3)
 toHandler'
   :: (WE.HasDynPath r [Segment], HasBrowser r Browser)
   => Web.Conf -> URL.URL -> r -> WE.T r -> Wai.Request -> IO Raw
-toHandler' mc host conf site req = WE.toHandler mc host conf' site req <&> fromJust ^ toResponse ^ toRaw
+toHandler' mc host conf site req = WE.toHandler mc host conf' site req <&> fromJust ^ toRaw
   where
     hdrs = Wai.requestHeaders req
     browser' = maybe Unknown parseBrowser $ lookup "User-Agent" hdrs
@@ -218,7 +218,7 @@ main = runServer $ Server Nothing [("name", endpointHandler)] [("name", auth, 80
     simpleHandler :: Authority -> IO Handler
     simpleHandler _ = do
       -- init & binds
-      return $ \req -> return $ toRaw $ toResponse $ Re.page $ do
+      return $ \req -> return $ toRaw $ Re.page $ do
         p "paragraph"
 
     endpointHandler :: Authority -> IO Handler

@@ -72,9 +72,6 @@ declareFields [d|
     }
   |]
 
-class ToResponse a where
-  toResponse :: a -> Response
-
 instance ToRaw Response where
   toRaw (Response status headers content) = httpResponse status headers content
 

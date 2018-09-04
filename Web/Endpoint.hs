@@ -56,7 +56,7 @@ runT url (T m) = runRWST m url identifierSource
 
 -- * Build
 
-type EHandler r = Wai.Request -> M IO r Re.AnyResponse
+type EHandler r = Wai.Request -> M IO r Re.Response
 type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
 
 eval :: (W.HasBrowser r W.Browser)
@@ -85,11 +85,11 @@ handle
   -> r
   -> Wai.Request
   -> (EHandler r, W.State, W.Writer)
-  -> IO Re.AnyResponse
+  -> IO Re.Response
 handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
   where
     res = runM mc r js_css_st (i_io req)
-    merge (Re.HtmlDocument doc, st, wr) = Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
+    merge (Re.Response s h (Re.HtmlDocument doc), st, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
     merge (other, _, _) = other
 
     collapse :: W.Writer -> W.Document -> W.Document
@@ -103,7 +103,7 @@ handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
 
 toHandler
   :: forall r. (W.HasBrowser r W.Browser, HasDynPath r [Segment])
-  => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.AnyResponse)
+  => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.Response)
 toHandler mc domain conf0 site req = traverse (handle mc runtimeConf req) res
   where
     app = build mc domain conf0 site
@@ -171,4 +171,4 @@ wrap url site req respond = ioResp >>= respond
     browser' = maybe W.Unknown W.parseBrowser $ lookup "User-Agent" hdrs
     runConf = def & W.browser .~ browser'
     ioResp :: IO HR.Raw
-    ioResp = toHandler def url runConf site req <&> fromJust ^ HR.toResponse ^ HR.toRaw
+    ioResp = toHandler def url runConf site req <&> fromJust ^ HR.toRaw

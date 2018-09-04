@@ -16,7 +16,7 @@ import qualified Data.Text.Lazy.Lens as LL
 
 
 import qualified HTTP.Header as Hdr
-import HTTP.Response hiding (redirect, JSON)
+import HTTP.Response hiding (redirect, JSON, Response)
 import qualified JS
 import qualified JS.Render
 import qualified HTML
@@ -40,39 +40,71 @@ data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
   JS :: JS.Render.Conf -> JS.Code a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
-  Raw :: WT.Status -> [Hdr.Header] -> BL.ByteString -> AnyResponse
+  Raw :: BL.ByteString -> AnyResponse
 
--- inlineFile ct = return $ R
+declareFields [d|
+  data Response = Response
+    { response'Code :: WT.Status
+    , response'Headers :: [Hdr.Header]
+    , response'Body :: AnyResponse
+    }
+  |]
 
-instance ToResponse AnyResponse where
-  toResponse ar = case ar of
-     HtmlDocument a -> toResponse a
-     JS conf code -> Response (toEnum 200) [javascript] (render conf code^.re LL.utf8)
-     JSON a -> Response (toEnum 200) [HTTP.Response.json] (Aeson.encode a)
-     Raw a h b -> Response a h b
+instance ToRaw Response where
+  toRaw r'@ (Response status origHeaders anyResponse)
+    = httpResponse status (origHeaders <> headers) bl
+    where
+      (headers, bl) = case anyResponse of
+        HtmlDocument (HTML.Document h b) -> ([utf8textHdr "html"], tl^.re utf8)
+          where
+            html' = HTML.html (HTML.head h >> b)
+            tl = "<!DOCTYPE html>" <> render () html'
+        JS conf code -> ([javascript], render conf code^.re LL.utf8)
+        JSON a -> ([HTTP.Response.json], Aeson.encode a)
+        Raw b -> ([], b)
 
-htmlDoc head body = HtmlDocument (HTML.Document head body)
-page html = HtmlDocument $ HTML.docBody $ html
-renderedPage = Raw (toEnum 200) [utf8textHdr "html"]
-text text = Raw (toEnum 200) [utf8textHdr "plain"] (text^.re LL.utf8)
-js conf code = JS conf code
-json a = JSON a
-redirect :: URL -> AnyResponse
+-- * Helpers
+
+todoF = Response (toEnum 200) []
+
+htmlDoc head body = todoF $ HtmlDocument (HTML.Document head body)
+page html = todoF $ HtmlDocument $ HTML.docBody $ html
+
+renderedPage = todoF . Raw
+text text = todoF $ Raw (text^.re LL.utf8)
+js conf code = todoF $ JS conf code
+json a = todoF $ JSON a
+
+error :: WT.Status -> TL.Text -> Response
+error code message = rawText code [Hdr.hdr Hdr.ContentType "text/plain"] message
+
+redirect :: URL -> Response
 redirect url = redirectRaw $ renderURL url
-error :: WT.Status -> BL.ByteString -> AnyResponse
-error code message = Raw code [Hdr.hdr Hdr.ContentType "text/plain"] message
 
-file' :: MonadIO m => FilePath -> m AnyResponse
+redirectRaw :: TL.Text -> Response
+redirectRaw url = rawText (toEnum 303) [Hdr.hdr Hdr.Location url] ""
+
+-- ** Raw
+
+rawBl :: WT.Status -> [Hdr.Header] -> BL.ByteString -> Response
+rawBl status headers bl = Response status headers $ Raw bl
+
+rawText :: WT.Status -> [Hdr.Header] -> Text -> Response
+rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
+
+raw :: Text -> Text -> Response
+raw headers text = Response (toEnum 200) [Hdr.hdr Hdr.ContentType headers] $ Raw (text^.re LL.utf8)
+
+-- ** File
+
+file' :: MonadIO m => FilePath -> m Response
 file' path = do
   bytes <- liftIO $ BL.readFile path
   let ct = path^.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
-  return $ Raw (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
-
-redirectRaw :: TL.Text -> AnyResponse
-redirectRaw url = Raw (toEnum 303) [Hdr.hdr Hdr.Location url] ""
+  return $ rawBl (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
 
 file :: TL.Text -> ExpQ
 file path = let
     pathS = path^.from packed :: FilePath
     ct = path^.from lazy.to Mime.defaultMimeLookup.LS.utf8.from packed & stringE
-  in [| Raw 200 [Hdr.hdr Hdr.ContentType $ct] ($(embedFile pathS)^.from strict) |]
+  in [| rawBl 200 [Hdr.hdr Hdr.ContentType $ct] ($(embedFile pathS)^.from strict) |]

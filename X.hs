@@ -56,13 +56,13 @@ href url = HTML.href (WR.renderURL url)
 
 -- todo: make this a lens for headers on AnyResponse
 withHeaders f req = case req of
-  WR.Raw s h b -> WR.Raw s (f  h) b
+  WR.Response s h (WR.Raw bl) -> WR.Response s (f h) $ WR.Raw bl
   _ -> req
 
-deleteCookie :: TS.Text -> WR.AnyResponse -> WR.AnyResponse
+deleteCookie :: TS.Text -> WR.Response -> WR.Response
 deleteCookie key = withHeaders (Hdr.delC (TL.fromStrict key) :)
 
-setCookie :: TS.Text -> TS.Text -> WR.AnyResponse -> WR.AnyResponse
+setCookie :: TS.Text -> TS.Text -> WR.Response -> WR.Response
 setCookie k v = withHeaders (setCookie (TL.fromStrict v))
   where
     setCookie :: TL.Text -> [Hdr.Header] -> [Hdr.Header]
