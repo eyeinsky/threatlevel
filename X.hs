@@ -22,6 +22,9 @@ import qualified Data.Text.Lazy.Lens as LL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 
+import Control.Monad.IO.Class
+import Control.Monad.Reader
+
 import Web.Cookie (parseCookiesText)
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
@@ -108,3 +111,23 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
       "css" -> includeCss url
       "js" -> includeJs url
       _ -> pure ()
+
+-- | Serve the subtree at fp from disk. The url is generated, the rest
+-- needs to match file's path in the. TODO: resolve ".." in path and
+-- error out if path goes outside of the served subtree. And check the
+-- standard of if .. is even allowed in url paths.
+staticDiskSubtree notFound (fp :: FilePath) = do
+  return $ \req -> do
+    e <- asks (view WE.dynPath) <&> sanitizePath
+    liftIO $ print e
+    e & either
+      (\err -> do
+          liftIO $ print err
+          return notFound
+      )
+      (\subPath -> WR.diskFile (fp <> "/" <> subPath))
+  where
+    sanitizePath :: [TS.Text] -> Either P.String P.String
+    sanitizePath parts = if any (== "..") parts
+      then Left "Not allowed to go up"
+      else Right (TS.unpack $ TS.intercalate "/" parts)
