@@ -172,3 +172,6 @@ wrap url site req respond = ioResp >>= respond
     runConf = def & W.browser .~ browser'
     ioResp :: IO HR.Raw
     ioResp = toHandler def url runConf site req <&> fromJust ^ HR.toRaw
+
+staticResponse :: (Monad m1, Monad m2) => a -> m1 (p -> m2 a)
+staticResponse response = return $ \req -> return response

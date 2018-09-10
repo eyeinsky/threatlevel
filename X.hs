@@ -17,11 +17,15 @@ import Web.Monad as Export -- hiding (href, em, font, content, Value, all, trans
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text.Lazy.Lens as LL
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
 
 import Web.Cookie (parseCookiesText)
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
+import qualified Network.Mime as Mime
 
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
@@ -35,6 +39,7 @@ import qualified URL
 import qualified HTML
 import qualified DOM
 import qualified Web.Response as WR
+import qualified Web.Endpoint as WE
 
 
 -- * DOM.Event
@@ -74,3 +79,32 @@ hasCookie k v req = req
   ^ lookup Wai.hCookie
   ^ fmap parseCookiesText
   ^ maybe False (lookup k ^ maybe False (v ==))
+
+-- * HTML
+
+includeCss :: URL.URL -> Html
+includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
+
+includeJs :: URL.URL -> Html
+includeJs url = script ! src (WE.renderURL url) $ pure ()
+
+-- * Serve static files as if in folder paths
+
+-- | Serve source-embedded files by their paths. Note that for dev
+-- purposes the re-embedding of files might take too much time.
+statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
+  mime = path^.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
+  headers = [HR.contentType mime]
+  response = WR.rawBl (toEnum 200) headers (bs^.from strict)
+  path' = TS.pack path
+  in (path,) <$> (WE.pin path' $ WE.staticResponse response)
+
+-- | Generate endpoints for source-embedded files and return the html
+-- to include them.
+includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ sequence_
+  where
+    f :: (FilePath, URL.URL) -> Html
+    f (path, url) = case P.split "." path^.reversed.ix 0 of
+      "css" -> includeCss url
+      "js" -> includeJs url
+      _ -> pure ()
