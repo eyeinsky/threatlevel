@@ -97,8 +97,8 @@ raw headers text = Response (toEnum 200) [Hdr.hdr Hdr.ContentType headers] $ Raw
 
 -- ** File
 
-file' :: MonadIO m => FilePath -> m Response
-file' path = do
+diskFile :: MonadIO m => FilePath -> m Response
+diskFile path = do
   bytes <- liftIO $ BL.readFile path
   let ct = path^.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
   return $ rawBl (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
