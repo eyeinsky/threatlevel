@@ -13,7 +13,9 @@ import CSS as Export hiding (
   -- generic
   filter, all, transform
   )
-import Web.Monad as Export -- hiding (href, em, font, content, Value, all, transform, filter)
+import Web.Monad as Export
+import DOM.Event as Export
+
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -54,6 +56,9 @@ on event handler = Custom (DOM.toOn event) (render def $ call1 handler $ ex "eve
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
     -- expressinos.
+
+post url = DOM.xhrRaw "POST" (ulit $ WR.renderURL url)
+get url = DOM.xhrRaw "GET" (ulit $ WR.renderURL url)
 
 -- * HTML
 
