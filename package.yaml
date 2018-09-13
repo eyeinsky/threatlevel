@@ -70,6 +70,7 @@ library:
   - XML.Render
   - X
   - X.DOM
+  - X.Auth.Google
   other-modules:
   - Pr
   - TH
