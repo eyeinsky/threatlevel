@@ -56,25 +56,6 @@ httpResponse status headers body
   where
     headers' = map Hdr.cc headers
 
-waiCode code = case code of
-  200 -> WT.status200
-  404 -> WT.status404
-  303 -> WT.status303
-  _ -> todo
-
--- * HTTP response
-
-declareFields [d|
-  data Response = Response
-    { responseCode :: WT.Status
-    , responseHeaders :: [H.Header]
-    , responseBody :: BL.ByteString
-    }
-  |]
-
-instance ToRaw Response where
-  toRaw (Response status headers content) = httpResponse status headers content
-
 -- * Helpers
 
 contentType val = Hdr.Header (Hdr.ContentType, val)
