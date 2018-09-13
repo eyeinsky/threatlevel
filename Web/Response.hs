@@ -42,12 +42,15 @@ data AnyResponse where
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: BL.ByteString -> AnyResponse
 
+instance Show AnyResponse where
+  show _ = "AnyResponse"
+
 declareFields [d|
   data Response = Response
     { response'Code :: WT.Status
     , response'Headers :: [Hdr.Header]
     , response'Body :: AnyResponse
-    }
+    } deriving Show
   |]
 
 instance ToRaw Response where
