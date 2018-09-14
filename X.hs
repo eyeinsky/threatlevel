@@ -140,7 +140,6 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
 staticDiskSubtree notFound (fp :: FilePath) = do
   return $ \req -> do
     e <- asks (view WE.dynPath) <&> sanitizePath
-    liftIO $ print e
     e & either
       (\err -> do
           liftIO $ print err

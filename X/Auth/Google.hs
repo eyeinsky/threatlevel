@@ -69,11 +69,8 @@ instance Aeson.ToJSON Tokeninfo where
       email' = Aeson._String # TL.toStrict (t^.email) :: Aeson.Value
 
 googleSignout = do
-  consoleLog ["1"]
   auth2 <- new $ call0 (ex "gapi.auth2.getAuthInstance");
-  consoleLog ["2"]
   await $ call0 (auth2 !. "signOut")
-  consoleLog ["3"]
 
 verifyToken id callback = do
   url <- api $ return $ \req -> do
