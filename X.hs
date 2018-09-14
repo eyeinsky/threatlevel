@@ -39,10 +39,13 @@ import Prelude2 as P
 import Data.Default
 import Render
 import JS
+import qualified JS.Render
 
 import qualified URL
 import qualified HTML
 import qualified DOM
+import qualified Web as W
+import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
 
@@ -97,6 +100,17 @@ includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
 src :: URL.URL -> Attribute
 src url = HTML.src (WE.renderURL url)
+
+-- * Endpoint
+
+exec jsm = do
+  browser <- asks (view W.browser)
+  stWeb <- WM.getState
+  let
+    stJs = stWeb^.WM.jsState
+    c = JS.Render.Indent 2
+    ((_, w), _) = JS.runM (JS.Conf browser True c) stJs jsm
+  return $ WR.js c $ call0 $ Par $ AnonFunc Nothing [] w
 
 -- * Serve static files as if in folder paths
 
