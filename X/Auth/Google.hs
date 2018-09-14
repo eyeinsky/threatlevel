@@ -17,6 +17,7 @@ import Control.Monad.Trans
 
 import JS -- todo: add to X?
 import qualified DOM
+import qualified HTML
 import Web.Endpoint -- todo: add to X?
 import X
 
@@ -24,7 +25,7 @@ import X
 
 platform :: Html
 platform = script
-  ! src "https://apis.google.com/js/platform.js"
+  ! HTML.src "https://apis.google.com/js/platform.js"
   ! Custom "async" "true"
   ! Custom "defer" "true"
   $ ""

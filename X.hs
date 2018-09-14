@@ -5,7 +5,7 @@ module X
 
 import HTML as Export hiding (
   -- redefined
-  href,
+  href, src,
   -- used in CSS
   em, font, content, Value,
   )
@@ -93,7 +93,10 @@ includeCss :: URL.URL -> Html
 includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
 
 includeJs :: URL.URL -> Html
-includeJs url = script ! src (WE.renderURL url) $ pure ()
+includeJs url = script ! src url $ "" ! Custom "defer" "true"
+
+src :: URL.URL -> Attribute
+src url = HTML.src (WE.renderURL url)
 
 -- * Serve static files as if in folder paths
 
