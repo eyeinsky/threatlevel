@@ -48,16 +48,24 @@ auth2 = gapi !. "auth2"
 tokeninfoUrl :: IsString p => p
 tokeninfoUrl = "https://www.googleapis.com/oauth2/v3/tokeninfo"
 
-data Tokeninfo = Tokeninfo { email :: Text } deriving Show
+declareFields [d|
+  data Tokeninfo = Tokeninfo
+    { tokeninfoEmail :: Text
+    , tokeninfoPicture :: Text
+    , tokeninfoName :: Text
+    } deriving Show
+  |]
 
 instance Aeson.FromJSON Tokeninfo where
    parseJSON (Aeson.Object v) = Tokeninfo
       <$> v Aeson..: "email"
+      <*> v Aeson..: "picture"
+      <*> v Aeson..: "name"
 
 instance Aeson.ToJSON Tokeninfo where
-  toJSON (Tokeninfo email) = Aeson.object ["email" Aeson..= email']
+  toJSON t = Aeson.object ["email" Aeson..= email']
     where
-      email' = Aeson._String # TL.toStrict email :: Aeson.Value
+      email' = Aeson._String # TL.toStrict (t^.email) :: Aeson.Value
 
 googleSignout = do
   consoleLog ["1"]
