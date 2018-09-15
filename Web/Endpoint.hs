@@ -62,10 +62,12 @@ type EHandler r = Wai.Request -> M IO r Re.Response
 type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
 type Built r = Tr.Trie Segment (EHandler r, W.State, W.Writer)
 
-build :: (W.HasBrowser r W.Browser) => W.Conf -> URL -> r -> T r -> IO (Built r)
-build mc domain r m = Tr.fromList <$> list
+build
+  :: (W.HasBrowser r W.Browser)
+  => W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
+build mc ms domain r m = Tr.fromList <$> list
   where
-    list = eval mc def domain r m <&> fmap (_1 %~ tail . Re.toTextList)
+    list = eval mc ms domain r m <&> fmap (_1 %~ tail . Re.toTextList)
 
     eval :: (W.HasBrowser r W.Browser)
       => W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
@@ -111,9 +113,10 @@ type Confy r = (HasDynPath r [URL.Segment], W.HasBrowser r W.Browser)
 
 toHandler
   :: forall r. Confy r
-  => W.Conf -> URL -> r -> T r -> IO (Wai.Request -> IO (Maybe Re.Response))
-toHandler mc domain conf0 site = do
-  app <- build mc domain conf0 site
+  => W.Conf -> W.State -> URL -> r -> T r
+  -> IO (Wai.Request -> IO (Maybe Re.Response))
+toHandler mc ms domain conf0 site = do
+  app <- build mc ms domain conf0 site
   return $ \req -> let
     hdrs = Wai.requestHeaders req
     path = Wai.pathInfo req :: [Segment]
