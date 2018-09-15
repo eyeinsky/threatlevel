@@ -50,33 +50,35 @@ type Writer r = [(Segment, T r)]
 (/) :: MonadWriter [(Segment, T r)] m => Segment -> T r -> m ()
 segment / endpoint = tell [(segment, endpoint)]
 
-data T r where
-  T :: RWST URL (Writer r) State (M Identity r) (EHandler r) -> T r
+type InT r = RWST URL (Writer r) State (M IO r) (EHandler r)
+data T r where T :: InT r -> T r
+
+runT :: URL -> T r -> M IO r (EHandler r, State, Writer r)
 runT url (T m) = runRWST m url identifierSource
 
 -- * Build
 
 type EHandler r = Wai.Request -> M IO r Re.Response
 type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
+type Built r = Tr.Trie Segment (EHandler r, W.State, W.Writer)
 
-eval :: (W.HasBrowser r W.Browser)
-  => W.Conf -> W.State -> URL -> r -> T r -> [HandlePoint r]
-eval mc js_css_st0 url (r :: r) (m :: T r) = let
-    ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w)
-      = runIdentity (runM mc r js_css_st0 (runT url m))
-
-    self = (url, (main, js_css_st1, js_css_w)) :: HandlePoint r
-
-    re :: (Segment, T r) -> [HandlePoint r]
-    re (segm, sub) = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r sub
-
-  in self : (re =<< subs) :: [HandlePoint r]
-
-build :: (W.HasBrowser r W.Browser)
-  => W.Conf -> URL -> r -> T r -> Tr.Trie Segment (EHandler r, W.State, W.Writer)
-build mc domain r m = Tr.fromList list
+build :: (W.HasBrowser r W.Browser) => W.Conf -> URL -> r -> T r -> IO (Built r)
+build mc domain r m = Tr.fromList <$> list
   where
-    list = eval mc def domain r m <&> _1 %~ tail . Re.toTextList
+    list = eval mc def domain r m <&> fmap (_1 %~ tail . Re.toTextList)
+
+    eval :: (W.HasBrowser r W.Browser)
+      => W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
+    eval mc js_css_st0 url (r :: r) (m :: T r) = do
+      ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w) <- runM mc r js_css_st0 (runT url m)
+      let
+        self = (url, (main, js_css_st1, js_css_w)) :: HandlePoint r
+
+        re :: (Segment, T r) -> IO [HandlePoint r]
+        re (segm, sub) = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r sub
+
+      result :: [HandlePoint r] <- mapM re subs <&> mconcat ^ (self :)
+      return result
 
 -- * Run
 
@@ -101,18 +103,27 @@ handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
 
 -- * To handler
 
-toHandler
-  :: forall r. (W.HasBrowser r W.Browser, HasDynPath r [Segment])
-  => W.Conf -> URL -> r -> T r -> Wai.Request -> IO (Maybe Re.Response)
-toHandler mc domain conf0 site req = traverse (handle mc runtimeConf req) res
-  where
-    app = build mc domain conf0 site
-    path = Wai.pathInfo req :: [Segment]
-    res :: Maybe (EHandler r, W.State, W.Writer)
-    (res, runtimeConf) = case Tr.lookupPrefix path app of
-      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf0 & dynPath .~ pathSuffix)
-      _ -> (Nothing, conf0)
+class HasDynPath s a | s -> a where
+  dynPath :: Lens' s a
+  {-# MINIMAL dynPath #-}
 
+type Confy r = (HasDynPath r [URL.Segment], W.HasBrowser r W.Browser)
+
+toHandler
+  :: forall r. Confy r
+  => W.Conf -> URL -> r -> T r -> IO (Wai.Request -> IO (Maybe Re.Response))
+toHandler mc domain conf0 site = do
+  app <- build mc domain conf0 site
+  return $ \req -> let
+    hdrs = Wai.requestHeaders req
+    path = Wai.pathInfo req :: [Segment]
+    browser' = maybe W.Unknown W.parseBrowser $ lookup "User-Agent" hdrs
+    conf1 = conf0 & W.browser .~ browser'
+    res :: Maybe (EHandler r, W.State, W.Writer)
+    (res, conf2) = case Tr.lookupPrefix path app of
+      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf1 & dynPath .~ pathSuffix)
+      _ -> (Nothing, conf1)
+    in traverse (handle mc conf2 req) res
 
 -- * Dyn path
 
@@ -130,9 +141,9 @@ renderDyn pp dt url = url & URL.segments <>~ fromJust (unparseTexts pp dt)
 currentUrl :: MonadReader URL m => m URL
 currentUrl = ask
 
-api :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
-  => RWST URL (Writer r) State (M Identity r) (EHandler r)
-  -> m URL
+api
+  :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
+  => InT r -> m URL
 api m = next >>= flip pin m
 
 xhrPost' m = do
@@ -140,10 +151,9 @@ xhrPost' m = do
   lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.ulit $ renderURL $ url) data_ []
 
 -- | Add segment with api endpoint and return its full url
-pin :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
-  => Segment
-  -> RWST URL (Writer r) State (M Identity r) (EHandler r)
-  -> m URL
+pin
+  :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
+  => Segment -> InT r -> m URL
 pin name m = name / T m *> nextFullWith name
 
 page = api . return . (\response _ -> return response) . Re.page
@@ -154,24 +164,7 @@ next = get >>= \(x : xs) -> put xs *> return x
 nextFullWith :: MonadReader URL m => Segment -> m URL
 nextFullWith top = ask <&> URL.segments <>~ [top]
 
-class HasDynPath s a | s -> a where
-  dynPath :: Lens' s a
-  {-# MINIMAL dynPath #-}
-
 -- * Helpers
-
-type Confy r = (HasDynPath r [URL.Segment], W.HasBrowser r W.Browser)
-
-wrap
-  :: (Confy r, Default r)
-  => URL.URL -> T r -> Wai.Request -> (HR.Raw -> IO b) -> IO b
-wrap url site req respond = ioResp >>= respond
-  where
-    hdrs = Wai.requestHeaders req
-    browser' = maybe W.Unknown W.parseBrowser $ lookup "User-Agent" hdrs
-    runConf = def & W.browser .~ browser'
-    ioResp :: IO HR.Raw
-    ioResp = toHandler def url runConf site req <&> fromJust ^ HR.toRaw
 
 staticResponse :: (Monad m1, Monad m2) => a -> m1 (p -> m2 a)
 staticResponse response = return $ \req -> return response
