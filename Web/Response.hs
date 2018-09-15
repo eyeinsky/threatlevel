@@ -47,9 +47,9 @@ instance Show AnyResponse where
 
 declareFields [d|
   data Response = Response
-    { response'Code :: WT.Status
-    , response'Headers :: [Hdr.Header]
-    , response'Body :: AnyResponse
+    { responseCode :: WT.Status
+    , responseHeaders :: [Hdr.Header]
+    , responseBody :: AnyResponse
     } deriving Show
   |]
 
