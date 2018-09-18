@@ -95,8 +95,6 @@ verifyToken id callback = do
             prompt = ulit $ [("prompt" :: Text, ulit "select_account")]
         consoleLog ["auth2 load" ]
         googleAuth <- await $ call1 (auth2 !. "init") params
-        jsCallback <- newf $ \r -> do
-          consoleLog ["jsCallback", r]
         doLogin' <- async $ do
           user <- await $ call1 (googleAuth !. "signIn") prompt
           token <- new $ call0 (user !. "getAuthResponse") !. "id_token"
