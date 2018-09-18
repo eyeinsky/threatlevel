@@ -27,7 +27,7 @@ import qualified Data.ByteString.Lazy as BL
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 
-import Web.Cookie (parseCookiesText)
+import Web.Cookie as Wai
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Mime as Mime
@@ -80,11 +80,15 @@ setCookie k v = WR.headers %~ (setCookie (TL.fromStrict v))
     setCookie val = (Hdr.cookie' (TL.fromStrict k) val Nothing (Just []) Nothing :)
 
 hasCookie :: TS.Text -> TS.Text -> Wai.Request -> P.Bool
-hasCookie k v req = req
-  & Wai.requestHeaders
+hasCookie k v = getCookie k ^ maybe False (v ==)
+
+getCookie :: TS.Text -> Wai.Request -> Maybe TS.Text
+getCookie k = requestCookies >=> lookup k
+
+requestCookies :: Wai.Request -> Maybe Wai.CookiesText
+requestCookies = Wai.requestHeaders
   ^ lookup Wai.hCookie
-  ^ fmap parseCookiesText
-  ^ maybe False (lookup k ^ maybe False (v ==))
+  ^ fmap Wai.parseCookiesText
 
 -- * HTML
 
