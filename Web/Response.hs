@@ -90,6 +90,8 @@ redirectRaw url = rawText (toEnum 303) [Hdr.hdr Hdr.Location url] ""
 redirect' code url = rawText (toEnum code) headers ""
   where headers = [Hdr.hdr Hdr.Location $ renderURL url]
 
+redirectRaw' code url = rawText (toEnum code) [Hdr.hdr Hdr.Location url] ""
+
 -- ** Raw
 
 rawBl :: WT.Status -> [Hdr.Header] -> BL.ByteString -> Response
