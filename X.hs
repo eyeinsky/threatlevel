@@ -8,6 +8,8 @@ import HTML as Export hiding (
   href, src,
   -- used in CSS
   em, font, content, Value,
+  -- used in HTTP
+  header
   )
 import CSS as Export hiding (
   -- generic
