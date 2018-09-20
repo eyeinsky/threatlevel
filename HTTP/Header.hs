@@ -20,6 +20,9 @@ import qualified Cookie as C
 newtype Header = Header (HeaderName, T)
 hdr a b = Header (a, b)
 
+header :: HeaderName -> T -> Header
+header h v = Header (h, v)
+
 {-
 data ResponseHeader = ResponseHeader {
 
