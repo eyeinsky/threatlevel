@@ -137,7 +137,7 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
 -- needs to match file's path in the. TODO: resolve ".." in path and
 -- error out if path goes outside of the served subtree. And check the
 -- standard of if .. is even allowed in url paths.
-staticDiskSubtree notFound (fp :: FilePath) = do
+staticDiskSubtree' mod notFound (fp :: FilePath) = do
   return $ \req -> do
     e <- asks (view WE.dynPath) <&> sanitizePath
     e & either
@@ -145,9 +145,11 @@ staticDiskSubtree notFound (fp :: FilePath) = do
           liftIO $ print err
           return notFound
       )
-      (\subPath -> WR.diskFile (fp <> "/" <> subPath))
+      (\subPath -> mod <$> WR.diskFile (fp <> "/" <> subPath))
   where
     sanitizePath :: [TS.Text] -> Either P.String P.String
     sanitizePath parts = if any (== "..") parts
       then Left "Not allowed to go up"
       else Right (TS.unpack $ TS.intercalate "/" parts)
+
+staticDiskSubtree = staticDiskSubtree' id
