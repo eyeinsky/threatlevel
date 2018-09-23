@@ -3,6 +3,7 @@ module Web.Response where
 import Pr
 import Language.Haskell.TH
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TE
@@ -97,6 +98,9 @@ redirectRaw' code url = rawText (toEnum code) [Hdr.hdr Hdr.Location url] ""
 rawBl :: WT.Status -> [Hdr.Header] -> BL.ByteString -> Response
 rawBl status headers bl = Response status headers $ Raw bl
 
+rawBS :: WT.Status -> [Hdr.Header] -> BS.ByteString -> Response
+rawBS status headers bl = Response status headers $ Raw (bl^.from strict)
+
 rawText :: WT.Status -> [Hdr.Header] -> Text -> Response
 rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
 
@@ -111,8 +115,12 @@ diskFile path = do
   let ct = path^.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
   return $ rawBl (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
 
-file :: TL.Text -> ExpQ
-file path = let
-    pathS = path^.from packed :: FilePath
+-- | Embeds a file from path into binary, resulting file's type will
+-- be Response.
+embeddedFile :: TL.Text -> ExpQ
+embeddedFile path = let
+    filePath = path^.from packed :: FilePath
     ct = path^.from lazy.to Mime.defaultMimeLookup.LS.utf8.from packed & stringE
-  in [| rawBl 200 [Hdr.hdr Hdr.ContentType $ct] ($(embedFile pathS)^.from strict) |]
+  in [| let header = Hdr.hdr Hdr.ContentType $ct
+        in rawBS 200 [header] $(embedFile filePath)
+           :: Response|]
