@@ -119,7 +119,7 @@ exec jsm = do
     ((_, w), _) = JS.runM (JS.Conf browser True c) stJs jsm
   return $ WR.js c $ call0 $ Par $ AnonFunc Nothing [] w
 
--- * Serve static files as if in folder paths
+-- * Serving static assets
 
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
@@ -159,7 +159,8 @@ staticDiskSubtree' mod notFound (fp :: FilePath) = do
       then Left "Not allowed to go up"
       else Right (TS.unpack $ TS.intercalate "/" parts)
 
-staticDiskSubtree = staticDiskSubtree' id
+-- | Serve entire path from under created url
+staticDiskSubtree notFound path = staticDiskSubtree' id notFound path
 
 -- | Serve files from filesystem path using a content adressable hash
 assets notFound path = do
