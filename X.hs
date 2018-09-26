@@ -34,15 +34,20 @@ import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Mime as Mime
 
+import System.Process as IO
+import System.IO as IO
+import Language.Haskell.TH
+
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 
 import Prelude2 as P
 import Data.Default
 import Render
-import JS
+import JS hiding (String)
 import qualified JS.Render
 
+import qualified HTTP.Header as HH
 import qualified URL
 import qualified HTML
 import qualified DOM
@@ -155,3 +160,26 @@ staticDiskSubtree' mod notFound (fp :: FilePath) = do
       else Right (TS.unpack $ TS.intercalate "/" parts)
 
 staticDiskSubtree = staticDiskSubtree' id
+
+-- | Serve files from filesystem path using a content adressable hash
+assets notFound path = do
+  hashPin path $ staticDiskSubtree' h notFound path
+  where
+    forever = HH.header HH.CacheControl "max-age=365000000, public, immutable"
+    h = WR.headers <>~ [forever]
+
+    hashPin path what = do
+      hash <- liftIO (folderHash path) <&> TS.pack
+      liftIO $ print (path, hash)
+      WE.pin hash what
+
+folderHash :: String -> IO [Char]
+folderHash path = do
+  (i,o,e,h) <- IO.runInteractiveCommand cmd
+  IO.hGetContents o <&> P.take 40
+  where
+    cmd = "tar cf - '" <> path <> "' | shasum | cut -d ' ' -f 1"
+    -- todo: better path escaping
+
+folderHashTH :: FilePath -> ExpQ
+folderHashTH path = runIO (folderHash path) >>= stringE

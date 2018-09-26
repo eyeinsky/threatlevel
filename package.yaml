@@ -42,6 +42,42 @@ default-extensions:
 dependencies:
 - hs-minu
 - web-js
+- lens
+- aeson
+- async
+- blaze-builder
+- boomerang
+- bytestring
+- case-insensitive
+- containers
+- dlist
+- ds
+- file-embed
+- hashable
+- http-types
+- identifiers
+- mime-types
+- mtl
+- network
+- network-simple
+- tagged
+- template-haskell
+- text
+- text-format
+- unordered-containers
+- wai
+- warp
+- warp-tls
+- web-browser
+- web-url
+- render
+- rapid
+- mysql-simple
+- cryptonite
+- memory
+- base64-bytestring
+- process
+
 library:
   exposed-modules:
   - Cookie
