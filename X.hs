@@ -177,9 +177,10 @@ assets notFound path = do
 folderHash :: String -> IO [Char]
 folderHash path = do
   (i,o,e,h) <- IO.runInteractiveCommand cmd
+  IO.hGetContents e >>= hPutStrLn stderr
   IO.hGetContents o <&> P.take 40
   where
-    cmd = "tar cf - '" <> path <> "' | shasum | cut -d ' ' -f 1"
+    cmd = "tar cf - '" <> path <> "' | sha1sum | cut -d ' ' -f 1"
     -- todo: better path escaping
 
 folderHashTH :: FilePath -> ExpQ
