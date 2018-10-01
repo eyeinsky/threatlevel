@@ -73,9 +73,10 @@ declareFields [d|
     }
   |]
 
+instance Semigroup AttributeSet where
+  _ <> _ = todoMsg "mappend not implemented for AttributeSet"
 instance Monoid AttributeSet where
   mempty = AttributeSet Nothing mempty mempty
-  mappend _ _ = todoMsg "mappend not implemented for AttributeSet"
 
 id_ :: Id -> Attribute
 id_ id = AttrId id :: Attribute
@@ -88,9 +89,8 @@ cls_ cs = AttrClass cs
 type XMLA ns c = XML ns AttributeSet c
 type XMLM ns c = Writer [XMLA ns c] ()
 
-instance Monoid (XMLM ns c) where
-  mempty = todo
-  mappend a b = a >> b
+instance Semigroup (XMLM ns c) where
+  a <> b = a >> b
 
 
 -- * Add attributes with !

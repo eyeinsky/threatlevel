@@ -49,12 +49,13 @@ data Value
 
    | Compound (D.DList Value)
 
+instance Semigroup Value where
+  Compound xs <> Compound ys = Compound (xs <> ys)
+  Compound xs <> v = Compound (xs <> pure v)
+  v <> Compound xs = Compound (pure v <> xs)
+  x <> y = Compound (pure x <> pure y)
 instance Monoid Value where
   mempty = error "CSS.Internal: Value can't be empty"
-  mappend (Compound xs) (Compound ys) = Compound (xs <> ys)
-  mappend (Compound xs) v = Compound (xs <> pure v)
-  mappend v (Compound xs) = Compound (pure v <> xs)
-  mappend x y = Compound (pure x <> pure y)
 
 prc i = Percent i
 px i = Px i

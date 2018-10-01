@@ -55,9 +55,10 @@ instance Br.HasBrowser Conf Br.Browser where
 instance Default State where
   def = State def def
 
+instance Semigroup Writer where
+  Writer js css <> Writer js' css' = Writer (js <> js') (css <> css')
 instance Monoid Writer where
   mempty = Writer mempty mempty
-  mappend (Writer js css) (Writer js' css') = Writer (js <> js') (css <> css')
 
 newtype WebT m a = WebT { unWebT :: RWS.RWST Conf Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)

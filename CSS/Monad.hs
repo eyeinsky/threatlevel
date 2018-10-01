@@ -43,9 +43,10 @@ declareFields [d|
     }
   |]
 
+instance Semigroup CSSW where
+  a <> b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
 instance Monoid CSSW where
   mempty = CSSW mempty mempty
-  mappend a b = CSSW (a^.rules <> b^.rules) (a^.decls <> b^.decls)
 
 type DM = Writer [Declaration]
 
@@ -115,9 +116,10 @@ declareFields [d|
   |]
 -- ^ The 'decls' lens needed to reuse all the shorthands.
 
+instance Semigroup DeclW where
+  a <> b = DeclW (a^.decls <> b^.decls)
 instance Monoid DeclW where
   mempty = DeclW mempty
-  mappend a b = DeclW (a^.decls <> b^.decls)
 
 type DeclM = WriterT DeclW (Reader Browser)
 execDeclM :: Browser -> DeclM a ->  DeclW
