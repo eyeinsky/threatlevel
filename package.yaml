@@ -40,6 +40,13 @@ default-extensions:
 - TypeSynonymInstances
 - UndecidableInstances
 dependencies:
+- base
+- cookie
+- lens-aeson
+- directory
+- transformers
+- wreq
+- vector
 - hs-minu
 - web-js
 - lens
