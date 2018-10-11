@@ -73,3 +73,6 @@ metaNC name content = meta
   ! Custom "name" name
   ! Custom "content" content
   $ pure ()
+
+_blank :: Attribute
+_blank = Custom "target" "_blank"
