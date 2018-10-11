@@ -164,11 +164,9 @@ staticDiskSubtree notFound path = staticDiskSubtree' id notFound path
 
 -- | Serve files from filesystem path using a content adressable hash
 assets notFound path = do
-  hashPin path $ staticDiskSubtree' h notFound path
+  hashPin path $ staticDiskSubtree' headerMod notFound path
   where
-    forever = HH.header HH.CacheControl "max-age=365000000, public, immutable"
-    h = WR.headers <>~ [forever]
-
+    headerMod = WR.headers <>~ [HR.cacheForever]
     hashPin path what = do
       hash <- liftIO (folderHash path) <&> TS.pack
       liftIO $ print (path, hash)

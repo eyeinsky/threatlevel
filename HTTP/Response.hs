@@ -69,6 +69,11 @@ waiAddHeaders hs r = case r of
 
 htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
 
+-- * Caching
+
+cacheForever :: H.Header
+cacheForever = H.header H.CacheControl "max-age=365000000, public, immutable"
+
 -- * Receive
 
 {-
