@@ -18,7 +18,6 @@ import Control.Monad.Identity
 import DOM.Core hiding (Value)
 import Render (renderM, Render, (<+>))
 import qualified Render as R
-import qualified CSS.MediaQuery as MediaQuery
 
 -- * Syntax
 
@@ -176,19 +175,21 @@ instance Render CSS where
        isEmpty r = case r of
          Qualified _ ds -> null ds
          Keyframes name blocks -> False
-         MediaQuery _ rs -> null rs
+         AtRule _ _ rs -> null rs
 
 data Rule where
   Qualified :: Prelude -> [Declaration] -> Rule
   Keyframes :: TL.Text -> [KeyframeBlock] -> Rule
-  MediaQuery :: MediaQuery.Expr -> CSS -> Rule
+  AtRule :: TL.Text -> TL.Text -> CSS -> Rule
 instance Render Rule where
    renderM r = case r of
       Qualified p ds -> renderM p <+> (R.curly <$> (renderM ds))
       Keyframes name blocks -> pure "@keyframes " <+> pure name <+> blocks'
         where
           blocks' = R.curly . R.concat <$> mapM renderM blocks
-      MediaQuery (MediaQuery.Expr tl) rs -> pure ("@media " <> tl) <+> (R.curly . R.concat <$> mapM renderM rs)
+      AtRule name tl rs -> let
+        query = "@" <> name <> " " <> tl
+        in pure query <+> (R.curly . R.concat <$> mapM renderM rs)
 
 data Prelude = Selectors [Selector]
 instance Render Prelude where

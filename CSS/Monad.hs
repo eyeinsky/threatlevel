@@ -10,7 +10,6 @@ import Identifiers as Idents
 import Pr
 import Web.Browser
 import CSS.Internal
-import qualified CSS.MediaQuery as MediaQuery
 
 
 -- * DSL setup
@@ -142,14 +141,15 @@ keyframes' name km = do
   tellRule $ Keyframes name ks
   return $ Word name
 
--- * Media query
+-- * At-rules
 
-media :: TL.Text -> CSSM () -> CSSM ()
-media e dm = do
+atRule :: TL.Text -> TL.Text -> CSSM () -> CSSM ()
+atRule name e dm = do
   conf <- ask
   state0 <- get
   let (rules, state1) = runCSSM conf state0 dm
-  tellRule $ MediaQuery expr rules
+  tellRule $ AtRule name e rules
   put state1
-  where
-    expr = MediaQuery.Expr e
+
+media :: TL.Text -> CSSM () -> CSSM ()
+media = atRule "media"

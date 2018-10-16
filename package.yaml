@@ -100,7 +100,6 @@ library:
   - Warp_Helpers
   - Web
   - CSS
-  - CSS.MediaQuery
   - SVG
   - HTML
   - Web.CSS
