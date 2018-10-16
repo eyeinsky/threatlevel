@@ -153,3 +153,6 @@ atRule name e dm = do
 
 media :: TL.Text -> CSSM () -> CSSM ()
 media = atRule "media"
+
+supports :: TL.Text -> CSSM () -> CSSM ()
+supports = atRule "supports"

@@ -6,7 +6,7 @@ module CSS
   , setBoxSizing
   , centerContent
   , keyframes, keyframes', keyframe, browser, selector
-  , media
+  , media, supports
   , DeclM, renderDecls
   ) where
 
