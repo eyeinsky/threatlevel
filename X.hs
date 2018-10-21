@@ -47,6 +47,7 @@ import Render
 import JS hiding (String)
 import qualified JS.Render
 
+import CSS.Monad (CSSM)
 import qualified HTTP.Header as HH
 import qualified URL
 import qualified HTML
@@ -183,3 +184,13 @@ folderHash path = do
 
 folderHashTH :: FilePath -> ExpQ
 folderHashTH path = runIO (folderHash path) >>= stringE
+
+-- * Html + CSS + MonadWeb
+
+-- | Generate id in the MonadWeb, apply styles to it, attach it to the
+-- element and return this
+-- todo: using exclamatable since this could be Html, Html -> Html, HTMLA Both, etc
+styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM () -> m a
+styled elem rules = do
+  id <- cssId rules
+  return $ elem ! id

@@ -73,14 +73,35 @@ class    FindBy a where findBy :: a -> Expr Tag
 instance FindBy Id where
    findBy (Id id) = valueSelf id (docCall "getElementById")
 instance FindBy Class where
-   findBy (Class a) = valueSelf a (docCall "getElementsByClassName")
-
+   findBy (Class a) = case a of
+     Static v -> call1 (document !. "getElementsByClassName") (ulit v)
+     Dynamic v -> Cast v
 instance FindBy TagName where
    findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
 instance FindBy (Expr Id) where
    findBy a = docCall' "getElementById" a
 instance FindBy (Expr Class) where
    findBy a = docCall' "getElementsByClassName" a
+
+instance FindBy (HTML Both) where
+  findBy a
+    | Just id <- Pr.join maybeId = findBy id
+    | [cls] <- classes_ = findBy cls
+    | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
+    | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
+    | otherwise = error "FindBy (HTML a): nothing to find by"
+    where
+      maybeId = a ^? _Element._2.id :: Maybe (Maybe Id)
+      classes_ = a ^. _Element._2.classes :: [Class]
+
+instance FindBy Html where
+   findBy a = case execWriter a of
+     e : rest -> findBy e
+     _ -> error "FindBy Html: no html to find by"
+instance FindBy (Html -> Html) where
+  findBy a = case execWriter $ a $ pure () of
+    e : rest -> findBy e
+    _ -> error "FindBy (Html -> Html): no html to find by"
 
 valueSelf :: D.Value -> (TL.Text -> Expr b) -> Expr b
 valueSelf v f = case v of
