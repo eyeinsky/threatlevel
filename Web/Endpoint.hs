@@ -17,6 +17,7 @@ import qualified HTTP.Header as Hdr
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
+import qualified Data.Text as TS
 import Render
 import Identifiers (identifierSource)
 
@@ -33,6 +34,7 @@ import qualified Trie as Tr
 import Text.Boomerang.Texts
 import Text.Boomerang.TH
 import Text.Boomerang hiding ((.~))
+import qualified Text.Boomerang.Texts as B
 
 import qualified HTTP.Response as HR
 
@@ -171,3 +173,8 @@ nextFullWith top = ask <&> URL.segments <>~ [top]
 
 staticResponse :: (Monad m1, Monad m2) => a -> m1 (p -> m2 a)
 staticResponse response = return $ \req -> return response
+
+-- | Take url, a unparser, value, and unparse the value to the end of url
+mkUrl :: URL.URL -> Boomerang e [TS.Text] () (r :- ()) -> r -> URL.URL
+mkUrl url unparser value = url & URL.segments <>~ segm
+  where segm = B.unparseTexts unparser value & fromJust
