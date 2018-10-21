@@ -110,6 +110,7 @@ library:
   - XML
   - XML.Core
   - XML.Render
+  - JS.Upstream
   - X
   - X.DOM
   - X.Auth.Google
