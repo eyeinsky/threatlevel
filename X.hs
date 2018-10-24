@@ -194,3 +194,8 @@ styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM () -> m a
 styled elem rules = do
   id <- cssId rules
   return $ elem ! id
+
+styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM () -> m a
+styleds elem rules = do
+  class_ <- css rules
+  return $ elem ! class_
