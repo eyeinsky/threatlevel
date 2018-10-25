@@ -45,3 +45,6 @@ generalSibling = combinator GeneralSibling
 
 anyTag :: Selector
 anyTag = selFrom $ TagName "*"
+
+anyChild :: CSSM () -> CSSM ()
+anyChild = child ("*" :: TagName)
