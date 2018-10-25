@@ -199,3 +199,6 @@ styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM () -> m a
 styleds elem rules = do
   class_ <- css rules
   return $ elem ! class_
+
+(/) :: URL.URL -> TS.Text -> URL.URL
+url / tail = url & URL.segments <>~ [tail]
