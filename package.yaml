@@ -109,7 +109,6 @@ library:
   - Web.Response
   - XML
   - XML.Core
-  - XML.Render
   - JS.Upstream
   - X
   - X.DOM
