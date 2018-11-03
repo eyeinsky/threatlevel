@@ -4,41 +4,6 @@ category: Language
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
-default-extensions:
-- Arrows
-- BangPatterns
-- ConstraintKinds
-- DataKinds
-- DefaultSignatures
-- DeriveDataTypeable
-- DeriveFunctor
-- DeriveGeneric
-- EmptyDataDecls
-- ExtendedDefaultRules
-- FlexibleContexts
-- FlexibleInstances
-- FunctionalDependencies
-- GADTs
-- GeneralizedNewtypeDeriving
-- InstanceSigs
-- KindSignatures
-- MultiParamTypeClasses
-- NamedFieldPuns
-- NoImplicitPrelude
-- NoMonomorphismRestriction
-- OverloadedStrings
-- PolyKinds
-- QuasiQuotes
-- RecursiveDo
-- ScopedTypeVariables
-- StandaloneDeriving
-- TemplateHaskell
-- TupleSections
-- TypeFamilies
-- TypeInType
-- TypeOperators
-- TypeSynonymInstances
-- UndecidableInstances
 dependencies:
 - base
 - cookie
@@ -48,7 +13,6 @@ dependencies:
 - wreq
 - vector
 - hs-minu
-- web-js
 - lens
 - aeson
 - async
@@ -109,7 +73,20 @@ library:
   - Web.Response
   - XML
   - XML.Core
+
+  - JS.Types
+  - JS.Syntax
+  - JS.DSL
+  - JS.DSL.Internal
+  - JS.API
+  - JS.Derive
+  - JS.Lib
+  - JS.Lib.Sleep
+  - JS.Lib.Async
+  - JS.Render
+  - JS
   - JS.Upstream
+
   - X
   - X.DOM
   - X.Auth.Google
@@ -123,34 +100,44 @@ library:
   - HTML.Paste
   - SVG.Attributes
   - SVG.Elements
-  dependencies:
-  - base
-  - aeson
-  - async
-  - blaze-builder
-  - boomerang
-  - bytestring
-  - case-insensitive
-  - containers
-  - dlist
-  - ds
-  - file-embed
-  - hashable
-  - http-types
-  - identifiers
-  - lens
-  - mime-types
-  - mtl
-  - network
-  - network-simple
-  - tagged
-  - template-haskell
-  - text
-  - text-format
-  - unordered-containers
-  - wai
-  - warp
-  - warp-tls
-  - web-browser
-  - web-url
-  - render
+  - XML.Render
+  - JS.Examples
+  - JS.Core
+  - JS.DSL.Identifiers
+
+default-extensions:
+- Arrows
+- BangPatterns
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- InstanceSigs
+- KindSignatures
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RankNTypes
+- RecursiveDo
+- ScopedTypeVariables
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeFamilies
+- TypeInType
+- TypeOperators
+- TypeSynonymInstances
+- UndecidableInstances
