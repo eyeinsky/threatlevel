@@ -108,6 +108,9 @@ requestCookies = Wai.requestHeaders
 
 -- * HTML
 
+includeCss' :: TL.Text -> Html
+includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href url $ pure ()
+
 includeCss :: URL.URL -> Html
 includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
 
