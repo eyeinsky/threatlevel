@@ -1,7 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module DOM.JS where
 
-import Pr hiding ((.=), Bool, id)
+import Pr hiding ((.=), id)
 import Prelude2.Has (HasId(..))
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -43,13 +43,13 @@ documentWrite what = call1 (document !. "write") what
 -- * Finding elements
 
 class JSSelector a where
-  jsSelectorFrom :: a -> Expr JS.String
-instance JSSelector (Expr JS.String) where
+  jsSelectorFrom :: a -> Expr String
+instance JSSelector (Expr String) where
   jsSelectorFrom a = a
 instance {-# OVERLAPPABLE #-} CSS.SelectorFrom a => JSSelector a where
   jsSelectorFrom s = ulit $ render' $ CSS.selFrom s
 
-matches :: JSSelector a => a -> Expr D.Tag -> Expr JS.Bool
+matches :: JSSelector a => a -> Expr D.Tag -> Expr Bool
 matches s e = call1 (e !. "matches") (jsSelectorFrom s)
 
 querySelector :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
@@ -61,7 +61,7 @@ querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
 queryParents :: JSSelector a => a -> Expr D.Tag -> Expr c
 queryParents s e = let
   str = jsSelectorFrom s
-  in flip call [Cast str, e] $ funcPure $ \(selector :: Expr JS.String) elem -> do
+  in flip call [Cast str, e] $ funcPure $ \(selector :: Expr String) elem -> do
     e' <- new elem
     r <- new Null
     JS.for (e' !. "matches") $ do
@@ -129,8 +129,8 @@ scrollBottom e = scrollTop e + offsetHeight e
 offsetTop = ea "offsetTop"
 offsetBottom e = ea "offsetTop" e + offsetHeight e
 
-atTop el = scrollTop el .== 0 :: Expr JS.Bool
-atBottom el = scrollBottom el .>= scrollHeight el :: Expr JS.Bool
+atTop el = scrollTop el .== 0 :: Expr Bool
+atBottom el = scrollBottom el .>= scrollHeight el :: Expr Bool
 
 getComputedStyle e = call1 (ex "getComputedStyle") e
 
