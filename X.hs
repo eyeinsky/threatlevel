@@ -34,6 +34,10 @@ import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Mime as Mime
 
+import qualified Network.Wai.Middleware.Gzip as Gzip
+import qualified Network.Wai.Handler.Warp as Warp
+import qualified Network.Wai.Handler.WarpTLS as Warp
+
 import System.Process as IO
 import System.IO as IO
 import Language.Haskell.TH

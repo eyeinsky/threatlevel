@@ -37,6 +37,7 @@ dependencies:
 - text-format
 - unordered-containers
 - wai
+- wai-extra
 - warp
 - warp-tls
 - web-browser
