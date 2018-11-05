@@ -38,6 +38,8 @@ import qualified Network.Wai.Middleware.Gzip as Gzip
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
 
+import Rapid
+
 import System.Process as IO
 import System.IO as IO
 import Language.Haskell.TH
@@ -206,3 +208,50 @@ styleds elem rules = do
 
 (/) :: URL.URL -> TS.Text -> URL.URL
 url / tail = url & URL.segments <>~ [tail]
+
+-- * Rapid
+
+updated :: Ord k => k -> IO () -> IO ()
+updated name main = rapid 1 (\r -> restart r name main)
+
+mkHot :: Ord k => k -> IO () -> (IO (), IO ())
+mkHot name what = let
+  reload = updated name what
+  stop_ = rapid 1 (\r -> stop r name what)
+  in (reload, stop_)
+
+hotHttp
+  :: (WE.Confy r, Default r, Ord k)
+  => k
+  -> WM.Conf -> WM.State
+  -> URL.URL
+  -> Warp.Port
+  -> WE.T r
+  -> (IO (), IO (), IO ())
+hotHttp name mc ms url port site = (hot, stop, main)
+  where
+    settings = Warp.setPort port Warp.defaultSettings
+    main = do
+      handler <- WE.toHandler mc ms url def site
+      Warp.runSettings settings $ Gzip.gzip def $ \req respond -> do
+        handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
+    (hot, stop) = mkHot name main
+
+-- | mkHot which takes a site
+mkHot'
+  :: (WE.Confy r, Default r, Ord k)
+  => k
+  -> WM.Conf -> WM.State
+  -> URL.URL
+  -> Warp.Port
+  -> Warp.TLSSettings
+  -> WE.T r
+  -> (IO (), IO (), IO ())
+mkHot' name mc ms url port tls site = (hot, stop, main)
+  where
+    settings = Warp.setPort port Warp.defaultSettings
+    main = do
+      handler <- WE.toHandler mc ms url def site
+      Warp.runTLS tls settings $ Gzip.gzip def $ \req respond -> do
+        handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
+    (hot, stop) = mkHot name main
