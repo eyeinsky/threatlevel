@@ -30,6 +30,7 @@ import qualified Data.ByteString.Lazy as BL
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
+import Control.Monad.Writer
 
 import Web.Cookie as Wai
 import Network.Wai as Wai
@@ -198,6 +199,24 @@ folderHash path = do
 
 folderHashTH :: FilePath -> ExpQ
 folderHashTH path = runIO (folderHash path) >>= stringE
+
+-- * Html + CSS
+
+-- todo: The below could be more general!
+getTag a = case execWriter a of
+  e : rest -> let
+      tn = e^?_Element._1 :: Maybe TagName
+    in maybe (err "Not elem") ssFrom tn
+  _ -> err "No xml content"
+  where
+    prefix = "SimpleSelectorFrom (XMLM ns c -> XMLM ns c): "
+    err msg = error $ prefix <> msg
+
+instance SimpleSelectorFrom (XMLM ns c -> XMLM ns c) where
+  ssFrom a = getTag $ a $ pure ()
+
+instance SimpleSelectorFrom (XMLM ns c) where
+  ssFrom a = getTag a
 
 -- * Html + CSS + MonadWeb
 

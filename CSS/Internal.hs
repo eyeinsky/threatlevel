@@ -113,6 +113,7 @@ instance Render Id     where renderM (Id     a) = ("#" <>) <$> renderM a
 instance Render Class  where renderM (Class  a) = ("." <>) <$> renderM a
 
 declareFields [d|
+  -- | Element, class, id or pseudo
   data SimpleSelector = SimpleSelector
     { simpleSelectorTag :: Maybe TagName
     , simpleSelectorMaybeId :: Maybe Id
