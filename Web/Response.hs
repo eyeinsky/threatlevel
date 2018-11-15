@@ -59,12 +59,12 @@ instance ToRaw Response where
     = httpResponse status (origHeaders <> headers) bl
     where
       (headers, bl) = case anyResponse of
-        HtmlDocument (HTML.Document h b) -> ([utf8textHdr "html"], tl^.re utf8)
+        HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re utf8)
           where
             html' = HTML.html (HTML.head h >> b)
             tl = "<!DOCTYPE html>" <> render () html'
-        JS conf code -> ([javascript], render conf code^.re LL.utf8)
-        JSON a -> ([HTTP.Response.json], Aeson.encode a)
+        JS conf code -> ([Hdr.javascript], render conf code^.re LL.utf8)
+        JSON a -> ([Hdr.json], Aeson.encode a)
         Raw b -> ([], b)
 
 -- * Helpers

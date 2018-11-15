@@ -15,6 +15,7 @@ import qualified Data.Text       as T
 import qualified Data.Text.Lazy  as TL
 import qualified Data.Text.Encoding as TE
 
+import Network.Mime as Mime
 import qualified Cookie as C
 
 newtype Header = Header (HeaderName, T)
@@ -205,3 +206,12 @@ instance ToPayload C.Cookie where
 cookie' k v c d e = Header (SetCookie, toPayload $ C.Cookie k v c d e)
 mkC k v = cookie' k v Nothing Nothing Nothing
 delC k  = cookie' k "deleted" Nothing Nothing (Just "Thu, 01-Jan-1970 00:00:01 GMT")
+
+-- * Shorthands
+
+contentType val = Header (ContentType, val)
+javascript = contentType "application/javascript; charset=utf-8"
+json = contentType "application/json; charset=UTF-8"
+utf8text what = contentType ("text/"<>what<>"; charset=UTF-8")
+
+-- htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))

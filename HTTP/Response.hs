@@ -27,7 +27,6 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 
-import Network.Mime as Mime
 import Data.FileEmbed
 
 import Data.Aeson as JSON
@@ -58,16 +57,9 @@ httpResponse status headers body
 
 -- * Helpers
 
-contentType val = Hdr.Header (Hdr.ContentType, val)
-javascript = contentType "application/javascript; charset=utf-8"
-json = contentType "application/json; charset=UTF-8"
-utf8textHdr what = contentType ("text/"<>what<>"; charset=UTF-8")
-
 waiAddHeaders hs r = case r of
    WaiI.ResponseBuilder st hdrs builder -> WaiI.ResponseBuilder st (hs <> hdrs) builder
    WaiI.ResponseFile st hdrs path mFilePart -> WaiI.ResponseFile st (hs <> hdrs) path mFilePart
-
-htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
 
 -- * Caching
 

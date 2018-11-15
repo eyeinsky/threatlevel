@@ -141,7 +141,7 @@ exec jsm = do
 -- purposes the re-embedding of files might take too much time.
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
   mime = path^.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
-  headers = [HR.contentType mime]
+  headers = [Hdr.contentType mime]
   response = WR.rawBl (toEnum 200) headers (bs^.from strict)
   path' = TS.pack path
   in (path,) <$> (WE.pin path' $ WE.staticResponse response)
