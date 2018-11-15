@@ -80,6 +80,9 @@ on event handler = Custom (DOM.toOn event) (render def $ call1 handler $ ex "eve
 post url = DOM.xhrRaw "POST" (ulit $ WR.renderURL url)
 get url = DOM.xhrRaw "GET" (ulit $ WR.renderURL url)
 
+postJs url = DOM.xhrJs "POST" (ulit $ WR.renderURL url)
+getJs url = DOM.xhrJs "GET" (ulit $ WR.renderURL url)
+
 -- * HTML
 
 href :: URL.URL -> Attribute
