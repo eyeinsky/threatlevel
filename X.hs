@@ -133,11 +133,11 @@ exec jsm = do
   browser <- asks (view W.browser)
   stWeb <- WM.getState
   let
-    stJs = stWeb^.WM.jsState
-    c = JS.Render.Indent 2
-    ((_, w), _) = JS.runM (JS.Conf browser True c) stJs jsm
-    anonCall = Par $ AnonFunc Nothing [] w
-  return $ WR.js c $ anonCall
+    state = stWeb^.WM.jsState
+    conf = JS.Render.Indent 2
+    ((_, code), _) = JS.runM (JS.Conf browser True conf) state jsm
+    anonCall = Par $ AnonFunc Nothing [] code
+  return $ WR.js conf $ anonCall
 
 -- * Serving static assets
 
