@@ -75,7 +75,11 @@ htmlDoc head body = todoF $ HtmlDocument (HTML.Document head body)
 page html = todoF $ HtmlDocument $ HTML.docBody $ html
 
 renderedPage = todoF . Raw
-text text = todoF $ Raw (text^.re LL.utf8)
+
+text :: TL.Text -> Response
+text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
+  where hs = [Hdr.utf8text "plain"]
+
 js conf code = todoF $ JS conf code
 json a = todoF $ JSON a
 
