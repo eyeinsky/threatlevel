@@ -136,7 +136,8 @@ exec jsm = do
     stJs = stWeb^.WM.jsState
     c = JS.Render.Indent 2
     ((_, w), _) = JS.runM (JS.Conf browser True c) stJs jsm
-  return $ WR.js c $ call0 $ Par $ AnonFunc Nothing [] w
+    anonCall = Par $ AnonFunc Nothing [] w
+  return $ WR.js c $ anonCall
 
 -- * Serving static assets
 
