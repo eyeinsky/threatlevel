@@ -32,6 +32,7 @@ data Value
 
    | Percent Double
    | Em Double
+   | Rem Double
    | Px Int
    | Int Int
    | Points Double
@@ -61,6 +62,7 @@ prc i = Percent i
 px i = Px i
 pt i = Points i
 em i = Em i
+rem i = Rem i
 vh i   = ViewportHeight i
 vw i   = ViewportWidth  i
 vmin i = ViewportMin  i
@@ -79,6 +81,7 @@ instance Render Value where
 
       Percent a -> pure $ R.tshow a <> "%"
       Em a -> pure $ p a <> "em"
+      Rem a -> pure $ p a <> "rem"
       Px a -> pure $ p a <> "px"
       Points a -> pure $ p a <> "pt"
       Int a -> pure $ p a
