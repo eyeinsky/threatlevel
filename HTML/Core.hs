@@ -76,3 +76,9 @@ metaNC name content = meta
 
 _blank :: Attribute
 _blank = Custom "target" "_blank"
+
+emptyFavicon :: Html
+emptyFavicon = link
+  ! rel "icon"
+  ! href "data:;base64,iVBORw0KGgo="
+  $ pure ()
