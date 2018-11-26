@@ -4,8 +4,8 @@ module X
   ) where
 
 import HTML as Export hiding (
-  -- redefined
-  href, src,
+  -- redefined here
+  href, src, for,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -83,6 +83,9 @@ get url = DOM.xhrRaw "GET" (ulit $ WR.renderURL url)
 
 href :: URL.URL -> Attribute
 href url = HTML.href (WR.renderURL url)
+
+for :: Id -> Attribute
+for id = HTML.for (static $ unId id)
 
 -- * HTTP.Response
 
