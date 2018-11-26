@@ -11,7 +11,7 @@ import Control.Monad.Writer
 
 import Render hiding (concat)
 
-import Pr hiding (id)
+import Pr hiding (id, for)
 import qualified JS
 import DOM.Core
 import DOM.Event
@@ -33,7 +33,7 @@ declareFields [d|
 
 -- * Attributes
 
-concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content", "action", "method", "crossorigin", "integrity", "src", "scope"]
+concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content", "action", "method", "crossorigin", "integrity", "src", "scope", "for"]
 concat <$> mapM (mk [t|Html|]) tags
 
 --
