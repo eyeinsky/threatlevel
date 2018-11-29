@@ -16,8 +16,8 @@ import qualified Data.HashMap.Strict as HM
 import Control.Concurrent
 import qualified Control.Concurrent.Async as Async
 
-import Network.Wai -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
-import Network.Wai.Handler.Warp hiding (getPort) -- (Response, Request, queryString, requestHeaders, pathInfo, requestBody)
+import Network.Wai
+import Network.Wai.Handler.Warp hiding (getPort)
 import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
