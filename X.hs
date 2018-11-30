@@ -20,6 +20,7 @@ import DOM.Event as Export
 import Data.Default as Export
 
 import URL as Export (URL(..))
+import Web.Endpoint as Export hiding (State, Writer, (/))
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
