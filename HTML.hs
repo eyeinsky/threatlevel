@@ -18,8 +18,6 @@ import Render hiding (Conf)
 import DOM.Core
 import HTML.Core hiding ((!), M, map, embed, input)
 import qualified HTML.Core as Core
-import HTTP.Response (utf8textHdr)
-import HTML.Core hiding ((!), M, map, embed)
 
 declareFields [d|
   data Document = Document
