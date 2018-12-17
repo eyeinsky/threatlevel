@@ -7,6 +7,7 @@ module HTML
   ) where
 
 import Control.Monad.Writer
+import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Lens (utf8)
 
 import qualified Network.HTTP.Types as WT
@@ -18,6 +19,13 @@ import DOM.Core
 import HTML.Core hiding ((!), M, map, embed, input)
 import qualified HTML.Core as Core
 import HTTP.Response (utf8textHdr)
+
+declareFields [d|
+  data Document = Document
+    { documentHead' :: Html
+    , documentBody' :: Html
+    }
+  |]
 
 -- * Response
 
@@ -31,3 +39,49 @@ instance Render Document where
 
 input :: Html
 input = Core.input $ pure ()
+
+checkbox :: Html
+checkbox = input ! type_ "checkbox"
+
+placeholder :: TL.Text -> Attribute
+placeholder = Custom "placeholder"
+
+metaNC :: TL.Text -> TL.Text -> Html
+metaNC name content = meta
+  ! Custom "name" name
+  ! Custom "content" content
+  $ pure ()
+
+_blank :: Attribute
+_blank = Custom "target" "_blank"
+
+emptyFavicon :: Html
+emptyFavicon = link
+  ! rel "icon"
+  ! href "data:;base64,iVBORw0KGgo="
+  $ pure ()
+
+
+--
+
+cssTag :: Html -> Html
+cssTag = style ! type_ "text/css"
+
+jsTag :: Html -> Html
+jsTag = script ! type_ "text/javascript"
+
+favicon :: TL.Text -> Html
+favicon adr = link
+  ! rel "shortcut icon"
+  ! type_ "image/x-icon"
+  ! href adr
+  $ pure ()
+
+property :: TL.Text -> TL.Text -> Html
+property name value = meta ! Custom "property" name ! Custom "content" value $ pure ()
+
+og :: TL.Text -> TL.Text -> Html
+og name value = property ("og:" <> name) value
+
+docBody :: Html -> Document
+docBody = Document (return ())

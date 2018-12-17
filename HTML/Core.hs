@@ -24,61 +24,7 @@ data Html5
 type HTML c = XML Html5 AttributeSet c
 type Html = Writer [HTML Both] ()
 
-declareFields [d|
-  data Document = Document
-    { documentHead' :: Html
-    , documentBody' :: Html
-    }
-  |]
-
 -- * Attributes
 
 concat <$> mapM (mkAttr 'Custom [t|Attribute|]) ["href", "type", "rel", "http-equiv", "content", "action", "method", "crossorigin", "integrity", "src", "scope", "for"]
 concat <$> mapM (mk [t|Html|]) tags
-
---
-
-cssTag :: Html -> Html
-cssTag = style ! type_ "text/css"
-
-jsTag :: Html -> Html
-jsTag = script ! type_ "text/javascript"
-
-favicon :: TL.Text -> Html
-favicon adr = link
-  ! rel "shortcut icon"
-  ! type_ "image/x-icon"
-  ! href adr
-  $ pure ()
-
-property :: TL.Text -> TL.Text -> Html
-property name value = meta ! Custom "property" name ! Custom "content" value $ pure ()
-
-og :: TL.Text -> TL.Text -> Html
-og name value = property ("og:" <> name) value
-
-docBody :: Html -> Document
-docBody = Document (return ())
-
--- | Additional shorthands
-
-checkbox :: Html
-checkbox = input ! type_ "checkbox" $ pure ()
-
-placeholder :: TL.Text -> Attribute
-placeholder = Custom "placeholder"
-
-metaNC :: TL.Text -> TL.Text -> Html
-metaNC name content = meta
-  ! Custom "name" name
-  ! Custom "content" content
-  $ pure ()
-
-_blank :: Attribute
-_blank = Custom "target" "_blank"
-
-emptyFavicon :: Html
-emptyFavicon = link
-  ! rel "icon"
-  ! href "data:;base64,iVBORw0KGgo="
-  $ pure ()
