@@ -15,7 +15,8 @@ import Pr hiding (head)
 import XML
 import Render hiding (Conf)
 import DOM.Core
-import HTML.Core hiding ((!), M, map, embed)
+import HTML.Core hiding ((!), M, map, embed, input)
+import qualified HTML.Core as Core
 import HTTP.Response (utf8textHdr)
 
 -- * Response
@@ -25,3 +26,8 @@ instance Render Document where
     where
       html' = html (head h >> b)
       tl = ("<!DOCTYPE html>" <>) <$> (renderM html')
+
+-- * Shorthands
+
+input :: Html
+input = Core.input $ pure ()
