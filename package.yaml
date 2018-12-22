@@ -86,7 +86,7 @@ library:
   - JS.Lib.Async
   - JS.Render
   - JS
-  - JS.Upstream
+  - JS.Roundtrip
 
   - X
   - X.DOM
