@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module JS.Roundtrip
-  ( module JS
+  ( Data, Generic
+  , module JS
+  , obj
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as BL

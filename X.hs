@@ -78,8 +78,8 @@ on event handler = Custom (DOM.toOn event) (render def $ call1 handler $ ex "eve
     -- ^ todo: find a generic way to get the name, even for literal
     -- expressinos.
 
-post url = DOM.xhrRaw "POST" (ulit $ WR.renderURL url)
-get url = DOM.xhrRaw "GET" (ulit $ WR.renderURL url)
+post url dt cb = DOM.xhrRaw "POST" (ulit $ WR.renderURL url) dt cb
+get url dt cb = DOM.xhrRaw "GET" (ulit $ WR.renderURL url) dt cb
 
 postJs url = DOM.xhrJs "POST" (ulit $ WR.renderURL url)
 getJs url = DOM.xhrJs "GET" (ulit $ WR.renderURL url)
