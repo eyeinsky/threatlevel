@@ -69,7 +69,6 @@ library:
   - HTML
   - Web.CSS
   - Web.Endpoint
-  - Web.FRP
   - Web.Monad
   - Web.Response
   - XML
