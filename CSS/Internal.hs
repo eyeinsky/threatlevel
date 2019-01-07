@@ -48,6 +48,8 @@ data Value
    | ColorRGB Word8 Word8 Word8
    | ColorRGBA Word8 Word8 Word8 Double
 
+   | Url TL.Text
+
    | Compound (D.DList Value)
 
 instance Semigroup Value where
@@ -96,6 +98,7 @@ instance Render Value where
       ColorRGB a b c -> pure $ format "rgb({},{},{})" (a,b,c)
       ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
 
+      Url tl -> pure $ "url(\"" <> tl <> "\")"
       Compound l -> R.intercalate " " <$> mapM renderM (D.toList l)
       where
         hex a = TL.pack $ showHex a ""
