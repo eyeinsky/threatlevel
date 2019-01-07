@@ -90,6 +90,7 @@ library:
   - X
   - X.DOM
   - X.Auth.Google
+  - X.Widgets
   other-modules:
   - Pr
   - TH
