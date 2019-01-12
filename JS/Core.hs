@@ -19,6 +19,9 @@ module JS.Core
    )
    where
 
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
+
 import Prelude2 hiding ((.-), for, (.=), (.>), not)
 import qualified Prelude2 as Pr
 import Prelude (Fractional, fromRational)
@@ -29,14 +32,14 @@ import qualified Data.Hashable as H
 
 import Control.Monad.State
 
-import Render (render, putStrLn)
+import Render (render)
 import JS.Types as JT
 import JS.Syntax
 import JS.Render hiding ((=:))
 import JS.DSL
 
 pr :: M r a -> IO ()
-pr = Render.putStrLn . render (Indent 2) . snd . fst . runM def def
+pr = TL.putStrLn . render (Indent 2) . snd . fst . runM def def
 
 -- * Modules
 
@@ -44,7 +47,7 @@ lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = let
     codeText = render Minify . snd . fst . runM def def $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
-    nameExpr = EName $ Name $ "h" <> replace "-" "_" (tshow codeHash)
+    nameExpr = EName $ Name $ "h" <> TL.replace "-" "_" (tshow codeHash)
   in do
   set <- gets (^.library)
   when (Pr.not $ codeHash `S.member` set) $ do

@@ -99,7 +99,7 @@ instance Render Value where
       ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
 
       Url tl -> pure $ "url(\"" <> tl <> "\")"
-      Compound l -> R.intercalate " " <$> mapM renderM (D.toList l)
+      Compound l -> TL.intercalate " " <$> mapM renderM (D.toList l)
       where
         hex a = TL.pack $ showHex a ""
         p = R.tshow
@@ -130,7 +130,7 @@ declareFields [d|
 
 instance Render SimpleSelector where
    renderM (SimpleSelector mt mi cs ps)
-     = g mt <+> g mi <+> (R.concat <$> (f cs <+> f ps))
+     = g mt <+> g mi <+> (TL.concat <$> (f cs <+> f ps))
       where f = mapM renderM
             g = maybe (pure "") renderM
 
@@ -139,7 +139,7 @@ data Declaration = Declaration Property Value
 instance Render Declaration where
    renderM (Declaration p v) = R.mseq [renderM p, pure ":", renderM v]
 instance Render [Declaration] where
-   renderM ds = R.concat . map (<> ";") <$> mapM renderM ds
+   renderM ds = TL.concat . map (<> ";") <$> mapM renderM ds
 
 -- ** Selector
 
@@ -178,7 +178,7 @@ instance Render KeyframeBlock where
 
 type CSS = [Rule]
 instance Render CSS where
-   renderM li = R.unlines <$> mapM renderM (filter (not . isEmpty) li)
+   renderM li = TL.unlines <$> mapM renderM (filter (not . isEmpty) li)
      where
        isEmpty r = case r of
          Qualified _ ds -> null ds
@@ -194,14 +194,14 @@ instance Render Rule where
       Qualified p ds -> renderM p <+> (R.curly <$> (renderM ds))
       Keyframes name blocks -> pure "@keyframes " <+> pure name <+> blocks'
         where
-          blocks' = R.curly . R.concat <$> mapM renderM blocks
+          blocks' = R.curly . TL.concat <$> mapM renderM blocks
       AtRule name tl rs -> let
         query = "@" <> name <> " " <> tl
-        in pure query <+> (R.curly . R.concat <$> mapM renderM rs)
+        in pure query <+> (R.curly . TL.concat <$> mapM renderM rs)
 
 data Prelude = Selectors [Selector]
 instance Render Prelude where
-   renderM (Selectors ss) = R.intercalate "," <$> mapM renderM ss
+   renderM (Selectors ss) = TL.intercalate "," <$> mapM renderM ss
 
 -- ** Helpers
 

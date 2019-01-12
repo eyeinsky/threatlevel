@@ -3,6 +3,7 @@ module JS.Render
   , JT.Conf(..)
   ) where
 
+import qualified Data.Text.Lazy as TL
 import Prelude2 hiding (True, False, Empty, intercalate, unwords, unlines, replicate, Const)
 import Control.Monad.Reader
 
@@ -17,7 +18,7 @@ instance Render (Code a) where
   renderM li = do
     conf <- ask
     case conf of
-      JT.Indent n -> uncode li <&> unlines
+      JT.Indent n -> uncode li <&> TL.unlines
       JT.Minify -> uncode li <&> mconcat
 
 
@@ -142,7 +143,7 @@ instance Render ULiteral where
     ULString text -> pure $ q'' text
     ULDouble dbl -> pure $ tshow dbl
     ULInteger i -> pure $ tshow i
-    ULBool b -> pure $ toLower $ tshow b
+    ULBool b -> pure $ TL.toLower $ tshow b
     ULArray li -> ang . uncomma <$> mapM renderM li
     ULObject obj -> curly . uncomma <$> mapM f obj
       where f (e,expr) = either renderM renderM e <+> pure ":" <+> renderM expr
@@ -174,7 +175,7 @@ uncode code = do
 
 -- * Simple helpers
 
-spaces n = replicate (fromIntegral n) " "
+spaces n = TL.replicate (fromIntegral n) " "
 
 inf i a b = a <> i <> b
 col (k, v) = inf ": " <$> either renderM renderM k <*> renderM v

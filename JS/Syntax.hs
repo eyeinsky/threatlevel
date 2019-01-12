@@ -97,8 +97,8 @@ instance ToULiteral Rational where uliteral = ULDouble . fromRational
 instance ToULiteral Double  where uliteral = ULDouble
 instance ToULiteral Bool    where uliteral = ULBool
 instance ToULiteral T.Text  where uliteral = ULString
-instance ToULiteral TL.Text where uliteral = uliteral . toStrict
-instance ToULiteral String  where uliteral = uliteral . pack
+instance ToULiteral TL.Text where uliteral = uliteral . TL.toStrict
+instance ToULiteral String  where uliteral = uliteral . TL.pack
 instance ToULiteral [ Expr a ] where
    uliteral = ULArray . map Cast
 instance ToULiteral a => ToULiteral [(a, Expr b)] where

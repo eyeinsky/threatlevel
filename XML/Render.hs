@@ -46,7 +46,7 @@ instance Render (XMLA ns Both) where
         f attrText = TL.null attrText ? "" $ (" " <> attrText)
         tag = static $ unTagName n
         rest = case htmls of
-          _ : _ -> let sub = concat (map render' htmls)
+          _ : _ -> let sub = TL.concat (map render' htmls)
             in ">" <> sub <> "</" <> tag <> ">"
           _ -> "/>"
     Text tl -> pure $ htmlTextEscape tl
@@ -55,7 +55,7 @@ instance Render (XMLA ns Both) where
     Embed a -> renderM a
 
 instance Render [XMLA ns Both] where
-  renderM = pure . concat . map render'
+  renderM = pure . TL.concat . map render'
 
 instance Render (XMLM ns Both) where
   renderM htmlm = pure . render' . execWriter $ htmlm
