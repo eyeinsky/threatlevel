@@ -26,6 +26,7 @@ dependencies:
 - file-embed
 - hashable
 - http-types
+- http-client
 - identifiers
 - mime-types
 - mtl
@@ -90,6 +91,7 @@ library:
   - X
   - X.DOM
   - X.Auth.Google
+  - X.Google.Spreadsheet
   - X.Widgets
   other-modules:
   - Pr
