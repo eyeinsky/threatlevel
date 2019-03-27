@@ -6,11 +6,15 @@ module URL.ToPayload
 import Pr hiding (null, un)
 import qualified Prelude2 as P
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
+import qualified Data.Text as TS
+import qualified Data.Text.Encoding as TS
 import qualified Data.Text as T
 import Data.Text.Format
 
 import URL hiding (T)
 import HTTP.Common hiding (un)
+import Network.HTTP.Types
 import Data.Hashable (Hashable)
 
 deriving instance Hashable Port
@@ -84,10 +88,14 @@ instance ToPayload Params where
    toPayload (Params ps) = P.null ps ? "" $ expl
       where
         expl = "?" <> TL.intercalate "&" (map f ps)
-        f (a, b) = maybe a' (\b' -> a' <> "=" <> TL.fromStrict b') b
+        f (a, b) = maybe a' (\b' -> a' <> "=" <> TL.fromStrict (urlEncode' b')) b
           where
             a' = TL.fromStrict a
 
 instance ToPayload Fragment where
    toPayload (Fragment a) = TL.fromStrict $ T.null a ? "" $ expl
       where expl = "#" <> a
+
+urlEncode' :: TS.Text -> TS.Text
+urlEncode' = TS.encodeUtf8 ^ urlEncode True ^ TS.decodeUtf8
+-- ^ True: encodes ","
