@@ -1,0 +1,66 @@
+name: web-js
+version: '0.1.0.0'
+category: Language
+author: Carl Eyeinsky
+maintainer: eyeinsky9@gmail.com
+license: MIT
+default-extensions:
+- Arrows
+- BangPatterns
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- KindSignatures
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- ScopedTypeVariables
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeFamilies
+- TypeOperators
+- TypeSynonymInstances
+- UndecidableInstances
+dependencies:
+- base
+- aeson
+- containers
+- hashable
+- hs-minu
+- identifiers
+- mtl
+- render
+- template-haskell
+- text
+- web-browser
+library:
+  exposed-modules:
+  - JS.Types
+  - JS.Syntax
+  - JS.DSL
+  - JS.DSL.Internal
+  - JS.API
+  - JS.Derive
+  - JS.Lib
+  - JS.Lib.Sleep
+  - JS.Lib.Async
+  - JS.Render
+  - JS
+  other-modules:
+  - JS.Examples
+  - JS.Core
+  - JS.DSL.Identifiers

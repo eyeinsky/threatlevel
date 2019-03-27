@@ -1,0 +1,7 @@
+resolver: lts-7.12
+packages:
+- '.'
+- '../hs-minu'
+extra-deps: []
+flags: {}
+extra-package-dbs: []

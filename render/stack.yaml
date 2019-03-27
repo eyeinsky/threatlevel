@@ -1,0 +1,10 @@
+resolver: lts-7.12
+packages:
+- '.'
+- location: '../hs-minu'
+  extra-dep: true
+extra-deps: []
+flags: {}
+extra-package-dbs: []
+extra-include-dirs: [/usr/local/opt/openssl/include]
+extra-lib-dirs: [/usr/local/opt/openssl/lib]
