@@ -1,0 +1,45 @@
+name: render
+version: '0.1.0.0'
+license: BSD3
+default-extensions:
+- Arrows
+- BangPatterns
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- KindSignatures
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RecursiveDo
+- ScopedTypeVariables
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeFamilies
+- TypeOperators
+- TypeSynonymInstances
+- InstanceSigs
+dependencies:
+- base
+- bytestring
+- hs-minu
+- mtl
+- text
+library:
+  exposed-modules:
+  - Render

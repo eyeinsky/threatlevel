@@ -1,0 +1,54 @@
+name: web-url
+version: 0.0.1
+synopsis: Url
+maintainer: eyeinsky <eyeinsky9@gmail.com>
+license: MIT
+github: eyeinsky/web-url
+category: Web
+
+dependencies:
+  - base
+  - lens
+  - text
+  - attoparsec
+
+library:
+  exposed-modules:
+    - URL
+    - URL.Core
+    - URL.Parse
+
+default-extensions:
+  - Arrows
+  - BangPatterns
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveDataTypeable
+  - DeriveFunctor
+  - DeriveGeneric
+  - EmptyDataDecls
+  - ExtendedDefaultRules
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - InstanceSigs
+  - KindSignatures
+  - MultiParamTypeClasses
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - PolyKinds
+  - QuasiQuotes
+  - RecursiveDo
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TemplateHaskell
+  - TupleSections
+  - TypeFamilies
+  - TypeInType
+  - TypeOperators
+  - TypeSynonymInstances
