@@ -91,6 +91,7 @@ library:
   - X
   - X.DOM
   - X.Auth.Google
+  - X.Google.Maps
   - X.Google.Spreadsheet
   - X.Widgets
   other-modules:
