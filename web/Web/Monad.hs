@@ -8,6 +8,7 @@ import Data.Default
 import Control.Monad.RWS as RWS
 import qualified Control.Monad.Writer as MW
 import qualified Control.Monad.State as MS
+import Control.Monad.Fail
 
 import Network.Wai
 
@@ -165,6 +166,10 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
     ((a, f :: w -> w), ss, ww) <- f r s
     pass $ return (a, f)
     return (a, ss, ww)
+
+instance MonadFail m => MonadFail (WebT m) where
+  fail _ = undefined
+
 
 -- *** Other is MonadWeb if base is MonadWeb
 
