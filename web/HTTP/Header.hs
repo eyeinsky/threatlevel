@@ -129,9 +129,6 @@ headerMap =
    ]
 p a b = (b,a)
 
---
-accHtml = "text/html"
-
 deriving instance Show HeaderName
 deriving instance Eq HeaderName
 deriving instance Show Header
@@ -140,10 +137,12 @@ deriving instance Eq Header
 
 -- Conversion to http-types headers (for Wai/Warp)
 
-cc (Header (hn, t)) = (n,v) :: H.Header
-   where n = CI.mk $ f $ find hn headerMap
-         v = f t
-         f = TE.encodeUtf8 . TL.toStrict
+cc :: Header -> H.Header
+cc (Header (hn, t)) = (n,v)
+   where
+     n = CI.mk $ f $ find hn headerMap
+     v = f t
+     f = TE.encodeUtf8 . TL.toStrict
 
 
 
