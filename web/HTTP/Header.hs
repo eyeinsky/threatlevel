@@ -63,6 +63,9 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    Warning :: HeaderName
    WWWAuthenticate :: HeaderName
    StrictTransportSecurity :: HeaderName
+   -- ** CSP
+   ContentSecurityPolicy :: HeaderName
+   ContentSecurityPolicyReportOnly :: HeaderName
 
     -- Entity Headers :: HeaderName
    Allow :: HeaderName
@@ -121,6 +124,8 @@ headerMap =
    , p "Expires"              Expires
    , p "Last-Modified"        LastModified
    , p "Content-Transfer-Encoding" ContentTransferEncoding
+   , p "Content-Security-Policy" ContentSecurityPolicy
+   , p "Content-Security-Policy-Report-Only" ContentSecurityPolicyReportOnly
    ]
 p a b = (b,a)
 
