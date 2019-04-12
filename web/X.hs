@@ -130,15 +130,39 @@ src url = HTML.src (WE.renderURL url)
 
 -- * Endpoint
 
-exec jsm = do
+getRenderConf = WM.getConf <&> view (W.jsConf. JS.renderConf)
+
+-- | Render JSM to Expr a within the current MonadWeb context.
+evalJSM
+  :: forall s m b a. (MonadReader s m, W.HasBrowser s W.Browser, MonadWeb m)
+  => JS.M b a -> m (Code b)
+evalJSM jsm = do
   browser <- asks (view W.browser)
   stWeb <- WM.getState
+  conf' <- WM.getConf
   let
     state = stWeb^.WM.jsState
-    conf = JS.Render.Indent 2
-    ((_, code), _) = JS.runM (JS.Conf browser True conf) state jsm
-    anonCall = Par $ AnonFunc Nothing [] code
-  return $ WR.js conf $ anonCall
+    conf = conf' ^. W.jsConf.JS.renderConf
+    ((_, code :: Code b), _) = JS.runM (JS.Conf browser True conf) state jsm
+  return code
+
+exec'
+  :: (MonadReader s m, W.HasBrowser s W.Browser, MonadWeb m)
+  => (Code b -> Expr x) -> JS.M b a -> m WR.Response
+exec' f jsm = do
+  code <- evalJSM jsm
+  conf <- getRenderConf
+  return $ WR.js conf $ f code
+
+-- | An anonymous function definition expression is returned
+exec = exec' f
+  where
+    f = Par . AnonFunc Nothing []
+
+execCall = exec' f
+  where
+    f = call0 . Par . AnonFunc Nothing []
+
 
 -- * Serving static assets
 
