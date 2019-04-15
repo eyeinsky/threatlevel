@@ -184,20 +184,25 @@ instance Render CSS where
          Qualified _ ds -> null ds
          Keyframes name blocks -> False
          AtRule _ _ rs -> null rs
+         FontFace rs -> null rs
 
 data Rule where
   Qualified :: Prelude -> [Declaration] -> Rule
   Keyframes :: TL.Text -> [KeyframeBlock] -> Rule
   AtRule :: TL.Text -> TL.Text -> CSS -> Rule
+  FontFace :: [Declaration] -> Rule
 instance Render Rule where
    renderM r = case r of
-      Qualified p ds -> renderM p <+> (R.curly <$> (renderM ds))
+      Qualified p ds -> renderM p <+> curlyRules ds
       Keyframes name blocks -> pure "@keyframes " <+> pure name <+> blocks'
         where
           blocks' = R.curly . TL.concat <$> mapM renderM blocks
       AtRule name tl rs -> let
         query = "@" <> name <> " " <> tl
         in pure query <+> (R.curly . TL.concat <$> mapM renderM rs)
+      FontFace ds -> pure "@font-face " <+> curlyRules ds
+      where
+        curlyRules ds = R.curly <$> (renderM ds)
 
 data Prelude = Selectors [Selector]
 instance Render Prelude where

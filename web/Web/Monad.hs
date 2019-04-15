@@ -95,6 +95,8 @@ class Monad m => MonadWeb m where
    nextId :: m TL.Text
    getState :: m State
    getConf :: m Conf
+   writeRules
+     :: ([CSS.Declaration] -> [CSS.Rule]) -> CSSM.DM a -> m ()
 
 cssF mk m = WebT $ do
   state0 <- gets (^.cssState)
@@ -130,6 +132,15 @@ instance (Monad m) => MonadWeb (WebT m) where
    getState = WebT get
    getConf = WebT ask
 
+   writeRules g dm = WebT $ do
+     let ds = execWriter dm :: [CSS.Declaration]
+     tell $ mempty & cssCode .~ g ds
+
+
+instance CSSM.HasDecls [CSS.Declaration] [CSS.Declaration] where
+  decls = id
+
+fontFace = writeRules (\ds -> [CSS.FontFace ds])
 
 -- ** Instances
 
@@ -165,6 +176,7 @@ instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
   nextId = lift $ nextId
   getState = lift getState
   getConf = lift getConf
+  writeRules a b = lift $ writeRules a b
 
 instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   js = lift . js
@@ -174,6 +186,7 @@ instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
   nextId = lift $ nextId
   getState = lift getState
   getConf = lift getConf
+  writeRules a b = lift $ writeRules a b
 
 -- ** Helpers
 
