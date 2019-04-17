@@ -247,6 +247,12 @@ instance SimpleSelectorFrom (XMLM ns c -> XMLM ns c) where
 instance SimpleSelectorFrom (XMLM ns c) where
   ssFrom a = getTag a
 
+fontSrc :: URL -> Maybe Text -> Value
+fontSrc url mbFmt
+  = Url (renderURL url) <> maybe "" f mbFmt
+  where
+    f fmt = Word $ "format(\"" <> fmt <> "\")"
+
 -- * Html + CSS + MonadWeb
 
 -- | Generate id in the MonadWeb, apply styles to it, attach it to the
