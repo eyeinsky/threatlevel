@@ -51,7 +51,7 @@ import Language.Haskell.TH
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 
-import Prelude2 as P
+import X.Prelude as P
 import Data.Default
 import Render
 import JS hiding (String)
