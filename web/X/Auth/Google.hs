@@ -5,6 +5,7 @@ import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString.Lazy  as BL
 import qualified Data.ByteString as BS
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import qualified Network.Wreq as Wreq
@@ -30,14 +31,14 @@ platform = script
   ! Custom "defer" "true"
   $ ""
 
-clientId :: TL.Text -> Html
+clientId :: TS.Text -> Html
 clientId id = meta
   ! Custom "name" "google-signin-client_id"
   ! Custom "content" (id <> suffix)
   $ pure ()
   where suffix = ".apps.googleusercontent.com"
 
-googleAuthHead :: TL.Text -> Html
+googleAuthHead :: TS.Text -> Html
 googleAuthHead id = do
   platform
   clientId id

@@ -1,16 +1,17 @@
 module DOM.Event where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Prelude2
 import Render
 
 
 class Show a => Event a where
-  eventString :: a -> Render.Text
-  eventString a = TL.toLower $ tshow a
+  eventString :: a -> TS.Text
+  eventString a = TS.toLower $ TS.pack $ show a
 
 -- | Make 'on$event' attribute
-toOn :: Event a => a -> Render.Text
+toOn :: Event a => a -> TS.Text
 toOn = ("on"<>) . eventString
 
 instance Event MouseEvent

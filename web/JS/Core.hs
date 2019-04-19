@@ -3,7 +3,7 @@ module JS.Core
 
    -- | JS.Syntax reexports
      Statement(BareExpr)
-   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc)
+   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw)
    , Attr(..), Name(..)
    , Literal(..)
    , Code
@@ -18,6 +18,7 @@ module JS.Core
    )
    where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Prelude (Float, fromRational, toRational, Fractional, Rational)
@@ -81,7 +82,7 @@ lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = let
     codeText = render Minify . snd . fst . runM def def $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
-    nameExpr = EName $ Name $ "h" <> TL.replace "-" "_" (tshow codeHash)
+    nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
   in do
   set <- gets (^.library)
   when (Pr.not $ codeHash `S.member` set) $ do

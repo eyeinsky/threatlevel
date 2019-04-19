@@ -91,7 +91,7 @@ instance Render (Expr a) where
 
     where
       function kw mbName as code = mseq
-        [ pure $ kw <> maybe "" getName mbName
+        [ pure $ kw <> TL.fromStrict (maybe "" getName mbName)
         , unargs as
         , pure " "
         , curlyCode code
@@ -133,7 +133,7 @@ instance Render Attr where
 
 instance Render Name where
   type Conf Name = JT.Conf
-  renderM (Name s) = pure s
+  renderM (Name s) = pure $ TL.fromStrict s
 
 -- ** Literals
 
@@ -151,7 +151,7 @@ instance Render Literal where
 -- * Helpers
 
 -- | Put printed code in curly braces, code in braces is indented.
-curlyCode :: Code a -> Reader (Conf (Code a)) Text
+curlyCode :: Code a -> Reader (Conf (Code a)) TL.Text
 curlyCode code = do
   conf <- ask
   inner <- case conf of

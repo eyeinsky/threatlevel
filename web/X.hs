@@ -72,7 +72,7 @@ import qualified Web.Endpoint as WE
 
 -- | Create inline on-event attribute
 on :: DOM.Event e => e -> Expr a -> Attribute
-on event handler = Custom (DOM.toOn event) (render def $ call1 handler $ ex "event")
+on event handler = Custom (DOM.toOn event) (TL.toStrict $ render def $ call1 handler $ ex "event")
   where
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
@@ -87,7 +87,7 @@ getJs url = DOM.xhrJs "GET" (lit $ WR.renderURL url)
 -- * HTML
 
 href :: URL.URL -> Attribute
-href url = HTML.href (WR.renderURL url)
+href url = HTML.href (TL.toStrict $ WR.renderURL url)
 
 for :: Id -> Attribute
 for id = HTML.for (static $ unId id)
@@ -120,7 +120,7 @@ class ToHtml a where toHtml :: a -> Html
 instance ToHtml P.Int where toHtml = show ^ TL.pack ^ text
 instance ToHtml P.String where toHtml = TL.pack ^ text
 
-includeCss' :: TL.Text -> Html
+includeCss' :: TS.Text -> Html
 includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href url $ pure ()
 
 includeCss :: URL.URL -> Html
@@ -130,7 +130,7 @@ includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
 src :: URL.URL -> Attribute
-src url = HTML.src (WE.renderURL url)
+src url = HTML.src (TL.toStrict $ WE.renderURL url)
 
 -- * Endpoint
 

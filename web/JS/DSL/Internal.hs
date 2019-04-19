@@ -13,7 +13,7 @@ import qualified Data.Set as S
 import qualified Data.Hashable as H
 
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
+import qualified Data.Text as TS
 import qualified Data.Text.IO as TLIO
 import Data.String
 
@@ -32,7 +32,7 @@ import Web.Browser
 
 -- * Monad
 
-type Idents = [TL.Text]
+type Idents = [TS.Text]
 type W r = Code r
 
 declareFields [d|
@@ -46,7 +46,7 @@ declareFields [d|
 declareFields [d|
   data State = State
     { stateIdents :: Idents
-    , stateNamedVars :: S.Set TL.Text
+    , stateNamedVars :: S.Set TS.Text
     , stateLibrary :: S.Set Int
     }
   |]
@@ -63,7 +63,7 @@ instance {-# OVERLAPS #-} (HasConf c Conf) => HasBrowser c Browser where
 
 
 instance Default State where
-  def = State (map TL.fromStrict identifiers) S.empty S.empty
+  def = State identifiers S.empty S.empty
 
 instance Default Conf where
   def = Conf Unknown True (JS.Render.Indent 2)
@@ -86,8 +86,8 @@ fromNext b s0 m = (w, s1)
 
 next :: M r Name
 next = do
-  name :: TL.Text <- IS.next idents
-  set :: S.Set TL.Text <- gets (^.namedVars)
+  name :: TS.Text <- IS.next idents
+  set :: S.Set TS.Text <- gets (^.namedVars)
   if S.member name set
     then next
     else return $ Name name
@@ -106,7 +106,7 @@ bind kw expr name = do
    return $ Cast $ EName name
    where define name expr = tell [ kw name expr ]
 
-pushNamedExpr :: TL.Text -> Expr a -> M r TL.Text
+pushNamedExpr :: TS.Text -> Expr a -> M r TS.Text
 pushNamedExpr n e = do
    modify (namedVars %~ S.insert n)
    return n
@@ -187,4 +187,4 @@ doCall f a = FuncCall f' (a' <> args)
    where (f', a', i) = fapply f a
          args = map (ex . intPref "a") [1..i]
 
-intPref p i = p <> tshow i
+intPref p i = p <> TL.toStrict (tshow i)

@@ -3,6 +3,7 @@ module XML.Core
   , classes
   ) where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
@@ -59,9 +60,9 @@ embed xml = tell $ map Embed $ execWriter xml
 -- * Attribute
 
 data Attribute where
-  Custom :: TL.Text -> TL.Text -> Attribute
+  Custom :: TS.Text -> TS.Text -> Attribute
   OnEvent :: Event event => event -> JS.Expr a -> Attribute
-  Data ::  TL.Text -> TL.Text -> Attribute
+  Data ::  TS.Text -> TS.Text -> Attribute
   AttrClass :: [Class] -> Attribute
   AttrId :: Id -> Attribute
 
@@ -69,7 +70,7 @@ declareFields [d|
   data AttributeSet = AttributeSet
     { attributeSetId :: Maybe Id
     , attributeSetClasses :: [Class]
-    , attributeSetAttrs :: HM.HashMap TL.Text Attribute
+    , attributeSetAttrs :: HM.HashMap TS.Text Attribute
     }
   |]
 

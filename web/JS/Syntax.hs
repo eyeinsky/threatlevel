@@ -6,10 +6,9 @@ module JS.Syntax
    where
 
 import Prelude2 hiding (True, False, Empty, intercalate, unwords, unlines, replicate)
-import Prelude (Float, fromRational, toRational, Fractional, Rational)
 
 import Prelude (fromIntegral)
-import qualified Data.Text as T
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import Control.Monad.Reader (ask, withReader)
@@ -42,7 +41,7 @@ data Statement a where
 data Expr a where
    Assign    :: Expr a -> Expr b    -> Expr b
    Cast      :: Expr a              -> Expr b
-   Raw       :: Text                -> Expr a -- inject raw js code
+   Raw       :: TL.Text             -> Expr a -- inject raw js code
    Par       :: Expr a              -> Expr a -- parenthesis
    EName     :: Name                -> Expr a -- name
    EAttr     :: Attr                -> Expr a -- expr.name
@@ -73,7 +72,11 @@ data Expr a where
    Await     :: Expr a -> Expr b
 
 data FormalArgs = FA [Text]
-data Name = Name { getName :: Text }
+data Name = Name { getName :: TS.Text }
+
+instance IsString Name where
+  fromString = Name . TS.pack
+
 data Attr = forall a. Attr (Expr a) Name
 
 -- ** Operators
@@ -83,7 +86,7 @@ data OpExpr a where
    OpUnary :: UOp -> Expr a -> OpExpr b
 
 data Literal
-   = String T.Text
+   = String TS.Text
    | Double Double
    | Integer Integer
    | Bool Bool
@@ -109,7 +112,7 @@ instance Args (b, c)
 
 ex txt = EName $ Name txt
 
-(!.) :: Expr a -> Text -> Expr b
+(!.) :: Expr a -> TS.Text -> Expr b
 (!.) expr attr = EAttr $ Attr (Cast expr) (Name attr)
 
 

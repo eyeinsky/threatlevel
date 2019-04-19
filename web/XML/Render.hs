@@ -1,5 +1,6 @@
 module XML.Render where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
@@ -14,9 +15,9 @@ import qualified JS.Render
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
-    Custom k v -> eq k v
-    OnEvent et expr -> eq (toOn et) (renderJS expr)
-    Data k v -> eq ("data-" <> k) v
+    Custom k v -> eq (TL.fromStrict k) (TL.fromStrict v)
+    OnEvent et expr -> eq (TL.fromStrict $ toOn et) (renderJS expr)
+    Data k v -> eq (TL.fromStrict $ "data-" <> k) (TL.fromStrict v)
 
 eq k v = k <> "=" <> q v
   where
@@ -26,12 +27,12 @@ instance Render AttributeSet where
   renderM attrSet = fmap TL.unwords $ (catMaybes [id',  cs] <>) <$> rest
     where
       id' :: Maybe TL.Text
-      id' = (eq "id" . static . unId) <$> attrSet^.id
+      id' = (eq "id" . TL.fromStrict . static . unId) <$> attrSet^.id
       cs :: Maybe TL.Text
       cs = let cs = attrSet^.classes
         in null cs
           ? Nothing
-          $ Just $ eq "class" (TL.unwords $ map (static . unClass) cs)
+          $ Just $ eq "class" (TL.unwords $ map (TL.fromStrict . static . unClass) cs)
       rest = mapM renderM $ HM.elems (attrSet^.attrs)
 
 instance Render (XMLA ns Both) where
@@ -44,7 +45,7 @@ instance Render (XMLA ns Both) where
       ]
       where
         f attrText = TL.null attrText ? "" $ (" " <> attrText)
-        tag = static $ unTagName n
+        tag = TL.fromStrict . static $ unTagName n
         rest = case htmls of
           _ : _ -> let sub = TL.concat (map render' htmls)
             in ">" <> sub <> "</" <> tag <> ">"

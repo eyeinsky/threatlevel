@@ -3,6 +3,7 @@ module DOM.Core where
 
 import Prelude2
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import qualified JS
@@ -22,7 +23,7 @@ data Location
 -- * Value
 
 data Value
-  = Static TL.Text
+  = Static TS.Text
   | Dynamic (JS.Expr ())
 makeClassyPrisms ''Value
 
@@ -38,7 +39,7 @@ instance IsString Value where
   fromString = Static . fromString
 
 instance Render Value where
-  renderM (Static v) = pure v
+  renderM (Static v) = pure $ TL.fromStrict v
 
 deriving instance Show TagName
 instance Show Value where

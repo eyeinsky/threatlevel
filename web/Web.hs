@@ -8,6 +8,7 @@ module Web
    , module Web
    ) where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import Pr
@@ -22,8 +23,8 @@ import Render hiding (Conf)
 
 -- * Inline styling
 
-styleAttr :: TL.Text -> Attribute
+styleAttr :: TS.Text -> Attribute
 styleAttr = Custom "style"
 
 decls :: Browser -> DeclM a -> Attribute
-decls browser = renderDecls browser ^ styleAttr
+decls browser = renderDecls browser ^ TL.toStrict ^ styleAttr

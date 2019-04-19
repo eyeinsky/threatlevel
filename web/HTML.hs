@@ -7,13 +7,14 @@ module HTML
   ) where
 
 import Control.Monad.Writer
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Lens (utf8)
 
 import qualified Network.HTTP.Types as WT
 
 import Pr hiding (head)
-import XML
+import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core
 import HTML.Core hiding ((!), M, map, embed, input)
@@ -42,10 +43,10 @@ input = Core.input $ pure ()
 checkbox :: Html
 checkbox = input ! type_ "checkbox"
 
-placeholder :: TL.Text -> Attribute
+placeholder :: TS.Text -> Attribute
 placeholder = Custom "placeholder"
 
-metaNC :: TL.Text -> TL.Text -> Html
+metaNC :: TS.Text -> TS.Text -> Html
 metaNC name content = meta
   ! Custom "name" name
   ! Custom "content" content
@@ -71,17 +72,17 @@ cssTag = style ! type_ "text/css"
 jsTag :: Html -> Html
 jsTag = script ! type_ "text/javascript"
 
-favicon :: TL.Text -> Html
+favicon :: TS.Text -> Html
 favicon adr = link
   ! rel "shortcut icon"
   ! type_ "image/x-icon"
   ! href adr
   $ pure ()
 
-property :: TL.Text -> TL.Text -> Html
+property :: TS.Text -> TS.Text -> Html
 property name value = meta ! Custom "property" name ! Custom "content" value $ pure ()
 
-og :: TL.Text -> TL.Text -> Html
+og :: TS.Text -> TS.Text -> Html
 og name value = property ("og:" <> name) value
 
 docBody :: Html -> Document

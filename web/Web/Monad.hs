@@ -109,8 +109,8 @@ cssF mk m = WebT $ do
   tell (mempty & cssCode .~ rules)
   return name
 
-css' = cssF (Class . Static)
-cssId' = cssF (Id . Static)
+css' = cssF (Class . Static . TL.toStrict)
+cssId' = cssF (Id . Static . TL.toStrict)
 
 -- | Main instance
 instance (Monad m) => MonadWeb (WebT m) where
@@ -125,7 +125,7 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssRule sl m = WebT $ do
       b <- asks (^.Br.browser)
       tell $ mempty & cssCode .~ CSSM.run b sl m
-   cssId = cssF (Id . Static)
+   cssId = cssF (Id . Static . TL.toStrict)
    nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)
    getState = WebT get
    getConf = WebT ask

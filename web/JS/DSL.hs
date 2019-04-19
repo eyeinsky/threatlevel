@@ -11,14 +11,14 @@ import Data.Default
 import Control.Monad.Reader
 import Control.Monad.State hiding (State)
 import Control.Monad.Writer
-import qualified Data.Text as T
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import JS.Syntax hiding (S, putStrLn, Conf)
 import qualified JS.Types  as JT
 import JS.DSL.Internal as JS
 
-new' :: TL.Text -> Expr a -> M r (Expr a)
+new' :: TS.Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks (^.namedVars)
    where
       name = bind VarDef e . Name =<< pushNamedExpr n e
@@ -94,7 +94,7 @@ newf = new <=< func AnonFunc
 async = new <=< func Async
 generator = new <=< func Generator
 
-newf' :: Function a => TL.Text -> a -> M r (Expr (Arguments a))
+newf' :: Function a => TS.Text -> a -> M r (Expr (Arguments a))
 newf' n = new' n <=< func AnonFunc
 
 -- | Create function, getting state and reader from enclosing monad.

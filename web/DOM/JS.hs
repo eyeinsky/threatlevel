@@ -4,12 +4,12 @@ module DOM.JS where
 import Pr hiding ((.=), id)
 import Prelude2.Has (HasId(..))
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
+import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer (execWriter)
 
 import Web.Browser
-import JS
+import JS hiding (Raw)
 import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 import qualified JS.Render
 
@@ -103,7 +103,7 @@ instance FindBy (Html -> Html) where
     e : rest -> findBy e
     _ -> error "FindBy (Html -> Html): no html to find by"
 
-valueSelf :: D.Value -> (TL.Text -> Expr b) -> Expr b
+valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
 valueSelf v f = case v of
   Static a -> f a
   Dynamic a -> Cast a
@@ -276,7 +276,7 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
 preventDefault :: Event e => Expr e -> Expr ()
 preventDefault e = call0 (e !. "preventDefault")
 
-mkEventListener :: Event e => TL.Text -> Expr Tag -> e -> [Expr b] -> Expr c
+mkEventListener :: Event e => TS.Text -> Expr Tag -> e -> [Expr b] -> Expr c
 mkEventListener a el et li = call (el !. a) (etStr : li)
   where etStr = lit $ eventString et
 
@@ -310,9 +310,9 @@ instance RenderJSM (HTML Both) where
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a
     where
-      mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
+      mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
-        Data _ v -> (e !. "dataset" !. kebab2camel k) .= lit v
+        Data _ v -> (e !. "dataset" !. (TL.toStrict $ kebab2camel $ TL.fromStrict k)) .= lit v
         OnEvent et expr -> e !. toOn et .= expr
         Custom _ v -> e !. k .= lit v
 
@@ -348,13 +348,13 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a
     where
-      mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
+      mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
         Data _ v -> e & setAttr ("data-" <> k) v & bare
         OnEvent et expr -> e !. toOn et .= expr -- todo: does this work/fire?
         Custom _ v -> e & setAttr k v & bare
         where
-          setAttr :: TL.Text -> TL.Text -> Expr a -> Expr b
+          setAttr :: TS.Text -> TS.Text -> Expr a -> Expr b
           setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]
           -- ^ The regular setAttribute supposedly doesn't work in all browsers.
           -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
@@ -364,7 +364,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       mkElem :: TagName -> Expr Tag
       mkElem tagName = call (document !. "createElementNS") [ns, valueExpr $ unTagName tagName]
 
-attrsJSM :: Expr Tag -> (Expr Tag -> TL.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
+attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
 attrsJSM t mkAttr as = do
   maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) (as^.id)
   forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
