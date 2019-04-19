@@ -69,19 +69,21 @@ instance ToRaw Response where
 
 -- * Helpers
 
-todoF = Response (toEnum 200) []
+-- | Successful response with empty headers
+resp200 :: AnyResponse -> Response
+resp200 = Response (toEnum 200) []
 
-htmlDoc head body = todoF $ HtmlDocument (HTML.Document head body)
-page html = todoF $ HtmlDocument $ HTML.docBody $ html
+htmlDoc head body = resp200 $ HtmlDocument (HTML.Document head body)
+page html = resp200 $ HtmlDocument $ HTML.docBody $ html
 
-renderedPage = todoF . Raw
+renderedPage = resp200 . Raw
 
 text :: TL.Text -> Response
 text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
   where hs = [Hdr.utf8text "plain"]
 
-js conf code = todoF $ JS conf code
-json a = todoF $ JSON a
+js conf code = resp200 $ JS conf code
+json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response
 error code message = rawText code [Hdr.hdr Hdr.ContentType "text/plain"] message

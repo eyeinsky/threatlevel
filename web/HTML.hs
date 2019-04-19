@@ -60,6 +60,8 @@ emptyFavicon = link
   ! href "data:;base64,iVBORw0KGgo="
   $ pure ()
 
+required :: Attribute
+required = Custom "required" ""
 
 --
 
