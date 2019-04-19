@@ -69,7 +69,7 @@ instance Render (Expr a) where
     Arr arrExpr ixExpr -> renderM arrExpr <+> (ang <$> renderM ixExpr)
     In str obj -> renderM str <+> pure " in " <+> renderM obj
     EAttr attr -> renderM attr
-    ULit lit -> renderM lit
+    Lit lit -> renderM lit
     Op opExpr -> renderM opExpr
     FuncCall name exprs -> renderM name <+> unargs exprs
     AnonFunc mbName as code -> function "function " mbName as code
@@ -137,15 +137,15 @@ instance Render Name where
 
 -- ** Literals
 
-instance Render ULiteral where
-  type Conf ULiteral = JT.Conf
+instance Render Literal where
+  type Conf Literal = JT.Conf
   renderM ul = case ul of
-    ULString text -> pure $ q'' text
-    ULDouble dbl -> pure $ tshow dbl
-    ULInteger i -> pure $ tshow i
-    ULBool b -> pure $ TL.toLower $ tshow b
-    ULArray li -> ang . uncomma <$> mapM renderM li
-    ULObject obj -> curly . uncomma <$> mapM f obj
+    String text -> pure $ q'' text
+    Double dbl -> pure $ tshow dbl
+    Integer i -> pure $ tshow i
+    Bool b -> pure $ TL.toLower $ tshow b
+    Array li -> ang . uncomma <$> mapM renderM li
+    Object obj -> curly . uncomma <$> mapM f obj
       where f (e,expr) = either renderM renderM e <+> pure ":" <+> renderM expr
 
 -- * Helpers

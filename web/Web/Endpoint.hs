@@ -153,7 +153,7 @@ api m = next >>= flip pin m
 
 xhrPost' m = do
   url :: URL <- api m
-  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.ulit $ renderURL $ url) data_ []
+  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.lit $ renderURL $ url) data_ []
 
 -- | Add segment with api endpoint and return its full url
 pin

@@ -8,4 +8,4 @@ import DOM
 import JS
 import Web.Response
 
-redirect to = DOM.location !. "href" .= ulit (renderURL to)
+redirect to = DOM.location !. "href" .= lit (renderURL to)

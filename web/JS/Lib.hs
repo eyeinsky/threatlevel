@@ -14,21 +14,21 @@ import JS
 
 wn = \ str -> do
    m <- new $ call (str !. "match") [ call (ex "new RegExp") ["\\s", "g"] ]
-   retrn $ ternary (m .=== Null) (ulit 1) (m !. "length" .+ ulit 1)
+   retrn $ ternary (m .=== Null) (lit 1) (m !. "length" .+ lit 1)
 
 repeat = \ n c -> do
-   res <- new $ ulit ""
-   i <- new $ ulit 0
-   for (i .< n) $ do res .= res .+ c; i .= i .+ ulit 1;
+   res <- new $ lit ""
+   i <- new $ lit 0
+   for (i .< n) $ do res .= res .+ c; i .= i .+ lit 1;
    retrn res
 
 round = \ n p -> do
-   tens <- new $ p .* ulit 10
+   tens <- new $ p .* lit 10
    retrn $ nearestInt (n .* tens) ./ tens
 
 nf = \ n places -> do
    repeat <- lib $ newf repeat
-   x <- new $ JS.split (toString n) (ulit ".")
+   x <- new $ JS.split (toString n) (lit ".")
    x1 <- new $ x !- 1
-   y <- new $ ternary (x1 .=== Undefined) (call repeat [places, ulit "0"]) x1
-   retrn $ (x!-0) -- .+ ulit "." .+ call (y !. "slice") [ulit 0, places]
+   y <- new $ ternary (x1 .=== Undefined) (call repeat [places, lit "0"]) x1
+   retrn $ (x!-0) -- .+ lit "." .+ call (y !. "slice") [lit 0, places]

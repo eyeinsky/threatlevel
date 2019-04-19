@@ -5,10 +5,10 @@ import JS
 
 asyncCountdown :: Int -> Int -> Expr () -> Expr () -> M r ()
 asyncCountdown i ticks f g = do
-  ticks' <- new $ ulit ticks
+  ticks' <- new $ lit ticks
   countdownId <- new Null
   go <- block $ do
-    ifelse (ticks' .> ulit 0)
+    ifelse (ticks' .> lit 0)
       (do ticks' .= ticks' - 1
           bare $ call0 f)
       (do bare $ clearInterval countdownId

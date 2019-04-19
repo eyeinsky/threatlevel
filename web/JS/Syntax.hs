@@ -50,7 +50,7 @@ data Expr a where
    In        :: Expr a -> Expr b    -> Expr Bool
 
    -- untyped
-   ULit      :: ULiteral            -> Expr a -- 1
+   Lit      :: Literal              -> Expr a -- 1
    Op        :: OpExpr  a           -> Expr a -- expr + expr
 
    -- untyped
@@ -82,37 +82,16 @@ data OpExpr a where
    OpBinary :: BOp -> Expr a -> Expr b -> OpExpr c
    OpUnary :: UOp -> Expr a -> OpExpr b
 
-data ULiteral
-   = ULString T.Text
-   | ULDouble Double
-   | ULInteger Integer
-   | ULBool Bool
-   | ULArray [Expr ()]
-   | ULObject [(Either Name (Expr ()), Expr ())]
-
-class    ToULiteral a       where uliteral :: a -> ULiteral
-instance ToULiteral Int     where uliteral = ULInteger . toInteger
-instance ToULiteral Integer where uliteral = ULInteger
-instance ToULiteral Rational where uliteral = ULDouble . fromRational
-instance ToULiteral Double  where uliteral = ULDouble
-instance ToULiteral Bool    where uliteral = ULBool
-instance ToULiteral T.Text  where uliteral = ULString
-instance ToULiteral TL.Text where uliteral = uliteral . TL.toStrict
-instance ToULiteral String  where uliteral = uliteral . TL.pack
-instance ToULiteral [ Expr a ] where
-   uliteral = ULArray . map Cast
-instance ToULiteral a => ToULiteral [(a, Expr b)] where
-   uliteral li = ULObject $ map f li
-      where f (a,b) = (Right . ulit $ a, Cast b)
-
-ulit = ULit . uliteral :: ToULiteral a => a -> Expr b
-
+data Literal
+   = String T.Text
+   | Double Double
+   | Integer Integer
+   | Bool Bool
+   | Array [Expr ()]
+   | Object [(Either Name (Expr ()), Expr ())]
 
 attr :: Expr a -> Name -> Expr b
 attr base attname = EAttr $ Attr base attname
-
-instance IsString (Expr a) where
-   fromString s = ulit s
 
 cast :: Expr a -> Expr ()
 cast x = Cast x
@@ -135,9 +114,6 @@ ex txt = EName $ Name txt
 
 
 (.!) expr key  = Arr expr key
-
-(!-) :: ToULiteral b => Expr a -> b -> Expr c -- TODO add types
-(!-) a b = Arr a (ulit b)
 
 infixr 4 =:
 (=:) :: Expr a -> Expr b -> Expr b

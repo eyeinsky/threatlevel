@@ -41,7 +41,7 @@ length :: Expr [a] -> Expr Int
 length as = as !. "length"
 
 last :: Expr [a] -> Expr a
-last as = as .! (JS.API.length as .- ulit 1)
+last as = as .! (JS.API.length as .- lit 1)
 
 indexOf :: Expr [a] -> Expr a -> Expr Int
 indexOf as a = call1 (as !. "indexOf") a
@@ -108,7 +108,7 @@ floor' = call1 (math "floor")
 ceiling' = call1 (math "ceil")
 
 instance Floating (Expr a) where
-  pi = ulit pi
+  pi = lit pi
   exp = todo
   log = todo
   sin = todo
@@ -126,7 +126,7 @@ instance Floating (Expr a) where
 
 data JobId
 
-timeout name f ms = call (ex name) [ Cast f, ulit ms]
+timeout name f ms = call (ex name) [ Cast f, lit ms]
 
 setInterval :: Expr a -> Int -> Expr JobId
 setInterval = timeout "setInterval"
@@ -150,4 +150,4 @@ consoleError args = bare $ call (ex "console" !. "error") args
 
 debug var expr = do
    ex var .= expr
-   consoleLog [toString expr .+ ulit " (in: \"" .+ ulit var .+ ulit "\")"]
+   consoleLog [toString expr .+ lit " (in: \"" .+ lit var .+ lit "\")"]

@@ -91,15 +91,15 @@ verifyToken id callback = do
       -- variable to a callable function, which will do the login with
       -- the right credentials.
       prepareLogin <- async $ {- \undefined -> -} do
-        let params = ulit [("client_id" :: Text, ulit id )]
-            prompt = ulit $ [("prompt" :: Text, ulit "select_account")]
+        let params = lit [("client_id" :: Text, lit id )]
+            prompt = lit $ [("prompt" :: Text, lit "select_account")]
         consoleLog ["auth2 load" ]
         googleAuth <- await $ call1 (auth2 !. "init") params
         doLogin' <- async $ do
           user <- await $ call1 (googleAuth !. "signIn") prompt
           token <- new $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
-          DOM.xhrJs "POST" (ulit $ renderURL url) ("id_token=" .+ token) []
+          DOM.xhrJs "POST" (lit $ renderURL url) ("id_token=" .+ token) []
         doGoogleSignIn .= doLogin'
         consoleLog ["google ready"]
 

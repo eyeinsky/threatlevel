@@ -47,7 +47,7 @@ class JSSelector a where
 instance JSSelector (Expr String) where
   jsSelectorFrom a = a
 instance {-# OVERLAPPABLE #-} CSS.SelectorFrom a => JSSelector a where
-  jsSelectorFrom s = ulit $ render' $ CSS.selFrom s
+  jsSelectorFrom s = lit $ render' $ CSS.selFrom s
 
 matches :: JSSelector a => a -> Expr D.Tag -> Expr Bool
 matches s e = call1 (e !. "matches") (jsSelectorFrom s)
@@ -74,7 +74,7 @@ instance FindBy Id where
    findBy (Id id) = valueSelf id (docCall "getElementById")
 instance FindBy Class where
    findBy (Class a) = case a of
-     Static v -> call1 (document !. "getElementsByClassName") (ulit v)
+     Static v -> call1 (document !. "getElementsByClassName") (lit v)
      Dynamic v -> Cast v
 instance FindBy TagName where
    findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
@@ -110,11 +110,11 @@ valueSelf v f = case v of
 
 valueExpr :: D.Value -> Expr ()
 valueExpr v = case v of
-  Static a -> ulit a
+  Static a -> lit a
   Dynamic a -> Cast a
 
 docCall' f a = call1 (document !. f) a
-docCall f a = docCall' f (ulit a)
+docCall f a = docCall' f (lit a)
 
 --
 
@@ -180,8 +180,8 @@ createClasses cs = if null dynamics'
   else dynamics
   where
     (statics', dynamics') = partitionEithers $ map (value2either . unClass) cs
-    statics = ulit $ TL.unwords statics'
-    dynamics = JS.join " " $ ulit dynamics'
+    statics = lit $ TL.fromChunks statics'
+    dynamics = JS.join " " $ lit dynamics'
 
 -- *** Text input
 
@@ -204,7 +204,7 @@ cssAttr e k v = e !. "style" !. k .= v
 addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) $ mkExpr cls
 remClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
 
-mkExpr = Cast . ulit . static . unClass
+mkExpr = Cast . lit . static . unClass
 
 -- * From JS_API
 
@@ -214,10 +214,10 @@ mkExpr = Cast . ulit . static . unClass
 -- doPost' a b c = call ajaxExpr ["post", a, b, c]
 doPost' uri data_ cb = do
    aj <- newf $ ajaxExpr
-   bare $ call aj [ulit "POST", uri, data_, cb]
+   bare $ call aj [lit "POST", uri, data_, cb]
 doGet' uri data_ cb = do
    aj <- newf $ ajaxExpr
-   bare $ call aj [ulit "GET", uri, data_, cb]
+   bare $ call aj [lit "GET", uri, data_, cb]
 
 ajaxExpr meth uri data_ callback = do
    xhr <- new $ ex "new XMLHttpRequest()"
@@ -227,7 +227,7 @@ ajaxExpr meth uri data_ callback = do
          json <- new $ fromJSON text
          bare $ call1 callback json
       xhr !. "onload" .= Cast wrap
-   bare (call (xhr !. "open") [meth, uri, ulit True])
+   bare (call (xhr !. "open") [meth, uri, lit True])
    bare $ call1 (xhr !. "send") data_
 
 xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
@@ -235,7 +235,7 @@ xhrRaw meth uri data_ callback = do
   xhr <- new $ ex "new XMLHttpRequest()"
   ifonly (callback .!== Undefined) $ do
     xhr !. "onload" .= callback
-  bare (call (xhr !. "open") [Cast meth, uri, ulit True])
+  bare (call (xhr !. "open") [Cast meth, uri, lit True])
   bare $ call1 (xhr !. "send") data_
 
 xhrJs :: Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
@@ -243,7 +243,7 @@ xhrJs meth uri data_ args = do
   rc :: JS.Render.Conf <- ask <&> (^.renderConf)
   wrap <- newf $ \(resp :: Expr ()) -> do
     let funcText = responseText resp
-        argsText = ulit $ runReader (JS.Render.unargs args) rc
+        argsText = lit $ runReader (JS.Render.unargs args) rc
     bare $ call1 (ex "eval") $ funcText + argsText
   xhrRaw meth uri data_ wrap
 
@@ -269,8 +269,8 @@ eventKey event = do -- from: http://unixpapa.com/js/key.html
       in ternary (which .== ex "null")
       (from $ event !. "keyCode" ) -- old IE
       (ternary
-         (  (which .!= ulit 0)
-        .&& event !. "charCode" .!= ulit 0
+         (  (which .!= lit 0)
+        .&& event !. "charCode" .!= lit 0
         ) (from which {-all others-}) Null)
 
 preventDefault :: Event e => Expr e -> Expr ()
@@ -278,7 +278,7 @@ preventDefault e = call0 (e !. "preventDefault")
 
 mkEventListener :: Event e => TL.Text -> Expr Tag -> e -> [Expr b] -> Expr c
 mkEventListener a el et li = call (el !. a) (etStr : li)
-  where etStr = ulit $ eventString et
+  where etStr = lit $ eventString et
 
 addEventListener el et handler = mkEventListener "addEventListener" el et [handler]
 removeEventListener el et handler = mkEventListener "removeEventListener" el et handler
@@ -296,10 +296,10 @@ instance RenderJSM (HTML Both) where
       ts :: [Expr Tag] <- mapM renderJSM children
       forM_ ts $ bare . flip appendChild t
       return t
-    Text txt -> return $ createTextNode (ulit txt)
+    Text txt -> return $ createTextNode (lit txt)
     Raw txt -> do
       tmp <- new $ createElement "div"
-      innerHTML tmp .= ulit txt
+      innerHTML tmp .= lit txt
       nodes <- new $ tmp !. "childNodes"
       frag <- fmap Cast $ new $ createDocumentFragment
       i <- new 0
@@ -312,9 +312,9 @@ instance RenderJSM (HTML Both) where
     where
       mkAttr :: Expr a -> TL.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
-        Data _ v -> (e !. "dataset" !. kebab2camel k) .= ulit v
+        Data _ v -> (e !. "dataset" !. kebab2camel k) .= lit v
         OnEvent et expr -> e !. toOn et .= expr
-        Custom _ v -> e !. k .= ulit v
+        Custom _ v -> e !. k .= lit v
 
 createHtml :: HTML Both -> Expr Tag
 createHtml html = AnonFunc Nothing [] . snd . fst . runM def def $ renderJSM html >>= retrn
@@ -342,7 +342,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       ts :: [Expr Tag] <- mapM renderJSM children
       forM_ ts $ bare . flip appendChild t
       return t
-    Text txt -> return $ createTextNode (ulit txt)
+    Text txt -> return $ createTextNode (lit txt)
     Raw txt -> error "XML SVG AttributeSet Both: Raw not implemented"
     -- ^ fix: see implementation for HTML Both, would that work for svg too?
     Dyn expr -> return (Cast expr)
@@ -355,7 +355,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
         Custom _ v -> e & setAttr k v & bare
         where
           setAttr :: TL.Text -> TL.Text -> Expr a -> Expr b
-          setAttr k v e = call (e !. "setAttributeNS") [Null, ulit k, ulit v]
+          setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]
           -- ^ The regular setAttribute supposedly doesn't work in all browsers.
           -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
 

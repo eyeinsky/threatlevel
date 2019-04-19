@@ -35,7 +35,7 @@ obj c = case fs of
     fs = recordFields c :: [String]
     stub :: Maybe (String, Expr ())
     stub = if maxConstrIndex dataType > 1
-      then Just ("tag", ulit $ tag c)
+      then Just ("tag", lit $ tag c)
       else Nothing
 
     dataType = constrType constr :: DataType
@@ -65,28 +65,28 @@ instance (J b) => J (a -> b) where
   str c stub = \(a :: Expr a) -> str (c undefined) stub
   numberOfFields c = 1 + numberOfFields (c undefined)
 instance {-# OVERLAPPABLE #-} (Result a ~ Expr a) => J a where
-  rf _ acc _ = Cast (ulit acc)
+  rf _ acc _ = Cast (lit acc)
   pf arr mStub _ = case arr of
     -- multiple plain fields
     _ : _ : _ -> case mStub of
-      Just tag -> ulit $ tag : [("contents", ulit arr)]
-      _ -> ulit arr
+      Just tag -> lit $ tag : [("contents", lit arr)]
+      _ -> lit arr
     -- single plain field
     [e] -> case mStub of
-      Just tag -> ulit $ tag : [contents e]
+      Just tag -> lit $ tag : [contents e]
       _ -> Cast e
     -- no fields
     [] -> case mStub of
-      Just tagged -> ulit [tagged]
+      Just tagged -> lit [tagged]
       _ -> emptyObject
     where
       contents v = ("contents", v)
   ea c = emptyArray
-  str c t = ulit t
+  str c t = lit t
   numberOfFields c = 0
 
-emptyObject = ulit ([] :: [(String, Expr ())]) -- :: Expr a
-emptyArray = ulit ([] :: [Expr ()]) -- :: Expr a
+emptyObject = lit ([] :: [(String, Expr ())]) -- :: Expr a
+emptyArray = lit ([] :: [Expr ()]) -- :: Expr a
 
 -- * GetConstr
 
@@ -187,9 +187,9 @@ deriving instance A.FromJSON A6
 tests = do
   test A0 (obj A0)
 
-  test (A10 44) (obj A10 (ulit 44))
+  test (A10 44) (obj A10 (lit 44))
 
-  test (A7 44 9.9 "hej") (obj A7 (ulit 44) (ulit 9.9) (ulit "hej"))
+  test (A7 44 9.9 "hej") (obj A7 (lit 44) (lit 9.9) (lit "hej"))
 
   test A1A (obj A1A)
   test A1B (obj A1B)
@@ -197,33 +197,33 @@ tests = do
 
   test
     (A2A 12 "hejhoo")
-    (obj A2A (ulit 12) (ulit "hejhoo"))
+    (obj A2A (lit 12) (lit "hejhoo"))
 
   test
     (A2B 88.99)
-    (obj A2B (ulit 88.99))
+    (obj A2B (lit 88.99))
   test
     (A2C)
     (obj A2C)
 
   test
     (A4A 1)
-    (obj A4A (ulit 1))
+    (obj A4A (lit 1))
 
   test
     (A8A 1 9.799)
-    (obj A8A (ulit 1) (ulit 9.799))
+    (obj A8A (lit 1) (lit 9.799))
 
   test
     (A5A 1 9.799)
-    (obj A5A (ulit 1) (ulit 9.799))
+    (obj A5A (lit 1) (lit 9.799))
   test
     A5B
     (obj A5B)
 
   test
     (A9A 1 2.2)
-    (obj A9A (ulit 1) (ulit 2.2))
+    (obj A9A (lit 1) (lit 2.2))
   test
     (A9B "hoo")
     (obj A9B "hoo")
@@ -233,7 +233,7 @@ tests = do
 
   test
     (A6A 1 1 2.2)
-    (obj A6A (ulit 1) (ulit 1) (ulit 2.2))
+    (obj A6A (lit 1) (lit 1) (lit 2.2))
   test
     (A6B "hej")
     (obj A6B "hej")

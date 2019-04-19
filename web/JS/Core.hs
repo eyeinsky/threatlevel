@@ -3,11 +3,10 @@ module JS.Core
 
    -- | JS.Syntax reexports
      Statement(BareExpr)
-   , Expr(Undefined, Null, Par, ULit, Cast, AnonFunc)
+   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc)
    , Attr(..), Name(..)
-   , ULiteral(..)
+   , Literal(..)
    , Code
-   , ulit
    , call, call0, call1, (!.), (!-), (.!), (=:), ex
 
    -- | Typed functions
@@ -21,6 +20,7 @@ module JS.Core
 
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
+import Prelude (Float, fromRational, toRational, Fractional, Rational)
 
 import Prelude2 hiding ((.-), for, (.=), (.>), not)
 import qualified Prelude2 as Pr
@@ -40,6 +40,40 @@ import JS.DSL
 
 pr :: M r a -> IO ()
 pr = TL.putStrLn . render (Indent 2) . snd . fst . runM def def
+
+-- * Literals
+
+class    ToLiteral a       where lit :: a -> Expr b
+instance ToLiteral (Expr a) where lit = Cast
+instance ToLiteral Int     where lit = Lit . Integer . toInteger
+instance ToLiteral Integer where lit = Lit . Integer
+instance ToLiteral Rational where lit = Lit . Double . fromRational
+instance ToLiteral Double  where lit = Lit . Double
+instance ToLiteral Bool    where lit = Lit . Bool
+instance ToLiteral TS.Text  where lit = Lit . String
+instance ToLiteral TL.Text where lit = lit . TL.toStrict
+instance ToLiteral String  where lit = lit . TL.pack
+
+instance ToLiteral [ Expr a ] where
+   lit = Lit . Array . map Cast
+
+-- * Literal objects
+
+instance ToLiteral v => ToLiteral [(TS.Text, v)] where
+   lit li = Lit $ Object $ map f li
+      where f (k, v) = (Left $ Name k, lit v)
+
+ck f = lit . map (first f)
+instance ToLiteral v => ToLiteral [(TL.Text, v)] where
+   lit = ck TL.toStrict
+instance ToLiteral v => ToLiteral [(String, v)] where
+  lit = ck TS.pack
+
+instance IsString (Expr a) where
+   fromString s = lit s
+
+(!-) :: ToLiteral b => Expr a -> b -> Expr c -- TODO add types
+(!-) a b = Arr a (lit b)
 
 -- * Modules
 
@@ -105,7 +139,7 @@ infixl 7 .%
 infixl 7  %
 
 instance Num (Expr a) where
-   fromInteger s = ulit s
+   fromInteger s = lit s
    (+) = (.+)
    (-) = (.-)
    (*) = (.*)
@@ -113,7 +147,7 @@ instance Num (Expr a) where
    abs = call1 (math "abs")
    signum = call1 (math "sign")
 instance Fractional (Expr a) where
-   fromRational s = ulit s
+   fromRational s = lit s
    (/) = (./)
 
 a .+= b = a .= (a .+ b)

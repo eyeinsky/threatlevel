@@ -64,10 +64,10 @@ multiCon dc = case dc of
       t : _ -> do
         arg <- newName "a"
         funD fn [ clause [varP arg] (normalB
-          [| J.ulit [ $(mkTag name), $(mkContents $ varE arg) ] |]) [] ]
-      _ -> let empty = [| J.ULit (J.ULArray []) |]
+          [| J.lit [ $(mkTag name), $(mkContents $ varE arg) ] |]) [] ]
+      _ -> let empty = [| J.Lit (J.Array []) |]
         in funD fn [ clause [] (normalB
-             [| J.ulit [ $(mkTag name), $(mkContents empty) ] |]) [] ]
+             [| J.lit [ $(mkTag name), $(mkContents empty) ] |]) [] ]
 
 
 
@@ -103,10 +103,10 @@ lhs names body = clause (map varP names) body []
 
 
 mkBody :: Maybe Name -> Bool -> [ExpQ] -> Q Body
-mkBody mb inContents li = normalB $ appE [|J.ulit|] $ listE $ maybe li
+mkBody mb inContents li = normalB $ appE [|J.lit|] $ listE $ maybe li
   (\name -> let tag = mkTag name
     in if inContents
-    then let li' = [| J.ulit $(listE li) |]
+    then let li' = [| J.lit $(listE li) |]
       in [ tag, mkContents li' ]
     else tag : li)
   mb
@@ -114,7 +114,7 @@ mkBody mb inContents li = normalB $ appE [|J.ulit|] $ listE $ maybe li
 
 -- * JS related helpers
 
-mkTag name = [| ("tag"::String, J.ulit $(strName name)) |]
+mkTag name = [| ("tag"::String, J.lit $(strName name)) |]
 mkContents xs = [| ("contents" :: String, $xs) |]
 
 arrExpr e = [| $e :: [J.Expr a] |]

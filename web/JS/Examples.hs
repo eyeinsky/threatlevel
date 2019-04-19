@@ -11,14 +11,14 @@ a = let
   f1 <- f
   f2 <- f
   f3 <- f
-  bare $ call1 f1 (ulit 1)
-  bare $ call1 f2 (ulit 1)
-  bare $ call1 f3 (ulit 1)
+  bare $ call1 f1 (lit 1)
+  bare $ call1 f2 (lit 1)
+  bare $ call1 f3 (lit 1)
   retrn Null
 
 b = do
   f <- newf $ \ a b c -> retrn $ a .+ b .+ c
-  g <- new $ f -/ ulit 1 -- -/ ulit 2
+  g <- new $ f -/ lit 1 -- -/ lit 2
 
   while (1 .== 2) $ do
     bare $ call0 (g -/ 2 -/ 3)
