@@ -146,7 +146,10 @@ instance Render Literal where
     Bool b -> pure $ TL.toLower $ tshow b
     Array li -> ang . uncomma <$> mapM renderM li
     Object obj -> curly . uncomma <$> mapM f obj
-      where f (e,expr) = either renderM renderM e <+> pure ":" <+> renderM expr
+      where
+        f (e,expr) = either renderM cpn e <+> pure ":" <+> renderM expr
+        -- computed property name:
+        cpn e = pure "[" <+> renderM e <+> pure "]"
 
 -- * Helpers
 
