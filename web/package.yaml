@@ -63,6 +63,7 @@ library:
   - HTTP.Response
   - HTTP.Response.InlineFile
   - URL.ToPayload
+  - URL.TH
   - Warp_Helpers
   - Web
   - CSS
@@ -89,6 +90,7 @@ library:
   - JS.Roundtrip
 
   - X
+  - X.Prelude
   - X.DOM
   - X.Auth.Google
   - X.Google.Maps
