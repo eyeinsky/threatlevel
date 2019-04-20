@@ -55,8 +55,8 @@ instance ToLiteral TS.Text  where lit = Lit . String
 instance ToLiteral TL.Text where lit = lit . TL.toStrict
 instance ToLiteral String  where lit = lit . TL.pack
 
-instance ToLiteral [ Expr a ] where
-   lit = Lit . Array . map Cast
+instance {-# OVERLAPPABLE #-} ToLiteral a => ToLiteral [a] where
+   lit = Lit . Array . map lit
 
 -- * Literal objects
 
