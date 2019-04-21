@@ -108,7 +108,6 @@ library:
   - SVG.Attributes
   - SVG.Elements
   - XML.Render
-  - JS.Examples
   - JS.Core
   - JS.DSL.Identifiers
 
