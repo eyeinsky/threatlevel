@@ -88,6 +88,7 @@ library:
   - JS
   - JS.Roundtrip
   - IndexedDB.IDB
+  - PWA
 
   - X
   - X.Prelude
