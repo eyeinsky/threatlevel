@@ -92,6 +92,11 @@ href url = HTML.href (TL.toStrict $ WR.renderURL url)
 for :: Id -> Attribute
 for id = HTML.for (static $ unId id)
 
+-- * JS + URL
+
+instance ToLiteral URL.URL where
+  lit = renderURL ^ lit
+
 -- * HTTP.Response
 
 deleteCookie :: TS.Text -> WR.Response -> WR.Response
