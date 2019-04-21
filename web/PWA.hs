@@ -115,23 +115,18 @@ catch promise handler = call1 (promise !. "catch") handler
 -- ** Install
 
 -- | Cache all argument URLs
-addAll :: Expr Cache -> [Lib.String] -> Promise ()
-addAll cache paths = call1 (cache !. "addAll") arr
-  where
-    arr = lit (map lit paths) :: Expr [String]
+addAll :: [URL] -> Expr Cache -> Promise ()
+addAll urls cache = call1 (cache !. "addAll") (lit (map lit urls))
 
 -- *** Install handlers
 
 addAll' :: [URL] -> M r1 (Expr (Expr (), Proxy ()))
-addAll' urls = let
-  strs = urls & map (renderURL ^ view (from packed))
-  in newf $ \event -> do
+addAll' urls = newf $ \event -> do
   consoleLog ["install handler"]
   f <- async $ do
-    let li = lit $ P.intercalate ", " strs
-    consoleLog ["install handler: add all: ", li]
+    consoleLog ["install handler: add all: ", lit urls]
     cache <- await $ open "cache" caches
-    await $ addAll cache strs
+    await $ addAll urls cache
   bare $ waitUntil (call0 f) event
 
 -- *** Fetch
