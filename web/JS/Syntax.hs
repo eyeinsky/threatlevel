@@ -1,6 +1,5 @@
 module JS.Syntax
    ( module JS.Syntax
-   , module Render
    , UOp(..), BOp(..)
    )
    where
@@ -13,9 +12,6 @@ import qualified Data.Text.Lazy as TL
 
 import Control.Monad.Reader (ask, withReader)
 
-import qualified JS.Types as JT
-import JS.Types (UOp(..), BOp(..))
-import Render
 
 type Code a = [Statement a]
 
@@ -71,7 +67,7 @@ data Expr a where
    YieldDelegate :: Expr a -> Expr b
    Await     :: Expr a -> Expr b
 
-data FormalArgs = FA [Text]
+data FormalArgs = FA [TL.Text]
 data Name = Name { getName :: TS.Text }
 
 instance IsString Name where
@@ -80,6 +76,20 @@ instance IsString Name where
 data Attr = forall a. Attr (Expr a) Name
 
 -- ** Operators
+
+-- * Operators
+
+data UOp
+  = UMinus | UPlus
+  | TypeOf
+  | Not
+  -- | Increment post/pre | Decrement post/pre
+
+data BOp
+   = Minus | Plus | Mult | Div | Modulus
+   | Eq  | NEq | EEq | NEEq
+   | And | Or
+   | Gt  | Lt  | GEt | LEt
 
 data OpExpr a where
    OpBinary :: BOp -> Expr a -> Expr b -> OpExpr c

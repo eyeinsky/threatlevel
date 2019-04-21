@@ -76,7 +76,6 @@ library:
   - XML
   - XML.Core
 
-  - JS.Types
   - JS.Syntax
   - JS.DSL
   - JS.DSL.Internal

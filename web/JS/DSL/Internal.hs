@@ -187,4 +187,4 @@ doCall f a = FuncCall f' (a' <> args)
    where (f', a', i) = fapply f a
          args = map (ex . intPref "a") [1..i]
 
-intPref p i = p <> TL.toStrict (tshow i)
+intPref p i = p <> TS.pack (show i)

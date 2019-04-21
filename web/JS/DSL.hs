@@ -15,7 +15,6 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import JS.Syntax hiding (S, putStrLn, Conf)
-import qualified JS.Types  as JT
 import JS.DSL.Internal as JS
 
 new' :: TS.Text -> Expr a -> M r (Expr a)

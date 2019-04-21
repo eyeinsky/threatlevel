@@ -1,29 +1,37 @@
 module JS.Render
   ( module JS.Render
-  , JT.Conf(..)
   ) where
 
+import Data.Default
 import qualified Data.Text.Lazy as TL
 import Prelude2 hiding (True, False, Empty, intercalate, unwords, unlines, replicate, Const)
 import Control.Monad.Reader
 
-import Render
+import Render hiding (Conf)
+import qualified Render
 import JS.Syntax hiding ((=:))
-import qualified JS.Types as JT
 
 -- * Print AST to JavaScript
 
+data Conf
+  = Indent Int
+  | Minify
+  deriving (Eq, Show, Read)
+
+instance Default Conf where
+  def = Indent 2
+
 instance Render (Code a) where
-  type Conf (Code a) = JT.Conf
+  type Conf (Code a) = Conf
   renderM li = do
     conf <- ask
     case conf of
-      JT.Indent n -> uncode li <&> TL.unlines
-      JT.Minify -> uncode li <&> mconcat
+      Indent n -> uncode li <&> TL.unlines
+      Minify -> uncode li <&> mconcat
 
 
 instance Render (Statement a) where
-  type Conf (Statement a) = JT.Conf
+  type Conf (Statement a) = Conf
   renderM stm = (<+> pure ";") $ case stm of
     Var name -> var name
     VarDef name exp -> var name =: renderM exp
@@ -62,7 +70,7 @@ instance Render (Statement a) where
       var = define "var "
 
 instance Render (Expr a) where
-  type Conf (Expr a) = JT.Conf
+  type Conf (Expr a) = Conf
   renderM expr = case expr of
     Assign e1 e2 -> renderM e1 =: renderM e2
     EName name -> renderM name
@@ -102,13 +110,13 @@ eq' = " = "
 unargs li = par . uncomma <$> mapM renderM li
 
 instance Render (OpExpr a) where
-  type Conf (OpExpr a) = JT.Conf
+  type Conf (OpExpr a) = Conf
   renderM o = case o of
     OpBinary op e1 e2 -> par <$> mseq [renderM e1, renderM op, renderM e2]
     OpUnary op e -> error "web:JS.Syntax.hs:Render OpUnary not implemented"
 
 instance Render UOp where
-  type Conf UOp = JT.Conf
+  type Conf UOp = Conf
   renderM op = pure $ case op of
     UMinus -> "-"; UPlus -> "+"
     TypeOf -> "typeof "
@@ -116,7 +124,7 @@ instance Render UOp where
     -- Increment -> "++"; PrefixDecrement -> "--" -- post
 
 instance Render BOp where
-  type Conf BOp = JT.Conf
+  type Conf BOp = Conf
   renderM op = pure $ case op of
     Minus -> "-"  ; Plus -> "+"
     Mult  -> "*"  ; Div  -> "/"
@@ -128,17 +136,17 @@ instance Render BOp where
     LEt   -> "<=" ; GEt  -> ">="
 
 instance Render Attr where
-  type Conf Attr = JT.Conf
+  type Conf Attr = Conf
   renderM (Attr exp name) = sur "(" ")" <$> (inf "." <$> renderM exp <*> renderM name)
 
 instance Render Name where
-  type Conf Name = JT.Conf
+  type Conf Name = Conf
   renderM (Name s) = pure $ TL.fromStrict s
 
 -- ** Literals
 
 instance Render Literal where
-  type Conf Literal = JT.Conf
+  type Conf Literal = Conf
   renderM ul = case ul of
     String text -> pure $ q'' text
     Double dbl -> pure $ tshow dbl
@@ -154,27 +162,27 @@ instance Render Literal where
 -- * Helpers
 
 -- | Put printed code in curly braces, code in braces is indented.
-curlyCode :: Code a -> Reader (Conf (Code a)) TL.Text
+curlyCode :: Code a -> Reader (Render.Conf (Code a)) TL.Text
 curlyCode code = do
   conf <- ask
   inner <- case conf of
-    JT.Indent n -> do
+    Indent n -> do
       stms :: [Text] <- withReader (inc 2) $ uncode code
       return $ "\n" <> mconcat (map (<> "\n") stms) <> spaces n
       where
-        inc m (JT.Indent n) = JT.Indent (m + n)
+        inc m (Indent n) = Indent (m + n)
         inc _ c = c
-    JT.Minify -> uncode code <&> mconcat
+    Minify -> uncode code <&> mconcat
   return $ "{" <> inner <> "}"
 
 uncode
- :: (Render (Code a), Conf (Code a) ~ JT.Conf)
- => Code a -> Reader (Conf (Code a)) [Text]
+ :: (Render (Code a), Render.Conf (Code a) ~ Conf)
+ => Code a -> Reader (Render.Conf (Code a)) [Text]
 uncode code = do
   conf <- ask
   case conf of
-    JT.Indent n -> mapM renderM code <&> map (spaces n <>)
-    JT.Minify -> mapM renderM code
+    Indent n -> mapM renderM code <&> map (spaces n <>)
+    Minify -> mapM renderM code
 
 -- * Simple helpers
 

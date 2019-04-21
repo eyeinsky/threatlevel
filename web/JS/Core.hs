@@ -33,8 +33,7 @@ import qualified Data.Hashable as H
 
 import Control.Monad.State
 
-import Render (render)
-import JS.Types as JT
+import Render (render, Render(renderM), Conf, tshow)
 import JS.Syntax
 import JS.Render hiding ((=:))
 import JS.DSL

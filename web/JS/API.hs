@@ -2,8 +2,6 @@ module JS.API where
 
 import Prelude2 hiding ((.-), (.=), (.>))
 import Prelude (Floating(..))
-import JS.Types
-import qualified JS.Types as T
 import JS.Core
 
 -- * Object
@@ -56,6 +54,8 @@ concat a b = call1 (b !. "concat") a
 -- arrRemove e arr = do  arr !. "indexOf"
 
 -- * Date
+
+data Date
 
 date :: Expr Date
 date = call0 $ ex "new Date"
