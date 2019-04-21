@@ -1,28 +1,11 @@
-module IndexedDB where
+module IndexedDB.IDB where
 
 import Prelude2 hiding (Index)
 import qualified Data.Text.Lazy as TL
 import X hiding (head, get)
-import JS hiding (String, NumberI)
-import qualified JS.Types2 as JS hiding (Array)
-import qualified JS as JS0
+import JS
+import qualified JS
 
-type Set a = [a]
-
-class Key_ a where
-  dbName :: a -> TL.Text
-  getKey_ :: a -> TL.Text
-
--- updates :: Key a => Set a -> js
-updates s = do
-  db <- async $ do
-    retrn $ open "mtriq"
-  store <- async $ consoleLog ["hej"] -- todo $ dbName (head s) -- get the object store for this db
-  forM_ s $ \o -> do
-    -- bare $ put (getKey o) o store
-    consoleLog [""]
-
--- * IndexedDB via idb.js
 
 data DB
 data Transaction
@@ -38,53 +21,58 @@ data KeyRange
 data KeyOrRange
 
 data Cursor a
-data Direction
--- "next", "nextunique", "prev", and "prevunique". The default is "next".
+data Direction -- next, nextunique, prev, prevunique; default: next
 
+openDB :: Expr String -> Expr Int -> Expr a -> Expr b
+openDB name version upgrade
+  = call (ex "idb" !. "openDB") [name, Cast version, Cast upgrade]
 
-open' name version upgrade = call (ex "idb" !. "open") [name, version, upgrade]
+open :: Expr String -> Promise DB
+open name = openDB name Undefined Undefined
 
-open :: JS.String -> Promise DB
-open name = open' name Undefined Undefined
-
-deleteDb :: JS.String -> Promise ()
-deleteDb name = call1 (ex "idb" !. "delete") name
+deleteDB :: Expr String -> Promise ()
+deleteDB name = call1 (ex "idb" !. "deleteDB") name
 
 -- * DB
-
--- attributes:
--- name
--- version
--- objectStoreNames
 
 close :: Expr DB -> Expr ()
 close db = call0 $ db !. "close"
 
-transaction :: Expr DB -> Expr Transaction
-transaction db = call0 $ db !. "transaction"
+-- Object Store
 
--- * UpgradeDB
+createObjectStore :: Expr DB -> Expr String -> Expr (ObjectStore a)
+createObjectStore db name = call1 (db !. "createObjectStore") name
 
--- ..
+-- | idb convenience addition
+done :: Expr Transaction -> Promise ()
+done tx = tx !. "done"
+
+-- | Helper to run a transaction, my own addition.
+transaction :: Function f => Expr DB -> [Expr String] -> Expr String -> f -> JS.M () ()
+transaction db storeNames mode body = do
+  tx :: Expr Transaction <- new $ call (db !. "transaction") [lit storeNames, lit mode]
+  let stores = map (objectStore tx) storeNames :: [Expr (ObjectStore a)]
+  body' <- async body
+  bare $ call (Cast body') (Cast tx : stores)
 
 -- * Transaction
 
--- | properties:
-complete :: Expr Transaction -> Promise ()
-complete t = t !. "complete"
-
+objectStoreNames :: Expr dbOrTx -> Expr [String]
 objectStoreNames t = t !. "objectStoreNames"
+
+mode :: Expr Transaction -> Expr String
 mode t = t !. "mode"
+
 abort t = call0 (t !. "abort")
 
-objectStore :: Expr Transaction -> Expr (ObjectStore a)
-objectStore t =  t !. "objectStore"
+objectStore :: Expr Transaction -> Expr String -> Expr (ObjectStore a)
+objectStore tx name = call1 (tx !. "objectStore") name
 
 
 -- * ObjectStore & Index
 
-count0 = c0 "count" :: Expr (OI a) -> Expr JS.NumberI
-count1 = c1 "count" :: Expr KeyOrRange -> Expr (OI a) -> Expr JS.NumberI
+count0 = c0 "count" :: Expr (OI a) -> Expr Int
+count1 = c1 "count" :: Expr KeyOrRange -> Expr (OI a) -> Expr Int
 
 -- | Value or first value if key range
 get = c1 "get" :: Expr KeyOrRange -> Expr (OI a) -> Promise a
@@ -93,17 +81,17 @@ get = c1 "get" :: Expr KeyOrRange -> Expr (OI a) -> Promise a
 getKey = c1 "get" :: Expr KeyOrRange -> Expr (OI a) -> Promise Key
 
 -- | Get all objects in store/index
-getAll0 = c0 "getAll" :: Expr (ObjectStore a) -> Promise (JS.Array a)
-getAll1 = c1 "getAll" :: Expr KeyOrRange -> Expr (ObjectStore a) -> Promise (JS.Array a)
-getAll2 = c2 "getAll" :: Expr KeyOrRange -> JS.NumberI -> Expr (ObjectStore a) -> Promise (JS.Array a)
+getAll0 = c0 "getAll" :: Expr (ObjectStore a) -> Promise [a]
+getAll1 = c1 "getAll" :: Expr KeyOrRange -> Expr (ObjectStore a) -> Promise [a]
+getAll2 = c2 "getAll" :: Expr KeyOrRange -> Expr Int -> Expr (ObjectStore a) -> Promise [a]
 
 -- | Get all objects in store/index
 getAllKeys0 = c0 "getAllKeys"
-  :: Expr (OI a) -> Promise (JS.Array Key)
+  :: Expr (OI a) -> Promise [Key]
 getAllKeys1 = c1 "getAllKeys"
-  :: Expr KeyOrRange -> Expr (OI a) -> Promise (JS.Array Key)
+  :: Expr KeyOrRange -> Expr (OI a) -> Promise [Key]
 getAllKeys2 = c2 "getAllKeys"
-  :: Expr KeyOrRange -> JS.NumberI -> Expr (OI a) -> Promise (JS.Array Key)
+  :: Expr KeyOrRange -> Expr Int -> Expr (OI a) -> Promise [Key]
 
 
 -- | Cursor over values
@@ -130,12 +118,12 @@ openKeyCursor2 = c2 "openKeyCursor"
 add1 = c1 "add"
   :: Expr a -> Expr (ObjectStore a) -> Promise Request
 add2 = c2 "add" -- | Errors when key already exists
-  :: Expr a -> JS.String -> Expr (ObjectStore a) -> Promise Request
+  :: Expr a -> Expr String -> Expr (ObjectStore a) -> Promise Request
 
 put1 = c1 "put" -- | Updates when key already exists
   :: Expr a -> Expr (ObjectStore a) -> Promise Request
 put2 = c2 "put"
-  :: Expr a -> JS.String -> Expr (ObjectStore a) -> Promise Request
+  :: Expr a -> Expr String -> Expr (ObjectStore a) -> Promise Request
 
 delete = c1 "delete" -- | Delete values with key
   :: Expr KeyOrRange -> Expr (ObjectStore a) -> Promise Request
@@ -143,24 +131,21 @@ delete = c1 "delete" -- | Delete values with key
 clear = c0 "clear" :: Expr (ObjectStore a) -> Promise ()
 
 index = c1 "index" -- | Get index with name
-  :: JS.String -> Expr (ObjectStore a) -> Promise Index
+  :: Expr String -> Expr (ObjectStore a) -> Promise Index
 createIndex2 = c2 "createIndex"
-  :: JS.String -> JS.String -> Expr (ObjectStore a) -> Expr ()
+  :: Expr String -> Expr String -> Expr (ObjectStore a) -> Expr ()
 createIndex3 = c3 "createIndex"
-  :: JS.String -> JS.String -> Expr a -> Expr (ObjectStore a) -> Expr ()
+  :: Expr String -> Expr String -> Expr a -> Expr (ObjectStore a) -> Expr ()
 deleteIndex = c1 "deleteIndex"
-  :: JS.String -> Expr (ObjectStore a) -> Expr ()
-
--- | idb.js iterateCursor, iterateKeyCursor
+  :: Expr String -> Expr (ObjectStore a) -> Expr ()
 
 -- * Index
 
 -- | Properties: name, objectStore, keyPath, multiEntry, unique
--- | idb.js: iterateCursor, iterateKeyCursor
 
 -- * Cursor
 
-advance = c1 "advance" :: JS.NumberI -> Expr (Cursor a) -> Promise (Cursor a)
+advance = c1 "advance" :: Expr Int -> Expr (Cursor a) -> Promise (Cursor a)
 continue0 = c0 "continue" :: Expr (Cursor a) -> Promise (Cursor a)
 continue1 = c1 "continue" :: Expr Key -> Expr (Cursor a) -> Promise (Cursor a)
 
@@ -175,7 +160,6 @@ delete_ = c0 "delete" :: Expr (Cursor a) -> Promise (Cursor a) -- returns cursor
     -- key
     -- primaryKey
     -- value
-
 
 c0 attr obj = call0 (obj !. attr)
 c1 attr arg1 obj = call1 (obj !. attr) arg1

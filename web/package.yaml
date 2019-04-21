@@ -88,6 +88,7 @@ library:
   - JS.Render
   - JS
   - JS.Roundtrip
+  - IndexedDB.IDB
 
   - X
   - X.Prelude
