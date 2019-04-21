@@ -172,6 +172,12 @@ execCall = exec' f
   where
     f = call0 . Par . AnonFunc Nothing []
 
+noCrawling = do
+  pin "robots.txt" $ return $ const $ return $ WR.raw "text/plain"
+    [unindent|
+      User-agent: *
+      Disallow: /
+      |]
 
 -- * Serving static assets
 
