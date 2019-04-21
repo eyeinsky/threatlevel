@@ -2,7 +2,7 @@ module JS.API where
 
 import Prelude2 hiding ((.-), (.=), (.>))
 import Prelude (Floating(..))
-import JS.Core
+import JS.DSL
 
 -- * Object
 

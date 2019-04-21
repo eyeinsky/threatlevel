@@ -107,7 +107,6 @@ library:
   - SVG.Attributes
   - SVG.Elements
   - XML.Render
-  - JS.Core
   - JS.DSL.Identifiers
 
 default-extensions:

@@ -5,7 +5,8 @@ import Data.Aeson
 import Data.Aeson.TH
 import Language.Haskell.TH
 
-import qualified JS.Core as J
+import JS.Syntax as J hiding (getName, Name)
+import JS.DSL as J hiding (func)
 
 deriveJS
   :: Maybe Options
