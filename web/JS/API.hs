@@ -142,11 +142,17 @@ clearTimeout id = call1 (ex "clearTimeout") id
 
 -- ** Consoleobject/debugging
 
+data Console
+console = ex "console" :: Expr Console
+
 consoleLog :: [Expr a] -> M r ()
-consoleLog args = bare $ call (ex "console" !. "log") args
+consoleLog args = bare $ call (console !. "log") args
 
 consoleError :: [Expr a] -> M r ()
 consoleError args = bare $ call (ex "console" !. "error") args
+
+log msg = consoleLog [msg]
+dir msg = bare $ call1 (console !. "dir") msg
 
 debug var expr = do
    ex var .= expr
