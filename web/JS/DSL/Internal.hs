@@ -134,26 +134,25 @@ funcPrim
   -> Conf -> State -> a -> (Expr (Type a), State)
 funcPrim constr r s0 fexp = (constr Nothing args code, s1)
    where
-     ((a, _), s1) = runM r s0 (funcLit fexp)
-     (args, code) = a
+     ((args, code), s1) = runM r s0 (funcLit fexp)
 
 -- | The 'Function' class turns function literals into typed
 -- functions.
 class Function a where
    type Type a
    type Final a
-   funcLit :: a -> M self ([Expr ()], Code (Final a))
+   funcLit :: a -> M (Final a) [Expr ()]
 instance Function (M r a) where
    type Type (M r a) = r
    type Final (M r a) = r
-   funcLit f = ([], ) <$> mkCode f
+   funcLit = ($> [])
 instance (Function b) => Function (Expr a -> b) where
    type Type (Expr a -> b) = a -> Type b
    type Final (Expr a -> b) = Final b
    funcLit f = do
       arg :: Expr a <- EName <$> next
-      (args, b) <- funcLit (f arg)
-      return (Cast arg : args, b)
+      args <- funcLit (f arg)
+      return $ Cast arg : args
 
 class Apply f a where
    type Result f a
