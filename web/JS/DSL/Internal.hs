@@ -130,30 +130,30 @@ tcall f as = TypedFCall f as
 -- | Create function from a literal: provide JSM state and reader
 funcPrim
   :: Function a
-  => (Maybe Name -> [Expr ()] -> Code (Final a) -> Expr (Arguments a))
-  -> Conf -> State -> a -> (Expr (Arguments a), State)
+  => (Maybe Name -> [Expr ()] -> Code (Final a) -> Expr (Type a))
+  -> Conf -> State -> a -> (Expr (Type a), State)
 funcPrim constr r s0 fexp = (constr Nothing args code, s1)
    where
      ((a, _), s1) = runM r s0 (funcLit fexp)
-     (type_, args, code) = a
+     (args, code) = a
 
 -- | The 'Function' class turns function literals into typed
 -- functions.
 class Function a where
-   type Arguments a
+   type Type a
    type Final a
-   funcLit :: a -> M self (Arguments a, [Expr ()], Code (Final a))
+   funcLit :: a -> M self ([Expr ()], Code (Final a))
 instance Function (M r a) where
-   type Arguments (M r a) = Proxy r
+   type Type (M r a) = r
    type Final (M r a) = r
-   funcLit f = (Proxy, [], ) <$> mkCode f
+   funcLit f = ([], ) <$> mkCode f
 instance (Function b) => Function (Expr a -> b) where
-   type Arguments (Expr a -> b) = (Expr a, Arguments b)
-   type Final     (Expr a -> b) = Final b
+   type Type (Expr a -> b) = a -> Type b
+   type Final (Expr a -> b) = Final b
    funcLit f = do
-      x <- EName <$> next
-      (a, a', b) <- funcLit (f x)
-      return ((x,a), Cast x : a', b)
+      arg <- EName <$> next
+      (args, b) <- funcLit (f arg)
+      return (Cast arg : args, b)
 
 class Apply f a where
    type Result f a

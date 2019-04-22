@@ -1,7 +1,7 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
-  , M, State(..), JS.Conf(..), runM, new, library, Function, Arguments, mkCode
+  , M, State(..), JS.Conf(..), runM, new, library, Function, mkCode
   , HasConf(..)
   , HasRenderConf(..)
 
@@ -103,26 +103,26 @@ arguments = ex "arguments"
 
 -- * Typed functions
 
-newf, async, generator :: Function a => a -> M r (Expr (Arguments a))
+newf, async, generator :: Function f => f -> M r (Expr (Type f))
 newf = new <=< func AnonFunc
 async = new <=< func Async
 generator = new <=< func Generator
 
-newf' :: Function a => TS.Text -> a -> M r (Expr (Arguments a))
+newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
 newf' n = new' n <=< func AnonFunc
 
 -- | Create function, getting state and reader from enclosing monad.
 func
-  :: Function a
-  => (Maybe Name -> [Expr ()] -> Code (Final a) -> Expr (Arguments a))
-  -> a
-  -> M parent (Expr (Arguments a))
+  :: Function f
+  => (Maybe Name -> [Expr ()] -> Code (Final f) -> Expr (Type f))
+  -> f
+  -> M parent (Expr (Type f))
 func constr f = do
   (a, s) <- funcPrim constr <$> ask <*> get <*> pure f
   put s *> pure a
 
 -- | Create function, starting from empty state and reader
-funcPure :: Function a => a -> Expr (Arguments a)
+funcPure :: Function f => f -> Expr (Type f)
 funcPure = funcPrim AnonFunc def def <&> fst
 
 f -/ (a :: Expr a) = wrapCall f (a, ())
