@@ -168,7 +168,7 @@ innerHTML e = e !. "innerHTML"
 createElement :: TagName -> Expr Tag
 createElement tn = docCall' "createElement" $ valueExpr $ unTagName tn
 
-createTextNode :: Expr a -> Expr b
+createTextNode :: Expr String -> Expr Tag
 createTextNode txt = docCall' "createTextNode" txt
 
 createDocumentFragment :: Expr DocumentFragment
@@ -316,21 +316,13 @@ instance RenderJSM (HTML Both) where
         OnEvent et expr -> e !. toOn et .= expr
         Custom _ v -> e !. k .= lit v
 
-createHtml :: HTML Both -> Expr Tag
-createHtml html = AnonFunc Nothing [] . snd . fst . runM def def $ renderJSM html >>= retrn
-
-createHtmls' :: Html -> JS.M r (Expr DocumentFragment)
-createHtmls' m = do
+createHtmls :: Html -> JS.M r (Expr DocumentFragment)
+createHtmls m = do
   f <- new $ createDocumentFragment
   forM_ (execWriter m) $ \ html -> do
     e <- renderJSM html
     bare $ appendChild e (Cast f)
   return f
-
-createHtmls :: Html -> Expr Tag
-createHtmls html = AnonFunc Nothing [] . snd . fst . runM def def $ createHtmls' html >>= retrn
-
-domExpr = createHtmls
 
 -- * Svg
 
@@ -374,13 +366,7 @@ attrsJSM t mkAttr as = do
 
 -- * Helpers
 
-onload = window !. "onload"
-
-putOnload :: Code a -> Code b
-putOnload code = [BareExpr $ onload =: func]
-  where
-    func = AnonFunc Nothing [] code :: Expr b
-
+deleteCookie :: Expr String -> JS.M r ()
 deleteCookie name = do
   document !. "cookie" .= value
   where value = name .+ "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
