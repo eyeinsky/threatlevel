@@ -151,7 +151,7 @@ instance (Function b) => Function (Expr a -> b) where
    type Type (Expr a -> b) = a -> Type b
    type Final (Expr a -> b) = Final b
    funcLit f = do
-      arg <- EName <$> next
+      arg :: Expr a <- EName <$> next
       (args, b) <- funcLit (f arg)
       return (Cast arg : args, b)
 
