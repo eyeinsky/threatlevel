@@ -11,7 +11,7 @@ module JS.DSL
   , Attr(..)
   , Literal(..)
   , Code
-  , call, call0, call1, (!.), (!-), (.!), (=:), ex
+  , call, call0, call1, (!.), (.!), (=:), ex
   ) where
 
 import Prelude (Float, fromRational, toRational, Fractional, Rational)
