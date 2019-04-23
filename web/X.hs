@@ -124,6 +124,8 @@ requestCookies = Wai.requestHeaders
 class ToHtml a where toHtml :: a -> Html
 instance ToHtml P.Int where toHtml = show ^ TL.pack ^ text
 instance ToHtml P.String where toHtml = TL.pack ^ text
+instance ToHtml TS.Text where toHtml = TL.fromStrict ^ text
+instance ToHtml TL.Text where toHtml = text
 
 includeCss' :: TS.Text -> Html
 includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href url $ pure ()
