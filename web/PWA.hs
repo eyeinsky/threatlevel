@@ -2,12 +2,13 @@ module PWA where
 
 import qualified Prelude2 as P
 import qualified JS.Syntax
-import JS hiding (last, Name, Bool, not, replace, (.=))
+import JS hiding (last, Name, Bool, not, replace)
 import qualified JS
-import qualified DOM
+import DOM
 import URL
 -- import Web
-import Web.Response hiding (js)
+import Web.Response (Response, htmlDoc)
+import qualified Web.Response as WR
 import Web.Endpoint hiding (M)
 
 import Apps.Lib as Lib hiding ((.=), M)
@@ -60,7 +61,7 @@ caches = ex "caches"
 open :: Expr String -> Expr Caches -> Promise Cache
 open name caches = call1 (caches !. "open" ) name
 
-keys :: Expr caches -> Promise ()
+keys :: Expr caches -> Promise [Request]
 keys caches = call0 (caches !. "keys")
 
 -- ** Cache
@@ -93,7 +94,7 @@ url req = req !. "url"
 -- * Service Worker
 
 -- | ExtendableEvent method, available in service workers
-waitUntil :: Promise () -> Expr () -> Promise ()
+waitUntil :: Event e => Promise () -> Expr e -> Promise ()
 waitUntil promise installEvent = call1 (installEvent !. "waitUntil") promise
 
 -- ** Register
@@ -111,7 +112,6 @@ register url = let
 then_ promise handler = call1 (promise !. "then") handler
 catch promise handler = call1 (promise !. "catch") handler
 
-
 -- ** Install
 
 -- | Cache all argument URLs
@@ -120,7 +120,7 @@ addAll urls cache = call1 (cache !. "addAll") (lit (map lit urls))
 
 -- *** Install handlers
 
-addAll' :: [URL] -> M r1 (Expr (Expr (), Proxy ()))
+addAll' :: [URL] -> M r1 (Expr (ServiceWorkerEvent -> ()))
 addAll' urls = newf $ \event -> do
   consoleLog ["install handler"]
   f <- async $ do
