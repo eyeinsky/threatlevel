@@ -43,19 +43,19 @@ renderStaticUrl hm = foldr f staticApi hm
            & mconcat
            & TL.toStrict
 
+prop a b = (a, Left b)
+submap a b = (a, Right b)
+
 coords = "59.3405729, 18.0639158"
 addr = "Tegnérgatan 3, 111 40 Stockholm"
 cur = coords
 test = renderStaticUrl
-  [ t "size" "640x240"
-  , t "scale" "2"
-  , t "zoom" "11"
---  , t "center" cur
-  , s "markers" [(cur, Nothing), ("size", Just "tiny")]
-  , s "markers" [("59.328902,18.0284233", Nothing), ("size", Just "tiny"), ("color", Just "blue")]
-  , s "style" [("saturation", Just "-100")]
-  , t "key" "GOOGLE_API_KEY"
+  [ prop "size" "640x240"
+  , prop "scale" "2"
+  , prop "zoom" "11"
+--  , prop "center" cur
+  , submap"markers" [(cur, Nothing), ("size", Just "tiny")]
+  , submap"markers" [("59.328902,18.0284233", Nothing), ("size", Just "tiny"), ("color", Just "blue")]
+  , submap"style" [("saturation", Just "-100")]
+  , prop "key" "GOOGLE_API_KEY"
   ]
-  where
-    t a b = (a, Left b)
-    s a b = (a, Right b)
