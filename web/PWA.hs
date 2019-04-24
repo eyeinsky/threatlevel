@@ -131,7 +131,7 @@ addAll' urls = newf $ \event -> do
 
 -- *** Fetch
 
-respondWith :: DOM.Event e => Promise () -> Expr e -> Expr ()
+respondWith :: Promise Response -> Expr ServiceWorkerEvent -> Expr ()
 respondWith promise fetchEvent = call1 (fetchEvent !. "respondWith") promise
 
 -- ** Generation
@@ -192,19 +192,22 @@ generate gen = do
                retrn resp
             ) (
             do consoleLog ["fetch: cache miss:", url req]
-               networkResponse :: Expr Response <- await $ fetch req
-               putCache <- async $ do -- created to see that it happens async
-                 await $ put req (clone networkResponse) cache
-                 consoleLog ["fetch: cache put clone:", url req]
-               bare $ call0 putCache
+               resp <- fetchAndCache req cache
                consoleLog ["fetch: return network response:", url req]
-               retrn networkResponse
+               retrn resp
             )
         bare $ respondWith p event
       in (mkCond event url', code)
 
     defaultFetch :: Expr ServiceWorkerEvent -> JS.M r ()
     defaultFetch event = consoleLog ["fetch: url(", url $ request event, ")", "no conditions"]
+
+fetchAndCache req cache = do
+  resp :: Expr Response <- await $ fetch req
+  putCache <- async $ do -- created to see that it happens async
+    await $ put req (clone resp) cache
+  bare $ call0 putCache
+  return resp
 
 pwaDiagnostics = do
   listCaches <- api $ return $ \req -> do
