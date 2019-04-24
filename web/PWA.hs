@@ -104,10 +104,7 @@ register url = let
   cond = "serviceWorker" `JS.Syntax.In` ex "navigator"
   urlStr = lit $ renderURL url
   reg = call1 (ex "navigator" !. "serviceWorker" !. "register") urlStr
-  in ifonly cond $ do
-  success <- newf $ consoleLog ["service worker registered"]
-  fail <- newf $ consoleLog ["service worker failed"]
-  bare $ (reg `then_` success) `catch` fail
+  in ifonly cond $ bare reg
 
 then_ promise handler = call1 (promise !. "then") handler
 catch promise handler = call1 (promise !. "catch") handler
