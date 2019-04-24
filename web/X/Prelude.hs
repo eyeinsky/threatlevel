@@ -5,4 +5,5 @@ module X.Prelude
 import Prelude2 as Export hiding
   ( div, rem, (/) -- Prelude
   , (.=), text -- lens
+  , on -- Data.Function
   )
