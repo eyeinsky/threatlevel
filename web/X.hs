@@ -22,6 +22,13 @@ import Data.Default as Export
 import URL as Export (URL(..))
 import Web.Endpoint as Export hiding (State, Writer, (/))
 
+import DOM as Export hiding (
+  -- used in CSS
+  Value, focus,
+  -- used in X
+  deleteCookie
+  )
+
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
