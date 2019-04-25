@@ -57,14 +57,19 @@ concat a b = call1 (b !. "concat") a
 
 data Date
 
+dateObj = ex "new Date"
+
+dateFrom :: Expr a -> Expr Date
+dateFrom = call1 dateObj
+
 date :: Expr Date
-date = call0 $ ex "new Date"
+date = call0 dateObj
 
 now :: Expr Int
 now = call0 $ ex "Date" !. "now"
 
 getTime :: Expr Int
-getTime = call0 $ date !. "getTime"
+getTime = call0 $ ex "Date" !. "getTime"
 
 -- * JSON
 

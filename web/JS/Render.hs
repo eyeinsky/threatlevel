@@ -113,7 +113,7 @@ instance Render (OpExpr a) where
   type Conf (OpExpr a) = Conf
   renderM o = case o of
     OpBinary op e1 e2 -> par <$> mseq [renderM e1, renderM op, renderM e2]
-    OpUnary op e -> error "web:JS.Syntax.hs:Render OpUnary not implemented"
+    OpUnary op e -> par <$> renderM op <+> pure " " <+> renderM e
 
 instance Render UOp where
   type Conf UOp = Conf

@@ -140,6 +140,9 @@ math name = ex "Math" !. name
 
 -- ** Operators (untyped)
 
+typeOf :: Expr a -> Expr String
+typeOf = Op . OpUnary TypeOf
+
 e1 .==  e2 = Op $ OpBinary   Eq e1 e2
 e1 .=== e2 = Op $ OpBinary  EEq e1 e2
 e1 .!=  e2 = Op $ OpBinary  NEq e1 e2
