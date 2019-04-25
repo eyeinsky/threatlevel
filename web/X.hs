@@ -5,7 +5,7 @@ module X
 
 import HTML as Export hiding (
   -- redefined here
-  href, src, for,
+  href, src, for, favicon,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -146,6 +146,9 @@ includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
 src :: URL.URL -> Attribute
 src url = HTML.src (TL.toStrict $ WE.renderURL url)
+
+favicon :: URL.URL -> Html
+favicon url = HTML.link ! rel "icon" ! href url $ pure ()
 
 -- * Endpoint
 
