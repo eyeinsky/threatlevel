@@ -5,7 +5,7 @@ module X
 
 import HTML as Export hiding (
   -- redefined here
-  href, src, for, favicon,
+  href, src, for, favicon, html,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -134,6 +134,8 @@ instance ToHtml P.String where toHtml = TL.pack ^ text
 instance ToHtml TS.Text where toHtml = TL.fromStrict ^ text
 instance ToHtml TL.Text where toHtml = text
 instance ToHtml URL.URL where toHtml = renderURL ^ text
+
+html = to toHtml
 
 includeCss' :: TS.Text -> Html
 includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href url $ pure ()
