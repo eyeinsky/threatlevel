@@ -104,6 +104,14 @@ for id = HTML.for (static $ unId id)
 instance ToLiteral URL.URL where
   lit = renderURL ^ lit
 
+-- * JS + CSS
+
+instance ToLiteral Id where
+  lit = unId ^ render' ^ lit
+
+instance ToLiteral Class where
+  lit = unClass ^ render' ^ lit
+
 -- * HTTP.Response
 
 deleteCookie :: TS.Text -> WR.Response -> WR.Response
