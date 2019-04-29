@@ -149,6 +149,9 @@ instance Render Literal where
   type Conf Literal = Conf
   renderM ul = case ul of
     String text -> pure $ q'' text
+    RegExp text opts -> let
+      pat = TL.replace "/" "\\/" (TL.fromStrict text)
+      in pure $ "/" <> pat <> "/" <> TL.fromStrict opts
     Double dbl -> pure $ tshow dbl
     Integer i -> pure $ tshow i
     Bool b -> pure $ TL.toLower $ tshow b

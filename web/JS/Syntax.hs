@@ -97,6 +97,7 @@ data OpExpr a where
 
 data Literal
    = String TS.Text
+   | RegExp TS.Text TS.Text
    | Double Double
    | Integer Integer
    | Bool Bool
