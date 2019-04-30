@@ -212,6 +212,9 @@ instance ToLiteral v => ToLiteral [(String, v)] where
 instance IsString (Expr a) where
    fromString s = lit s
 
+not :: Expr Bool -> Expr Bool
+not = Op . OpUnary Not
+
 (!-) :: ToLiteral b => Expr a -> b -> Expr c -- TODO add types
 (!-) a b = Arr a (lit b)
 
