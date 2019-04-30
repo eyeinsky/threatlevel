@@ -74,6 +74,9 @@ import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
 
+-- * Prelude
+
+dup a = (a, a)
 
 -- * DOM.Event
 
