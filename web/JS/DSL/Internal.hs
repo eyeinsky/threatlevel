@@ -154,36 +154,3 @@ instance (Function b) => Function (Expr a -> b) where
       args <- funcLit (f arg)
       return $ Cast arg : args
 
-class Apply f a where
-   type Result f a
-   fapply :: Expr f -> a -> (Expr (Result f a), [Expr ()], Int)
-instance Apply (Proxy f) () where
-   {- Function is exhausted, start returning. -}
-   type Result (Proxy f) () = Proxy f
-   fapply f _ = (f, [], 0)
-instance Apply fs () => Apply (f, fs) () where
-   {- All actual arguments are applied, but the function
-      is not fully saturated. Count the remaining arguments
-      into an Int. -}
-   type Result (f, fs) () = (f, fs)
-   fapply f _ = (f, [], 1+i)
-      where (_,_,i) = fapply (Cast f :: Expr fs) ()
-instance (f ~ a, Apply fs as)
-   => Apply (Expr f, fs) (Expr a, as) where
-   {- More of both formal and actual arguments to apply. -}
-   type Result (Expr f, fs) (Expr a, as) = Result fs as
-   fapply f (a, as) = (f',  Cast a : asList, i)
-      where (f', asList, i) = fapply (Cast f :: Expr fs) (as :: as)
-
--- | Wraps result in all cases
-wrapCall :: Apply fo ac => Expr fo -> ac -> Expr (Result fo ac)
-wrapCall f a = AnonFunc Nothing args [ Return $ FuncCall f' (a' <> args) ]
-   where (f', a', i) = fapply f a
-         args = map (ex . intPref "_") [1..i]
-         {- LATER TODO: have typed source of prefixes -}
-
-doCall f a = FuncCall f' (a' <> args)
-   where (f', a', i) = fapply f a
-         args = map (ex . intPref "a") [1..i]
-
-intPref p i = p <> TS.pack (show i)

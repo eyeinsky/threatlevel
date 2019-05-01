@@ -125,14 +125,6 @@ func constr f = do
 funcPure :: Function f => f -> Expr (Type f)
 funcPure = funcPrim AnonFunc def def <&> fst
 
-f -/ (a :: Expr a) = wrapCall f (a, ())
-
-f `a1` a = doCall f (a,())
-f `a2` (a,b) = doCall f (a,(b,()))
-f `a3` (a,b,c) = doCall f (a,(b,(c,())))
-f `a4` (a,b,c,d) = doCall f (a,(b,(c,(d,()))))
-f `a5` (a,b,c,d,e) = doCall f (a,(b,(c,(d,(e,())))))
-
 a !/ b = call0 (a !. b)
 a !// b = call1 (a !. b)
 
