@@ -100,7 +100,7 @@ verifyToken id callback = do
           user <- await $ call1 (googleAuth !. "signIn") prompt
           token <- new $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
-          DOM.xhrJs "POST" (lit $ renderURL url) ("id_token=" .+ token) []
+          DOM.xhrJs "POST" (lit $ renderURL url) ("id_token=" + token) []
         doGoogleSignIn .= doLogin'
         consoleLog ["google ready"]
 

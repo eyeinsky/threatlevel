@@ -169,18 +169,8 @@ infix 4 .>
 infix 4 .<=
 infix 4 .>=
 
-e1 .+ e2 = Op $ OpBinary Plus e1 e2
-e1 .- e2 = Op $ OpBinary Minus e1 e2
-e1 .* e2 = Op $ OpBinary Mult e1 e2
-e1 ./ e2 = Op $ OpBinary Div e1 e2
-e1 .% e2 = Op $ OpBinary Modulus e1 e2
-(%) = (.%)
+e1 % e2 = Op $ OpBinary Modulus e1 e2
 
-infixl 6 .+
-infixl 6 .-
-infixl 7 .*
-infixl 7 ./
-infixl 7 .%
 infixl 7  %
 
 -- * Literals
@@ -220,20 +210,20 @@ not = Op . OpUnary Not
 
 instance Num (Expr a) where
    fromInteger s = lit s
-   (+) = (.+)
-   (-) = (.-)
-   (*) = (.*)
+   e1 + e2 = Op $ OpBinary Plus e1 e2
+   e1 - e2 = Op $ OpBinary Minus e1 e2
+   e1 * e2 = Op $ OpBinary Mult e1 e2
    negate n = 0 - n
    abs = call1 (math "abs")
    signum = call1 (math "sign")
 instance Fractional (Expr a) where
    fromRational s = lit s
-   (/) = (./)
+   e1 / e2 = Op $ OpBinary Div e1 e2
 
-a .+= b = a .= (a .+ b)
-a .-= b = a .= (a .- b)
-a .*= b = a .= (a .* b)
-a ./= b = a .= (a ./ b)
+a .+= b = a .= (a + b)
+a .-= b = a .= (a - b)
+a .*= b = a .= (a * b)
+a ./= b = a .= (a / b)
 
 pr :: M r a -> IO ()
 pr = TL.putStrLn . render (Indent 2) . snd . fst . runM def def

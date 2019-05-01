@@ -212,14 +212,14 @@ pwaDiagnostics = do
       whiteSpace "pre"
     js $ do
       mklink <- newf $ \url -> do
-        retrn $ "<a href='" .+ url .+ "'>" .+ url .+ "</a>"
+        retrn $ "<a href='" + url + "'>" + url + "</a>"
       withCache <- async $ \cacheName -> do
         cache <- await $ open cacheName caches
         requests <- await $ keys cache
         g <- newf $ \req -> retrn $ url req
         urls <- new $ call1 (requests !. "map") g
         let links = call1 (urls !. "map") mklink
-        retrn $ cacheName .+ ":<br/>- " .+ (JS.join "<br/>- " links)
+        retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
       main <- async $ do
         keys <- await $ keys caches
         str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache

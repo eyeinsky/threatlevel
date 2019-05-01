@@ -369,4 +369,4 @@ attrsJSM t mkAttr as = do
 deleteCookie :: Expr String -> JS.M r ()
 deleteCookie name = do
   document !. "cookie" .= value
-  where value = name .+ "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+  where value = name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"

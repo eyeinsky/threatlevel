@@ -39,7 +39,7 @@ length :: Expr [a] -> Expr Int
 length as = as !. "length"
 
 last :: Expr [a] -> Expr a
-last as = as .! (JS.API.length as .- lit 1)
+last as = as .! (JS.API.length as - lit 1)
 
 indexOf :: Expr [a] -> Expr a -> Expr Int
 indexOf as a = call1 (as !. "indexOf") a
@@ -161,4 +161,4 @@ dir msg = bare $ call1 (console !. "dir") msg
 
 debug var expr = do
    ex var .= expr
-   consoleLog [toString expr .+ lit " (in: \"" .+ lit var .+ lit "\")"]
+   consoleLog [toString expr + lit " (in: \"" + lit var + lit "\")"]
