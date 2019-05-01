@@ -78,7 +78,6 @@ library:
 
   - JS.Syntax
   - JS.DSL
-  - JS.DSL.Internal
   - JS.API
   - JS.Derive
   - JS.Lib
@@ -101,6 +100,8 @@ library:
   - TH
   - JS.Syntax.Types
   - JS.Syntax.Render
+  - JS.DSL.Identifiers
+  - JS.DSL.Internal
   - CSS.Internal
   - CSS.Monad
   - CSS.Shorthands
@@ -109,7 +110,6 @@ library:
   - SVG.Attributes
   - SVG.Elements
   - XML.Render
-  - JS.DSL.Identifiers
 
 default-extensions:
 - Arrows
