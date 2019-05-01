@@ -22,7 +22,7 @@ import Control.Monad.State hiding (State)
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import qualified JS.Render
+import qualified JS.Syntax (Conf(..))
 import JS.Syntax hiding (S, putStrLn, Conf)
 
 import qualified JS.Syntax as JS
@@ -39,7 +39,7 @@ declareFields [d|
   data Conf = Conf
     { confBrowser :: Browser
     , confNamedVars :: Bool
-    , confRenderConf :: JS.Render.Conf
+    , confRenderConf :: JS.Syntax.Conf
     } deriving (Eq, Show, Read)
   |]
 
@@ -66,7 +66,7 @@ instance Default State where
   def = State identifiers S.empty S.empty
 
 instance Default Conf where
-  def = Conf Unknown True (JS.Render.Indent 2)
+  def = Conf Unknown True (JS.Syntax.Indent 2)
 
 type M r = WriterT (W r) (StateT State (ReaderT Conf Identity))
 

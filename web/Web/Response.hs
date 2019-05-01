@@ -19,7 +19,7 @@ import qualified Data.Text.Lazy.Lens as LL
 import qualified HTTP.Header as Hdr
 import HTTP.Response hiding (redirect, JSON, Response)
 import qualified JS
-import qualified JS.Render
+import qualified JS.Syntax
 import qualified HTML
 import URL
 import Render
@@ -39,7 +39,7 @@ toTextList url = domain : url^.URL.segments
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
-  JS :: JS.Render.Conf -> JS.Expr a -> AnyResponse
+  JS :: JS.Syntax.Conf -> JS.Expr a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: BL.ByteString -> AnyResponse
 

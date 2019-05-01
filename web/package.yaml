@@ -84,7 +84,6 @@ library:
   - JS.Lib
   - JS.Lib.Sleep
   - JS.Lib.Async
-  - JS.Render
   - JS
   - JS.Roundtrip
   - IndexedDB.IDB
@@ -100,6 +99,8 @@ library:
   other-modules:
   - Pr
   - TH
+  - JS.Syntax.Types
+  - JS.Syntax.Render
   - CSS.Internal
   - CSS.Monad
   - CSS.Shorthands

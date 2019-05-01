@@ -8,7 +8,7 @@ import qualified Data.Text.Lazy as TL
 
 import qualified JS
 import Render
-import JS.Render
+import JS.Syntax
 
 data TagName = TagName { unTagName :: Value }
 data Id      = Id { unId :: Value }

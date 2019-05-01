@@ -1,6 +1,4 @@
-module JS.Render
-  ( module JS.Render
-  ) where
+module JS.Syntax.Render (Conf(..), unargs) where
 
 import Data.Default
 import qualified Data.Text.Lazy as TL
@@ -9,7 +7,7 @@ import Control.Monad.Reader
 
 import Render hiding (Conf)
 import qualified Render
-import JS.Syntax hiding ((=:))
+import JS.Syntax.Types hiding ((=:))
 
 -- * Print AST to JavaScript
 

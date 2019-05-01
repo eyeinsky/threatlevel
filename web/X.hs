@@ -62,7 +62,7 @@ import X.Prelude as P
 import Data.Default
 import Render
 import JS hiding (String)
-import qualified JS.Render
+import qualified JS.Syntax
 
 import CSS.Monad (CSSM)
 import qualified HTTP.Header as HH

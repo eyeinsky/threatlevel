@@ -11,7 +11,7 @@ import XML.Core
 import DOM.Core
 import DOM.Event
 import qualified JS
-import qualified JS.Render
+import qualified JS.Syntax
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
@@ -85,4 +85,4 @@ htmlTextEscape t = foldl f t map'
     f t (a, b) = TL.replace a b t
     map' = map (first TL.singleton) htmlTextEscapeMap
 
-renderJS = render JS.Render.Minify
+renderJS = render JS.Syntax.Minify

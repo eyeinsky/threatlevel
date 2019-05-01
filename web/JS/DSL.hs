@@ -30,7 +30,7 @@ import qualified Data.Text.Lazy.IO as TL
 import JS.Syntax hiding (S, putStrLn, Conf)
 import JS.DSL.Internal as JS
 import Render
-import JS.Render hiding ((=:))
+import JS.Syntax
 
 new' :: TS.Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks (^.namedVars)
@@ -254,5 +254,5 @@ lib mcode = let
   return nameExpr
 
 instance Render (M r a) where
-  type Conf (M r a) = JS.Render.Conf
+  type Conf (M r a) = JS.Syntax.Conf
   renderM = renderM . snd . fst . runM def def

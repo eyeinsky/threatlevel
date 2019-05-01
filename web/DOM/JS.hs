@@ -11,7 +11,7 @@ import Control.Monad.Writer (execWriter)
 import Web.Browser
 import JS hiding (Raw)
 import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
-import qualified JS.Render
+import qualified JS.Syntax
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
@@ -240,10 +240,10 @@ xhrRaw meth uri data_ callback = do
 
 xhrJs :: Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
 xhrJs meth uri data_ args = do
-  rc :: JS.Render.Conf <- ask <&> (^.renderConf)
+  rc :: JS.Syntax.Conf <- ask <&> (^.renderConf)
   wrap <- newf $ \(resp :: Expr ()) -> do
     let funcText = responseText resp
-        argsText = lit $ runReader (JS.Render.unargs args) rc
+        argsText = lit $ runReader (JS.Syntax.unargs args) rc
     bare $ call1 (ex "eval") $ funcText + argsText
   xhrRaw meth uri data_ wrap
 
