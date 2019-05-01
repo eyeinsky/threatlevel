@@ -146,6 +146,10 @@ instance Function (M r a) where
    type Type (M r a) = r
    type Final (M r a) = r
    funcLit = ($> [])
+instance Function (Expr a) where
+   type Type (Expr a) = a
+   type Final (Expr a) = a
+   funcLit e = tell [Return $ Cast e] $> []
 instance (Function b) => Function (Expr a -> b) where
    type Type (Expr a -> b) = a -> Type b
    type Final (Expr a -> b) = Final b
