@@ -111,6 +111,10 @@ generator = new <=< func Generator
 newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
 newf' n = new' n <=< func AnonFunc
 
+-- fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+fn f = newf f <&> convert []
+fn' n f = newf' n f <&> convert []
+
 -- | Create function, getting state and reader from enclosing monad.
 func
   :: Function f

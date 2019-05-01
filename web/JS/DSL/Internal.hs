@@ -158,3 +158,14 @@ instance (Function b) => Function (Expr a -> b) where
       args <- funcLit (f arg)
       return $ Cast arg : args
 
+-- | The convert/back combo turns typed function expressions to actual
+-- haskell function calls.
+type family Convert x where
+  Convert (Expr (a -> b)) = Expr a -> Convert (Expr b)
+  Convert (Expr b) = Expr b
+class Back a where
+  convert :: [Expr ()] -> a -> Convert a
+instance Back (Expr b) => Back (Expr (a -> b)) where
+  convert args f arg = convert (Cast arg : args) (Cast f :: Expr b)
+instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
+  convert args f = call f $ reverse args
