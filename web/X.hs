@@ -104,15 +104,15 @@ for id = HTML.for (static $ unId id)
 
 -- * JS + URL
 
-instance ToLiteral URL.URL where
+instance ToExpr URL.URL where
   lit = renderURL ^ lit
 
 -- * JS + CSS
 
-instance ToLiteral Id where
+instance ToExpr Id where
   lit = unId ^ render' ^ lit
 
-instance ToLiteral Class where
+instance ToExpr Class where
   lit = unClass ^ render' ^ lit
 
 -- * HTTP.Response

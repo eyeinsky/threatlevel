@@ -171,28 +171,28 @@ infixl 7  %
 
 -- * Literals
 
-class    ToLiteral a       where lit :: a -> Expr b
-instance ToLiteral (Expr a) where lit = Cast
-instance ToLiteral Int     where lit = Lit . Integer . toInteger
-instance ToLiteral Integer where lit = Lit . Integer
-instance ToLiteral Rational where lit = Lit . Double . fromRational
-instance ToLiteral Double  where lit = Lit . Double
-instance ToLiteral Bool    where lit = Lit . Bool
-instance ToLiteral TS.Text  where lit = Lit . String
-instance ToLiteral TL.Text where lit = lit . TL.toStrict
-instance ToLiteral String  where lit = lit . TL.pack
+class    ToExpr a       where lit :: a -> Expr b
+instance ToExpr (Expr a) where lit = Cast
+instance ToExpr Int     where lit = Lit . Integer . toInteger
+instance ToExpr Integer where lit = Lit . Integer
+instance ToExpr Rational where lit = Lit . Double . fromRational
+instance ToExpr Double  where lit = Lit . Double
+instance ToExpr Bool    where lit = Lit . Bool
+instance ToExpr TS.Text  where lit = Lit . String
+instance ToExpr TL.Text where lit = lit . TL.toStrict
+instance ToExpr String  where lit = lit . TL.pack
 
-instance {-# OVERLAPPABLE #-} ToLiteral a => ToLiteral [a] where
+instance {-# OVERLAPPABLE #-} ToExpr a => ToExpr [a] where
    lit = Lit . Array . map lit
 
-instance ToLiteral v => ToLiteral [(TS.Text, v)] where
+instance ToExpr v => ToExpr [(TS.Text, v)] where
    lit li = Lit $ Object $ map f li
       where f (k, v) = (Left $ Name k, lit v)
 
 ck f = lit . map (first f)
-instance ToLiteral v => ToLiteral [(TL.Text, v)] where
+instance ToExpr v => ToExpr [(TL.Text, v)] where
    lit = ck TL.toStrict
-instance ToLiteral v => ToLiteral [(String, v)] where
+instance ToExpr v => ToExpr [(String, v)] where
   lit = ck TS.pack
 
 instance IsString (Expr a) where
@@ -201,7 +201,7 @@ instance IsString (Expr a) where
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 
-(!-) :: ToLiteral b => Expr a -> b -> Expr c -- TODO add types
+(!-) :: ToExpr b => Expr a -> b -> Expr c -- TODO add types
 (!-) a b = Arr a (lit b)
 
 instance Num (Expr a) where
