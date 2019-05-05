@@ -198,6 +198,9 @@ instance ToExpr v => ToExpr [(String, v)] where
 instance IsString (Expr a) where
    fromString s = lit s
 
+instance ToExpr a => ToExpr (Maybe a) where
+  lit = maybe Null lit
+
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 
