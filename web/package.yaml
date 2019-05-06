@@ -95,6 +95,7 @@ library:
   - X.Google.Maps
   - X.Google.Spreadsheet
   - X.Widgets
+  - X.Wai
   other-modules:
   - Pr
   - TH

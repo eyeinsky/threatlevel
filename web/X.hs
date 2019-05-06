@@ -29,6 +29,8 @@ import DOM as Export hiding (
   deleteCookie
   )
 
+import X.Wai as Export
+
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
