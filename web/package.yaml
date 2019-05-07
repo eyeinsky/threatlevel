@@ -87,6 +87,7 @@ library:
   - JS.Roundtrip
   - IndexedDB.IDB
   - PWA
+  - JW.T
 
   - X
   - X.Prelude
