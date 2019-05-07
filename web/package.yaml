@@ -90,6 +90,7 @@ library:
 
   - X
   - X.Prelude
+  - X.Cookie
   - X.DOM
   - X.Auth.Google
   - X.Google.Maps
