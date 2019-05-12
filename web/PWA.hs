@@ -1,5 +1,6 @@
 module PWA where
 
+import qualified Data.Text.Lazy as TL
 import qualified Prelude2 as P
 import qualified JS.Syntax
 import JS hiding (last, Name, Bool, not, replace)
@@ -90,6 +91,11 @@ clone req = call0 (req !. "clone")
 
 url :: Expr Request -> Expr URL
 url req = req !. "url"
+
+anyPrefix :: [URL] -> Expr URL -> Expr Bool
+anyPrefix patUrls reqUrl = reqUrl !// "match" $ regex (TL.toStrict pat) "i"
+  where
+    pat = map renderURL patUrls & TL.intercalate "|"
 
 -- * Service Worker
 

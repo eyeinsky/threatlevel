@@ -201,6 +201,9 @@ instance IsString (Expr a) where
 instance ToExpr a => ToExpr (Maybe a) where
   lit = maybe Null lit
 
+data RegExp
+regex str opts = Lit $ RegExp str opts :: Expr RegExp
+
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 
