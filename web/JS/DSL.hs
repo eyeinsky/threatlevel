@@ -204,6 +204,9 @@ instance ToExpr a => ToExpr (Maybe a) where
 data RegExp
 regex str opts = Lit $ RegExp str opts :: Expr RegExp
 
+toRegex :: Expr a -> TS.Text -> Expr RegExp
+toRegex str mod = call (ex "RegExp") [str, lit mod]
+
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 

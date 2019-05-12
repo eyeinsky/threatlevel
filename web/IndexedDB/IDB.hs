@@ -9,6 +9,8 @@ import qualified JS
 
 data DB
 data Transaction
+data Mode
+-- = Readonly | ReadWrite | VersionChange
 
 data ObjectStore a
 data Index
@@ -23,6 +25,8 @@ data KeyOrRange
 data Cursor a
 data Direction -- next, nextunique, prev, prevunique; default: next
 
+-- * DB
+
 openDB :: Expr String -> Expr Int -> Expr a -> Expr b
 openDB name version upgrade
   = call (ex "idb" !. "openDB") [name, Cast version, Cast upgrade]
@@ -33,41 +37,50 @@ open name = openDB name Undefined Undefined
 deleteDB :: Expr String -> Promise ()
 deleteDB name = call1 (ex "idb" !. "deleteDB") name
 
--- * DB
-
 close :: Expr DB -> Expr ()
 close db = call0 $ db !. "close"
 
--- Object Store
+-- * Object Store
 
-createObjectStore :: Expr DB -> Expr String -> Expr (ObjectStore a)
-createObjectStore db name = call1 (db !. "createObjectStore") name
+createObjectStore :: Expr String -> Expr o -> Expr DB -> Expr (ObjectStore a)
+createObjectStore name opts db = call (db !. "createObjectStore")
+  [Cast name, opts]
 
--- | idb convenience addition
-done :: Expr Transaction -> Promise ()
-done tx = tx !. "done"
+-- * Transaction
 
 -- | Helper to run a transaction, my own addition.
-transaction :: Function f => Expr DB -> [Expr String] -> Expr String -> f -> JS.M () ()
+transaction
+  :: Function f
+  => Expr DB -> [Expr String] -> Expr Mode -> f -> JS.M () ()
 transaction db storeNames mode body = do
   tx :: Expr Transaction <- new $ call (db !. "transaction") [lit storeNames, lit mode]
   let stores = map (objectStore tx) storeNames :: [Expr (ObjectStore a)]
   body' <- async body
   bare $ call (Cast body') (Cast tx : stores)
 
--- * Transaction
+ro = "readonly" :: Expr Mode
+rw = "readwrite" :: Expr Mode
+vc = "versionchange" :: Expr Mode
+
+-- | idb convenience addition
+done :: Expr Transaction -> Promise ()
+done tx = tx !. "done"
+
+mode :: Expr Transaction -> Expr Mode
+mode t = t !. "mode"
+
+abort :: Expr Transaction -> Expr ()
+abort t = call0 (t !. "abort")
+
+
+
+
 
 objectStoreNames :: Expr dbOrTx -> Expr [String]
 objectStoreNames t = t !. "objectStoreNames"
 
-mode :: Expr Transaction -> Expr String
-mode t = t !. "mode"
-
-abort t = call0 (t !. "abort")
-
 objectStore :: Expr Transaction -> Expr String -> Expr (ObjectStore a)
 objectStore tx name = call1 (tx !. "objectStore") name
-
 
 -- * ObjectStore & Index
 
@@ -115,14 +128,14 @@ openKeyCursor2 = c2 "openKeyCursor"
 
 -- | Properties: name, keyPath, indexNames, autoIncrement
 
-add1 = c1 "add"
+add = c1 "add"
   :: Expr a -> Expr (ObjectStore a) -> Promise Request
-add2 = c2 "add" -- | Errors when key already exists
+addWithKey = c2 "add" -- | Errors when key already exists
   :: Expr a -> Expr String -> Expr (ObjectStore a) -> Promise Request
 
-put1 = c1 "put" -- | Updates when key already exists
+put = c1 "put" -- | Updates when key already exists
   :: Expr a -> Expr (ObjectStore a) -> Promise Request
-put2 = c2 "put"
+putWithKey = c2 "put"
   :: Expr a -> Expr String -> Expr (ObjectStore a) -> Promise Request
 
 delete = c1 "delete" -- | Delete values with key
@@ -130,10 +143,12 @@ delete = c1 "delete" -- | Delete values with key
 
 clear = c0 "clear" :: Expr (ObjectStore a) -> Promise ()
 
+-- | Indexes
 index = c1 "index" -- | Get index with name
   :: Expr String -> Expr (ObjectStore a) -> Promise Index
-createIndex2 = c2 "createIndex"
-  :: Expr String -> Expr String -> Expr (ObjectStore a) -> Expr ()
+createIndex = c2 "createIndex"
+  :: Expr String -> Expr path -> Expr (ObjectStore a) -> Expr ()
+  -- ^ index name -> key path -> object store -> ...
 createIndex3 = c3 "createIndex"
   :: Expr String -> Expr String -> Expr a -> Expr (ObjectStore a) -> Expr ()
 deleteIndex = c1 "deleteIndex"
