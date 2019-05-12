@@ -93,7 +93,7 @@ split str sep = call1 (str !. "split") sep
 trim :: Expr String -> Expr String
 trim s = call0 (s !. "trim")
 
-instance Semigroup (Expr String) where
+instance {-# OVERLAPPABLE #-} Semigroup (Expr String) where
   a <> b = a + b
 instance Monoid (Expr String) where
   mempty = ""

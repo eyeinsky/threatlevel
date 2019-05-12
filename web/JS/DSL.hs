@@ -251,3 +251,23 @@ lib mcode = let
 instance Render (M r a) where
   type Conf (M r a) = JS.Syntax.Conf
   renderM = renderM . snd . fst . runM def def
+
+-- * Semigroup and monoid instances
+
+instance {-# OVERLAPPABLE #-} Semigroup (Expr [a]) where
+  a <> b = a !// "concat" $ b
+instance {-# OVERLAPPABLE #-} Monoid (Expr [a]) where
+  mempty = Lit $ Array []
+
+data Object
+
+instance {-# OVERLAPPABLE #-} Semigroup (Expr Object) where
+  a <> b = a !// "concat" $ b
+instance {-# OVERLAPPABLE #-} Monoid (Expr Object) where
+  mempty = Lit $ Object []
+
+-- | Expr a defaults to Expr Object
+instance {-# OVERLAPPABLE #-} Semigroup (Expr a) where
+  a <> b = call (ex "Object" !. "assign") [mempty :: Expr Object, Cast a, Cast b]
+instance {-# OVERLAPPABLE #-} Monoid (Expr a) where
+  mempty = Lit $ Object []
