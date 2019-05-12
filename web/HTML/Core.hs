@@ -13,7 +13,7 @@ import Render hiding (concat)
 
 import Pr hiding (id, for)
 import qualified JS
-import DOM.Core
+import DOM.Core hiding (Document)
 import DOM.Event
 import XML
 import TH

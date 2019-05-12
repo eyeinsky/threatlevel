@@ -14,7 +14,7 @@ import qualified Data.Text.Lazy as TL
 import Pr
 import XML
 
-import CSS
+import CSS hiding (Document) -- todo
 import Web.CSS (reset)
 import HTML hiding (M, Value, content, font, em, id)
 import Web.Browser

@@ -21,17 +21,6 @@ import DOM.Event
 import XML
 import SVG hiding (onload, id)
 
--- * Objects
-
-window :: Expr Window
-window = ex "window"
-
-document :: Expr Document
-document = ex "document"
-
-location :: Expr Location
-location = window !. "location"
-
 getAttribute k e = call1 (e !. "getAttribute") k
 setAttribute k v e = call (e !. "setAttribute") [k, v]
 

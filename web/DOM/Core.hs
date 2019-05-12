@@ -19,6 +19,23 @@ data Tag
 data Window
 data DocumentFragment
 data Location
+data Document
+
+-- * Objects
+
+window :: Expr Window
+window = ex "window"
+
+document :: Expr Document
+document = ex "document"
+
+location :: Expr Location
+location = window !. "location"
+
+instance Semigroup (Expr DocumentFragment) where
+  (<>) = error "Not implemented: Semigroup (Expr DocumentFragment)"
+instance Monoid (Expr DocumentFragment) where
+  mempty = document JS.!/ "createDocumentFragment"
 
 -- * Value
 

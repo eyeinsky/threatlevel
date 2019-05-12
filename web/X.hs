@@ -13,7 +13,9 @@ import HTML as Export hiding (
   )
 import CSS as Export hiding (
   -- generic
-  filter, all, transform
+  filter, all, transform,
+  -- defined both in HTML and DOM.Core
+  Document
   )
 import Web.Monad as Export
 import DOM.Event as Export
@@ -26,7 +28,9 @@ import DOM as Export hiding (
   -- used in CSS
   Value, focus,
   -- used in X
-  deleteCookie
+  deleteCookie,
+  -- defined both in HTML and DOM.Core
+  Document
   )
 
 import X.Wai as Export
