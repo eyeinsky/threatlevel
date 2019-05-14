@@ -50,6 +50,8 @@ dependencies:
 - memory
 - base64-bytestring
 - process
+- time
+- mwc-random
 
 library:
   exposed-modules:
@@ -88,6 +90,7 @@ library:
   - IndexedDB.IDB
   - PWA
   - JW.T
+  - Sessions
 
   - X
   - X.Prelude
