@@ -95,7 +95,7 @@ url req = req !. "url"
 anyPrefix :: [URL] -> Expr URL -> Expr Bool
 anyPrefix patUrls reqUrl = reqUrl !// "match" $ regex (TL.toStrict pat) "i"
   where
-    pat = map renderURL patUrls & TL.intercalate "|"
+    pat = map renderURL patUrls & TL.intercalate "|" & par & (<> "\\b")
 
 -- * Service Worker
 
