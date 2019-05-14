@@ -150,6 +150,7 @@ requestCookies = Wai.requestHeaders
 class ToHtml a where toHtml :: a -> Html
 instance ToHtml P.Int where toHtml = show ^ TL.pack ^ text
 instance ToHtml P.String where toHtml = TL.pack ^ text
+instance ToHtml Char where toHtml = TL.singleton ^ text
 instance ToHtml TS.Text where toHtml = TL.fromStrict ^ text
 instance ToHtml TL.Text where toHtml = text
 instance ToHtml URL.URL where toHtml = renderURL ^ text
@@ -158,7 +159,9 @@ instance ToHtml URL.URL where toHtml = renderURL ^ text
 
 instance ToHtml (Expr DocumentFragment) where
   toHtml a = W.dyn a
-instance ToHtml (Expr a) where
+instance ToHtml (Expr String) where
+  toHtml a = W.dyn $ createTextNode a
+instance ToHtml (Expr TS.Text) where
   toHtml a = W.dyn $ createTextNode $ Cast a
 
 html = to toHtml
