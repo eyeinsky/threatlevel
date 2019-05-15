@@ -7,7 +7,6 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
-import Data.Kind (type (*), Constraint)
 
 import Pr hiding (id)
 import Prelude2.Has (HasId(..))

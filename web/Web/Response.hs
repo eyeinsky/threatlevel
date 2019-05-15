@@ -30,8 +30,6 @@ import HTTP.Common (ToPayload(..))
 renderURL :: URL -> TL.Text
 renderURL url = toPayload url
 
-href' url = HTML.href (renderURL url)
-
 toTextList :: URL -> [Segment]
 toTextList url = domain : url^.URL.segments
    where
