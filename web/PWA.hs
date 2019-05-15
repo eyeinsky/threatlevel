@@ -6,8 +6,6 @@ import X.Prelude
 import X as DOM
 
 
-data Request
-
 -- * Web Worker
 
 data Worker

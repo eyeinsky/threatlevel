@@ -1,9 +1,14 @@
-module X.Wai where
+module X.Wai
+  ( module X.Wai
+  , module Export
+  ) where
+
+import Network.Wai as Export hiding (Response)
+import Network.HTTP.Types as Export
+import Network.Wai (Request)
 
 import Control.Monad
 import qualified Data.Text as TS
-import Network.Wai
-import Network.HTTP.Types
 import Web.Cookie (parseCookiesText)
 
 import X.Prelude

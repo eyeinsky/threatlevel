@@ -210,7 +210,7 @@ toRegex str mod = call (ex "RegExp") [str, lit mod]
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 
-(!-) :: ToExpr b => Expr a -> b -> Expr c -- TODO add types
+(!-) :: ToExpr b => Expr a -> b -> Expr c
 (!-) a b = Arr a (lit b)
 
 instance Num (Expr a) where

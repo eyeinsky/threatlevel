@@ -9,7 +9,8 @@ import HTML as Export hiding (
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
-  header
+  header,
+  raw
   )
 import CSS as Export hiding (
   -- generic
@@ -20,7 +21,7 @@ import CSS as Export hiding (
 import Web.Monad as Export
 import DOM.Event as Export
 
-import URL as Export (URL(..))
+import URL as Export hiding (T, base)
 import Web.Endpoint as Export hiding (State, Writer, (/), M)
 
 import DOM as Export hiding (
@@ -37,9 +38,15 @@ import JS as Export hiding (
   dir, for, browser, runM, Conf, String, State
   )
 
-import Web.Response as Export (Response)
+import Web.Response as Export hiding (
+  -- TODO: describe why I hide these
+  text, error, page, js, body, code, Raw)
 
 import X.Wai as Export
+
+import Web.Browser as Export
+
+import Web.CSS as Export
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
