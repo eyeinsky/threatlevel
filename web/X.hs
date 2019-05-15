@@ -19,10 +19,9 @@ import CSS as Export hiding (
   )
 import Web.Monad as Export
 import DOM.Event as Export
-import Data.Default as Export
 
 import URL as Export (URL(..))
-import Web.Endpoint as Export hiding (State, Writer, (/))
+import Web.Endpoint as Export hiding (State, Writer, (/), M)
 
 import DOM as Export hiding (
   -- used in CSS
@@ -32,6 +31,13 @@ import DOM as Export hiding (
   -- defined both in HTML and DOM.Core
   Document
   )
+
+import JS as Export hiding (
+  -- todo: describe these
+  dir, for, browser, runM, Conf, String, State
+  )
+
+import Web.Response as Export (Response)
 
 import X.Wai as Export
 

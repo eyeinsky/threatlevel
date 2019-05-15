@@ -7,3 +7,5 @@ import Prelude2 as Export hiding
   , (.=), text -- lens
   , on -- Data.Function
   )
+
+import Data.Default as Export

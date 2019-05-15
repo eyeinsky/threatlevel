@@ -1,19 +1,9 @@
 module PWA where
 
 import qualified Data.Text.Lazy as TL
-import qualified Prelude2 as P
-import qualified JS.Syntax
-import JS hiding (last, Name, Bool, not, replace)
-import qualified JS
-import DOM
-import URL
--- import Web
-import Web.Response (Response, htmlDoc)
-import qualified Web.Response as WR
-import Web.Endpoint hiding (M)
 
-import Apps.Lib as Lib hiding ((.=), M)
-import Apps.Upstream hiding (clone)
+import X.Prelude
+import X as DOM
 
 
 data Request
@@ -33,7 +23,7 @@ pipe :: Function f => f -> M r ()
 pipe f = do
   f' <- newf f
   wrap <- newf $ \msg -> send self (call1 f' msg)
-  bare $ DOM.addEventListener self DOM.Message wrap
+  bare $ addEventListener self DOM.Message wrap
 
 -- ** External
 
@@ -107,7 +97,7 @@ waitUntil promise installEvent = call1 (installEvent !. "waitUntil") promise
 
 register :: URL -> M r ()
 register url = let
-  cond = "serviceWorker" `JS.Syntax.In` ex "navigator"
+  cond = "serviceWorker" `In` ex "navigator"
   urlStr = lit $ renderURL url
   reg = call1 (ex "navigator" !. "serviceWorker" !. "register") urlStr
   in ifonly cond $ bare reg
@@ -164,14 +154,14 @@ generate gen = do
   bare $ DOM.addEventListener self DOM.Install installHandler
   bare $ DOM.addEventListener self DOM.Fetch fetchHandler
   where
-    genCode :: Expr ServiceWorkerEvent -> (Expr ServiceWorkerEvent -> JS.M r ()) -> [(Expr Bool, M r ())] -> JS.M r ()
+    genCode :: Expr ServiceWorkerEvent -> (Expr ServiceWorkerEvent -> M r ()) -> [(Expr Bool, M r ())] -> M r ()
     genCode event defaultFetch li = foldl f (defaultFetch event) li
       where f rest (cond, code) = ifelse cond code rest
 
     mkCond :: Expr ServiceWorkerEvent -> URL -> Expr Bool
     mkCond event url' = url (request event) .=== lit (renderURL url')
 
-    cacheOnly :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, JS.M r ())
+    cacheOnly :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, M r ())
     cacheOnly event url' = let
       code = do
         req <- new $ request event
@@ -183,7 +173,7 @@ generate gen = do
         bare $ respondWith p event
       in (mkCond event url', code)
 
-    cacheNetwork :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, JS.M r ())
+    cacheNetwork :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, M r ())
     cacheNetwork event url' = let
       code = do
         req <- new $ request event
@@ -202,7 +192,7 @@ generate gen = do
         bare $ respondWith p event
       in (mkCond event url', code)
 
-    defaultFetch :: Expr ServiceWorkerEvent -> JS.M r ()
+    defaultFetch :: Expr ServiceWorkerEvent -> M r ()
     defaultFetch event = consoleLog ["fetch: url(", url $ request event, ")", "no conditions"]
 
 fetchAndCache req cache = do
@@ -212,32 +202,32 @@ fetchAndCache req cache = do
   bare $ call0 putCache
   return resp
 
-pwaDiagnostics = do
-  listCaches <- api $ return $ \req -> do
-    cssRule Lib.body $ do
-      whiteSpace "pre"
-    js $ do
-      mklink <- newf $ \url -> do
-        retrn $ "<a href='" + url + "'>" + url + "</a>"
-      withCache <- async $ \cacheName -> do
-        cache <- await $ open cacheName caches
-        requests <- await $ keys cache
-        g <- newf $ \req -> retrn $ url req
-        urls <- new $ call1 (requests !. "map") g
-        let links = call1 (urls !. "map") mklink
-        retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
-      main <- async $ do
-        keys <- await $ keys caches
-        str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
+-- pwaDiagnostics = do
+--   listCaches <- api $ return $ \req -> do
+--     cssRule body $ do
+--       whiteSpace "pre"
+--     js $ do
+--       mklink <- newf $ \url -> do
+--         retrn $ "<a href='" + url + "'>" + url + "</a>"
+--       withCache <- async $ \cacheName -> do
+--         cache <- await $ open cacheName caches
+--         requests <- await $ keys cache
+--         g <- newf $ \req -> retrn $ url req
+--         urls <- new $ call1 (requests !. "map") g
+--         let links = call1 (urls !. "map") mklink
+--         retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
+--       main <- async $ do
+--         keys <- await $ keys caches
+--         str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
 
-        bare $ DOM.documentWrite str
-      bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
+--         bare $ DOM.documentWrite str
+--       bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
 
-    dest <- newId
-    return $ htmlDoc (pure ()) $ do
-      div ! dest $ ""
+--     dest <- newId
+--     return $ htmlDoc (pure ()) $ do
+--       div ! dest $ ""
 
-  pin "pwa-diag" $ return $ \req -> do
-    return $ htmlDoc (pure ()) $ a ! href listCaches $ "list caches"
+--   pin "pwa-diag" $ return $ \req -> do
+--     return $ htmlDoc (pure ()) $ a ! href listCaches $ "list caches"
 
-  return ()
+--   return ()

@@ -4,6 +4,6 @@ module JS
    , module JS.Derive
    ) where
 
+import JS.DSL
 import JS.API
 import JS.Derive
-import JS.DSL
