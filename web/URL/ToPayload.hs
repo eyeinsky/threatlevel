@@ -20,7 +20,7 @@ import Data.Hashable (Hashable)
 deriving instance Hashable Port
 
 instance ToPayload BaseURL where
-   toPayload (BaseURL proto@ (Proto proto') host port @(Port port')) =
+   toPayload (BaseURL proto@ (Proto proto') host port@ (Port port')) =
          toPayload proto
       <> "://"
       <> toPayload host
@@ -31,7 +31,7 @@ instance ToPayload BaseURL where
          | proto' == "https" && port' == 443 = ""
          | otherwise = ":" <> toPayload port
 
-withoutSchema (BaseURL proto@ (Proto proto') host port @(Port port')) =
+withoutSchema (BaseURL proto@ (Proto proto') host port@ (Port port')) =
      toPayload host
   <> portPayload
   where
