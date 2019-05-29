@@ -2,6 +2,7 @@ module JS.Lib
   ( module JS.Lib.Sleep
   , module JS.Lib.Async
   , module JS.Lib
+  , module JS.DSL
   ) where
 
 import JS.Lib.Sleep
@@ -9,6 +10,8 @@ import JS.Lib.Async
 
 import Prelude hiding (repeat)
 import JS
+import JS.API
+import JS.DSL (not)
 
 -- * Text
 
