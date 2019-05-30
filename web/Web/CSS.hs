@@ -9,6 +9,7 @@ reset = do
   cssRule (TagName "body") zero
   cssRule (TagName "div") zero
   cssRule (TagName "html") (boxSizing "border-box")
+  cssRule (TagName "ul") (zero >> listStyle "none")
   cssRule anyTag $ boxSizing "inherit"
   where
     zero = do
