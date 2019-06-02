@@ -200,32 +200,32 @@ fetchAndCache req cache = do
   bare $ call0 putCache
   return resp
 
--- pwaDiagnostics = do
---   listCaches <- api $ return $ \req -> do
---     cssRule body $ do
---       whiteSpace "pre"
---     js $ do
---       mklink <- newf $ \url -> do
---         retrn $ "<a href='" + url + "'>" + url + "</a>"
---       withCache <- async $ \cacheName -> do
---         cache <- await $ open cacheName caches
---         requests <- await $ keys cache
---         g <- newf $ \req -> retrn $ url req
---         urls <- new $ call1 (requests !. "map") g
---         let links = call1 (urls !. "map") mklink
---         retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
---       main <- async $ do
---         keys <- await $ keys caches
---         str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
+pwaDiagnostics = do
+  listCaches <- api $ return $ \req -> do
+    cssRule body $ do
+      whiteSpace "pre"
+    js $ do
+      mklink <- newf $ \url -> do
+        retrn $ "<a href='" + url + "'>" + url + "</a>"
+      withCache <- async $ \cacheName -> do
+        cache <- await $ open cacheName caches
+        requests <- await $ keys cache
+        g <- newf $ \req -> retrn $ url req
+        urls <- new $ call1 (requests !. "map") g
+        let links = call1 (urls !. "map") mklink
+        retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
+      main <- async $ do
+        keys <- await $ keys caches
+        str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
 
---         bare $ DOM.documentWrite str
---       bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
+        bare $ DOM.documentWrite str
+      bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
 
---     dest <- newId
---     return $ htmlDoc (pure ()) $ do
---       div ! dest $ ""
+    dest <- newId
+    return $ htmlDoc (pure ()) $ do
+      div ! dest $ ""
 
---   pin "pwa-diag" $ return $ \req -> do
---     return $ htmlDoc (pure ()) $ a ! href listCaches $ "list caches"
+  pin "pwa-diag" $ return $ \req -> do
+    return $ htmlDoc (pure ()) $ a ! href listCaches $ "list caches"
 
---   return ()
+  return ()
