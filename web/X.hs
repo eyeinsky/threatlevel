@@ -54,6 +54,7 @@ import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text.Lazy.Lens as LL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
+import Data.Time
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
@@ -120,6 +121,22 @@ href url = HTML.href (TL.toStrict $ WR.renderURL url)
 
 for :: Id -> Attribute
 for id = HTML.for (static $ unId id)
+
+-- * HTML + Date.Time
+
+textTime :: (Monad m, ParseTime t) => String -> TS.Text -> m t
+textTime fmt inp =
+  parseTimeM True defaultTimeLocale fmt str
+  where
+    str = TS.unpack inp
+
+format
+  :: (Profunctor p, Contravariant f, FormatTime t)
+  => String -> Optic' p f t TL.Text
+format str = to (formatTime defaultTimeLocale str ^ TL.pack)
+
+htmlDate = format "%F".html
+htmlTime = format "%F %T".html
 
 -- * JS + URL
 
