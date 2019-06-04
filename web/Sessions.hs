@@ -44,3 +44,6 @@ hot :: IO Id
 hot = do
   s <- createStore
   genId $ s^.gen
+
+listTokens :: Store a -> IO [Id]
+listTokens store = readMVar (store^.map) <&> HM.keys
