@@ -184,6 +184,7 @@ instance ToHtml Char where toHtml = TL.singleton ^ text
 instance ToHtml TS.Text where toHtml = TL.fromStrict ^ text
 instance ToHtml TL.Text where toHtml = text
 instance ToHtml URL.URL where toHtml = renderURL ^ text
+instance ToHtml Html where toHtml a = a
 
 -- ** Front-end
 
