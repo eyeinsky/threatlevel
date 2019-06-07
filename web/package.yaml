@@ -64,6 +64,7 @@ library:
   - HTTP.Header
   - HTTP.Response
   - HTTP.Response.InlineFile
+  - HTTP
   - URL.ToPayload
   - URL.TH
   - Warp_Helpers
@@ -91,6 +92,7 @@ library:
   - PWA
   - JW.T
   - Sessions
+  - JS.TH
 
   - X
   - X.Prelude
