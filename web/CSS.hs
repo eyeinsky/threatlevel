@@ -8,6 +8,7 @@ module CSS
   , keyframes, keyframes', keyframe, browser, selector
   , media, supports
   , DeclM, renderDecls
+  , flexbox
   ) where
 
 import Prelude2
@@ -47,3 +48,8 @@ centerContent = do
   flexFlow "column nowrap"
   justifyContent "center"
   alignItems "center"
+
+flexbox :: Value -> CSSM ()
+flexbox how = do
+  display "flex"
+  flexFlow how
