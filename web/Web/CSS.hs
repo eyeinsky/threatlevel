@@ -6,11 +6,11 @@ import Web.Monad
 import CSS
 
 reset = do
-  cssRule (TagName "body") zero
-  cssRule (TagName "div") zero
   cssRule (TagName "html") (boxSizing "border-box")
-  cssRule (TagName "ul") (zero >> listStyle "none")
-  cssRule anyTag $ boxSizing "inherit"
+  cssRule (TagName "ul") (listStyle "none")
+  cssRule anyTag $ do
+    boxSizing "inherit"
+    zero
   where
     zero = do
       padding $ px 0
