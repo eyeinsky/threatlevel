@@ -137,6 +137,7 @@ default-extensions:
 - GeneralizedNewtypeDeriving
 - InstanceSigs
 - KindSignatures
+- LambdaCase
 - MultiParamTypeClasses
 - NamedFieldPuns
 - NoImplicitPrelude
