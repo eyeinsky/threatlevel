@@ -48,6 +48,8 @@ import Web.Browser as Export
 
 import Web.CSS as Export
 
+import HTTP.Request as Export
+
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL

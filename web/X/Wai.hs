@@ -14,9 +14,6 @@ import Web.Cookie (parseCookiesText)
 
 import X.Prelude
 
-queryText :: Request -> QueryText
-queryText = queryString ^ queryToQueryText
-
 readCookie :: TS.Text -> Request -> Maybe TS.Text
 readCookie key = requestHeaders ^ lookup hCookie >=> parseCookiesText ^ lookup key
 
