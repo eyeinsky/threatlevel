@@ -64,7 +64,7 @@ waiAddHeaders hs r = case r of
 -- * Caching
 
 cacheForever :: H.Header
-cacheForever = H.header H.CacheControl "max-age=365000000, public, immutable"
+cacheForever = H.header H.CacheControl "max-age=31536000, public, immutable"
 
 -- * Receive
 
