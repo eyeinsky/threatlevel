@@ -8,7 +8,6 @@ import Control.Monad.RWS
 import Identifiers as Idents
 
 import Pr
-import Web.Browser
 import CSS.Internal
 
 
@@ -17,7 +16,6 @@ import CSS.Internal
 declareFields [d|
   data Conf = Conf
     { confSelector :: Selector
-    , confBrowser :: Browser
     }
   |]
 
@@ -61,8 +59,8 @@ runCSSM r s m = (r' : cssw^.rules, state)
 
 -- * For export
 
-run :: SelectorFrom a => Browser -> a -> CSSM () -> [Rule]
-run b s m = runCSSM (Conf (selFrom s) b) def m & fst
+run :: SelectorFrom a => a -> CSSM () -> [Rule]
+run s m = runCSSM (Conf (selFrom s)) def m & fst
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
@@ -89,7 +87,7 @@ pseudo :: TL.Text -> CSSM () -> CSSM ()
 pseudo t m = do
   conf <- ask
   let hoovered = apply (pseudo' t) (conf^.selector)
-  tellRules' (Conf hoovered $ conf^.browser) m
+  tellRules' (Conf hoovered) m
   where
     pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
     pseudo' t s = s & pseudos %~ (Pseudo t:)
@@ -99,7 +97,7 @@ combinator c d m = let
   ss = ssFrom d
   in do
   conf <- ask
-  let r = Conf (Combined c (conf^.selector) ss) (conf^.browser)
+  let r = Conf (Combined c (conf^.selector) ss)
   tellRules' r m
 
 -- | Tell rules and thread state
@@ -121,16 +119,14 @@ instance Semigroup DeclW where
 instance Monoid DeclW where
   mempty = DeclW mempty
 
-type DeclM = WriterT DeclW (Reader Browser)
-execDeclM :: Browser -> DeclM a ->  DeclW
-execDeclM r dm = runReader (execWriterT dm) r
+type DeclM = Writer DeclW
+execDeclM :: DeclM a ->  DeclW
+execDeclM dm = execWriter dm
 
-type KM = WriterT [KeyframeBlock] (Reader Browser)
+type KM = Writer [KeyframeBlock]
 
 keyframe :: Int -> DeclM () -> KM ()
-keyframe n dm = do
-  dw <- ask <&> runReader (execWriterT dm)
-  tell $ pure $ KeyframeBlock (KPercent n) (dw^.decls)
+keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
 keyframes :: KM () -> CSSM Value
 keyframes km = do
@@ -139,8 +135,7 @@ keyframes km = do
 
 keyframes' :: TL.Text -> KM () -> CSSM Value
 keyframes' name km = do
-  ks <- asks (view browser) <&> runReader (execWriterT km)
-  tellRule $ Keyframes name ks
+  tellRule $ Keyframes name $ execWriter km
   return $ Word name
 
 -- * At-rules

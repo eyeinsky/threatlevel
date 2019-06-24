@@ -26,5 +26,5 @@ import Render hiding (Conf)
 styleAttr :: TS.Text -> Attribute
 styleAttr = Custom "style"
 
-decls :: Browser -> DeclM a -> Attribute
-decls browser = renderDecls browser ^ TL.toStrict ^ styleAttr
+decls :: DeclM a -> Attribute
+decls = renderDecls ^ TL.toStrict ^ styleAttr

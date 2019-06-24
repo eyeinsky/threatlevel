@@ -24,20 +24,20 @@ import DOM.Core hiding (Value) -- don't export attribute value, but css value
 
 import Render
 
-renderDecls :: Browser -> DeclM a -> Text
-renderDecls r dm = render () $ view decls $ execDeclM r dm
+renderDecls :: DeclM a -> Text
+renderDecls dm = render () $ view decls $ execDeclM dm
 
 -- * Useful styles
 
-resetCSS :: Browser -> [Rule]
-resetCSS b = run b (TagName "body") no <> run b (TagName "div") no
+resetCSS :: [Rule]
+resetCSS = run (TagName "body") no <> run (TagName "div") no
    where
       no = do
         prop "padding" $ px 0
         prop "margin" $ px 0
 
-setBoxSizing :: Browser -> [Rule]
-setBoxSizing b = run b (TagName "html") (boxSizing "border-box") <> run b anyTag inherit
+setBoxSizing :: [Rule]
+setBoxSizing = run (TagName "html") (boxSizing "border-box") <> run anyTag inherit
   where
     forAny = inherit >> before inherit >> after inherit
     inherit = boxSizing "inherit"

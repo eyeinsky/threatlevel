@@ -101,12 +101,11 @@ class Monad m => MonadWeb m where
 
 cssF mk m = WebT $ do
   state0 <- gets (^.cssState)
-  conf <- asks (^.Br.browser)
   let
     (ident : rest) = state0^.CSSM.idents
     state1 = state0 & CSSM.idents .~ rest
     name = mk ident
-    conf' = CSSM.Conf (CSS.selFrom name) conf
+    conf' = CSSM.Conf (CSS.selFrom name)
     (rules, state2) = CSSM.runCSSM conf' state1 m
   modify (cssState .~ state2)
   tell (mempty & cssCode .~ rules)
@@ -126,8 +125,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       return result
    css = css'
    cssRule sl m = WebT $ do
-      b <- asks (^.Br.browser)
-      tell $ mempty & cssCode .~ CSSM.run b sl m
+      tell $ mempty & cssCode .~ CSSM.run sl m
    cssId = cssF (Id . Static . TL.toStrict)
    nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)
    getState = WebT get
