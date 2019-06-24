@@ -4,6 +4,7 @@ import qualified Data.Text.Lazy as TL
 
 import X.Prelude
 import X as DOM
+import qualified JS.API as JS
 
 
 -- * Web Worker
