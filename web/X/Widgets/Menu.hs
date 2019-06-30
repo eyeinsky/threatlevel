@@ -68,40 +68,37 @@ dropdown tr = do
 
 -- * Side hovermenu
 
-menuHtml treeC labelC childrenC tree = f tree
+menuHtml treeC childrenC tree = f tree
   where
     f t = case t of
       Leaf html -> div html
       Node labelText sub -> div ! treeC $ do
-        label ! labelC $ labelText
+        label $ labelText
         case sub of
           [] -> pure ()
           _ -> div ! childrenC $ mapM_ f sub
 
-hoverSide = mdo
-  tree <- css $ do
-    position "relative"
-    hover $ descendant children $ do
-      display "block"
-  label <- css $ pure ()
-  children <- css $ do
-    zIndex 1
-    display "none"
-    position "absolute"
-    left $ prc 100
-    top 0
-  return (tree, label, children)
+hoverTree children = css $ do
+  position "relative"
+  hover $ descendant children $ do
+    display "block"
 
-hoverBelow = mdo
-  tree <- css $ do
-    position "relative"
-    hover $ descendant children $ do
-      display "block"
-  label <- css $ pure ()
-  children <- css $ do
-    zIndex 1
-    display "none"
-    position "absolute"
-    left 0
-    top $ prc 100
-  return (tree, label, children)
+hoverChildren = css $ do
+  zIndex 1
+  display "none"
+  position "absolute"
+
+makeHover rules = do
+  children <- hoverChildren
+  tree <- hoverTree children
+  cssRule children $ do
+    rules
+  pure (tree, children)
+
+hoverSide = makeHover $ do
+  left $ prc 100
+  top 0
+
+hoverBelow = makeHover $ do
+  left 0
+  top $ prc 100
