@@ -146,7 +146,12 @@ instance Render Name where
 instance Render Literal where
   type Conf Literal = Conf
   renderM ul = case ul of
-    String text -> pure $ q'' text
+    String text -> pure $ sur . esc . nl . cr $ TL.fromStrict text
+      where
+        sur str = "\"" <> str <> "\""
+        esc = TL.replace "\"" "\\\""
+        nl = TL.replace "\n" "\\n"
+        cr = TL.replace "\r" "\\r"
     RegExp text opts -> let
       pat = TL.replace "/" "\\/" (TL.fromStrict text)
       in pure $ "/" <> pat <> "/" <> TL.fromStrict opts
