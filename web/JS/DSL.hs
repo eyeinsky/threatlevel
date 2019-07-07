@@ -1,7 +1,7 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
-  , M, State(..), JS.Conf(..), runM, new, library, Function, mkCode
+  , M, State(..), JS.Conf(..), runM, new, library, Function, mkCode, Final
   , HasConf(..)
   , HasRenderConf(..)
 

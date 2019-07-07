@@ -48,15 +48,18 @@ createObjectStore name opts db = call (db !. "createObjectStore")
 
 -- * Transaction
 
--- | Helper to run a transaction, my own addition.
+-- | Helper to run a transaction, my own addition. Body gets the
+-- transaction and object stores as arguments, and what it returns is
+-- returned as a promise from this helper.
 transaction
   :: Function f
-  => Expr DB -> [Expr String] -> Expr Mode -> f -> JS.M () ()
+  => Expr DB -> [Expr String] -> Expr Mode -> f
+  -> JS.M r (Promise (Final f))
 transaction db storeNames mode body = do
   tx :: Expr Transaction <- new $ call (db !. "transaction") [lit storeNames, lit mode]
   let stores = map (objectStore tx) storeNames :: [Expr (ObjectStore a)]
   body' <- async body
-  bare $ call (Cast body') (Cast tx : stores)
+  pure $ call (Cast body') (Cast tx : stores)
 
 ro = "readonly" :: Expr Mode
 rw = "readwrite" :: Expr Mode
