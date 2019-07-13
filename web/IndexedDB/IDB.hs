@@ -127,6 +127,17 @@ openKeyCursor2 = c2 "openKeyCursor"
   :: Expr KeyRange -> Expr Direction -> Expr (OI a) -> Promise (Cursor Key)
 
 
+-- * Key range
+
+keyRange = ex "IDBKeyRange"
+
+upperBound, lowerBound :: Expr a -> Expr Bool -> Expr KeyRange
+upperBound key open = call (keyRange !. "upperBound") [key, Cast open]
+lowerBound key open = call (keyRange !. "lowerBound") [key, Cast open]
+
+bound :: Expr a -> Expr a -> Expr Bool -> Expr Bool -> Expr KeyRange
+bound start end sopen eopen = call (keyRange !- "bound") [start, end, Cast sopen, Cast eopen]
+
 -- * Object Store
 
 -- | Properties: name, keyPath, indexNames, autoIncrement
