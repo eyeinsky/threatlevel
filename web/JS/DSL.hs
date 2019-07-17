@@ -171,16 +171,16 @@ infixl 7  %
 
 -- * Literals
 
-class    ToExpr a       where lit :: a -> Expr b
+class ToExpr a where lit :: a -> Expr b
 instance ToExpr (Expr a) where lit = Cast
-instance ToExpr Int     where lit = Lit . Integer . toInteger
-instance ToExpr Integer where lit = Lit . Integer
+instance ToExpr Int      where lit = Lit . Integer . toInteger
+instance ToExpr Integer  where lit = Lit . Integer
 instance ToExpr Rational where lit = Lit . Double . fromRational
-instance ToExpr Double  where lit = Lit . Double
-instance ToExpr Bool    where lit = Lit . Bool
+instance ToExpr Double   where lit = Lit . Double
+instance ToExpr Bool     where lit = Lit . Bool
 instance ToExpr TS.Text  where lit = Lit . String
-instance ToExpr TL.Text where lit = lit . TL.toStrict
-instance ToExpr String  where lit = lit . TL.pack
+instance ToExpr TL.Text  where lit = lit . TL.toStrict
+instance ToExpr String   where lit = lit . TL.pack
 
 instance {-# OVERLAPPABLE #-} ToExpr a => ToExpr [a] where
    lit = Lit . Array . map lit

@@ -98,8 +98,6 @@ import qualified Web.Endpoint as WE
 
 -- * Prelude
 
-dup a = (a, a)
-
 -- * DOM.Event
 
 -- | Create inline on-event attribute
@@ -108,7 +106,7 @@ on event handler = Custom (DOM.toOn event) (TL.toStrict $ render def $ call1 han
   where
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
-    -- expressinos.
+    -- expressions.
 
 post url dt cb = DOM.xhrRaw "POST" (lit $ WR.renderURL url) dt cb
 get url dt cb = DOM.xhrRaw "GET" (lit $ WR.renderURL url) dt cb
