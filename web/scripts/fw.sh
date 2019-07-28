@@ -53,6 +53,7 @@ repl() {
            -p 3023:22 \
            -p 8444:8443 \
            -p 80:80 \
+           -p 443:443 \
            -v $HOME/src:/root/src \
            -v $HOME/.ssh:/root/.ssh \
            -w /root/src/fw/web \
