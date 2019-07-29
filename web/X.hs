@@ -48,14 +48,14 @@ import Web.Browser as Export
 
 import Web.CSS as Export
 
-import HTTP.Request as Export
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
-import qualified Data.Text.Lazy.Lens as LL
+import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Time
 
 import Control.Monad.IO.Class
@@ -66,7 +66,6 @@ import Web.Cookie as Wai
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Mime as Mime
-
 import qualified Network.Wai.Middleware.Gzip as Gzip
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
@@ -409,3 +408,26 @@ mkHot' name mc ms url port tls site = (hot, stop, main)
       Warp.runTLS tls settings $ Gzip.gzip def $ \req respond -> do
         handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
     (hot, stop) = mkHot name main
+
+-- * Request
+
+queryText :: Request -> QueryText
+queryText = queryString ^ queryToQueryText
+
+-- textFormSubmission :: Request -> IO [(Maybe TL.Text, Maybe (Maybe TL.Text))]
+formSubmission :: Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
+formSubmission req = do
+  lb <- strictRequestBody req
+  let pairs = BL8.split '&' lb :: [BL.ByteString] -- queryString
+      f (k, v) = case v of
+        "" -> (k, Nothing)
+        _ -> (k, Just $ BL8.tail v)
+      g = strict %~ urlDecode True
+      decode (k, v) = (g k, g <$> v)
+  return $ map (decode . f . BL8.break (== '=')) pairs
+
+textFormSubmission :: Request -> IO [(TL.Text, Maybe TL.Text)]
+textFormSubmission req = do
+  formSubmission req <&> map (f *** fmap f)
+  where
+    f = view TL.utf8
