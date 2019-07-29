@@ -124,20 +124,6 @@ parseHeaders bs = pairs
             where (h,t) = B.breakSubstring x y
 -}
 
--- ** Parsing various types of response body
-
-instance BodyAs B.ByteString where
-   parseBody = id
-instance BodyAs BL.ByteString where
-   parseBody = BL.fromStrict
-instance BodyAs TL.Text where
-   parseBody = TLE.decodeUtf8 . BL.fromStrict
-   -- ^ WARNING: this is unsafe, TODO
-
-instance BodyAs (Maybe JSON.Object) where
-   parseBody bs = JSON.decode (BL.fromStrict bs)
-
-
 -- * Instances
 
 -- deriving instance Show b => Show (Response b)
