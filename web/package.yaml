@@ -102,6 +102,7 @@ library:
   - X.Google.Maps
   - X.Google.Spreadsheet
   - X.Widgets
+  - X.Widgets.Menu
   - X.Wai
   other-modules:
   - Pr
