@@ -16,8 +16,9 @@ import Prelude2
 import Web.Browser
 
 import CSS.Internal hiding
-  ( tag, maybeId, classes, pseudos, IsString(..)
+  ( tag, maybeId, pseudos, IsString(..)
   )
+
 import CSS.Monad
 import CSS.Shorthands
 import DOM.Core hiding (Value) -- don't export attribute value, but css value
