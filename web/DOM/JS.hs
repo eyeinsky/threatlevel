@@ -29,6 +29,10 @@ requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 
 documentWrite what = call1 (document !. "write") what
 
+onLoad f = do
+  f' <- newf f
+  bare $ addEventListener (Cast window) Load f'
+
 -- * Finding elements
 
 class JSSelector a where
