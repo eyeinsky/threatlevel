@@ -11,6 +11,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import Data.Word
 import qualified Data.DList as D
+import Text.Printf
 
 import Control.Monad.Writer
 import Control.Monad.Identity
@@ -162,12 +163,12 @@ instance Render Selector where
 
 -- ** Keyframe
 
-data KeyframeSelector = From | To | KPercent Int
+data KeyframeSelector = From | To | KPercent Double
 instance Render KeyframeSelector where
    renderM ks = pure $ case ks of
      From -> "from"
      To -> "to"
-     KPercent i -> R.tshow i <> "%"
+     KPercent d -> TL.pack (printf "%.4f" d) <> "%"
 
 data KeyframeBlock
   = KeyframeBlock KeyframeSelector [Declaration]

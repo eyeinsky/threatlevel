@@ -125,7 +125,7 @@ execDeclM dm = execWriter dm
 
 type KM = Writer [KeyframeBlock]
 
-keyframe :: Int -> DeclM () -> KM ()
+keyframe :: Double -> DeclM () -> KM ()
 keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
 keyframes :: KM () -> CSSM Value

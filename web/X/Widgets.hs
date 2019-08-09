@@ -1,6 +1,7 @@
 module X.Widgets where
 
-import Prelude2 hiding (div, (.>), (.=))
+import Prelude2 as P hiding (div, (.>), (.=))
+import Data.List
 import X
 import qualified CSS
 import DOM.JS
@@ -47,3 +48,48 @@ sticky scrollContainer elemId extraCss = do
             is .= lit False
         )
     bare $ addEventListener (Cast window) Scroll f
+
+-- | Fading background images
+
+faidingImages li image ft = keyframes $ do
+  foldM_ f 0 $ let
+    li' = cycle li
+    in take n $ zip li' (tail li')
+  where
+    kf a b = keyframe a b
+    opacity _ = pure ()
+    f prc (url, next) = do
+      kf prc $ do
+        background url
+        backgroundSize "cover"
+        opacity 1
+      kf (prc + imgP) $ do
+        background url
+        backgroundSize "cover"
+        opacity 1
+      -- kf (prc + imgP + fadeHalfP) $ do
+      --   background url
+      --   backgroundSize "cover"
+      --   opacity 0
+      -- kf (prc + imgP + fadeHalfP + 0.1) $ do
+      --   background "none"
+      --   backgroundSize "cover"
+      --   opacity 0
+      -- kf (prc + imgP + fadeHalfP + 0.11) $ do
+      --   background next
+      --   backgroundSize "cover"
+      --   opacity 0
+      kf (prc + imgP + fadeHalfP + fadeHalfP) $ do
+        background next
+        backgroundSize "cover"
+        opacity 1
+
+      pure (prc + imgP + fadeHalfP + fadeHalfP)
+
+    fade = ft * 2
+    period = image + fade
+    n = length li
+    total = period * fromIntegral n
+    periodP = 100.0 P./ fromIntegral n
+    imgP = periodP * (image P./ period)
+    fadeHalfP = periodP * (ft P./ period)
