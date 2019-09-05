@@ -6,7 +6,7 @@ module X
 
 import HTML as Export hiding (
   -- redefined here
-  href, src, for, favicon, html,
+  href, src, for, favicon, html, action, param,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -49,6 +49,8 @@ import Web.Browser as Export
 
 import Web.CSS as Export
 
+
+import Warp_Helpers as Export (getRequestBody)
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -158,6 +160,8 @@ setCookie k v = WR.headers %~ (setCookie (TL.fromStrict v))
     setCookie :: TL.Text -> [Hdr.Header] -> [Hdr.Header]
     setCookie val = (Hdr.cookie' (TL.fromStrict k) val Nothing (Just []) Nothing :)
 
+-- * HTTP.Request
+
 hasCookie :: TS.Text -> TS.Text -> Wai.Request -> P.Bool
 hasCookie k v = getCookie k ^ maybe False (v ==)
 
@@ -168,6 +172,19 @@ requestCookies :: Wai.Request -> Maybe Wai.CookiesText
 requestCookies = Wai.requestHeaders
   ^ lookup Wai.hCookie
   ^ fmap Wai.parseCookiesText
+
+postKvs req = do
+  bs <- getRequestBody req
+  return $ Wai.parseQueryText $ BL.toStrict bs
+
+queryParam' :: TS.Text -> Request -> Maybe (Maybe TS.Text)
+queryParam' name req = lookup name $ queryText req
+
+queryParam :: TS.Text -> Request -> Maybe TS.Text
+queryParam name req = join $ queryParam' name req
+
+hasParam :: TS.Text -> Request -> Bool
+hasParam name req = isJust $ lookup name $ queryText req
 
 -- * HTML
 
@@ -193,6 +210,11 @@ instance ToHtml (Expr TS.Text) where
 
 html = to toHtml
 
+-- * URL
+
+param' k = params . URL.un <>~ [(k, Nothing)]
+param k v = params . URL.un <>~ [(k, Just v)]
+
 -- * URL + HTML
 
 includeCss' :: TS.Text -> Html
@@ -204,8 +226,12 @@ includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
 includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
-src :: URL.URL -> Attribute
-src url = HTML.src (TL.toStrict $ WE.renderURL url)
+-- | Helper to turn attribute into URL
+urlAttr :: (TS.Text -> t) -> URL -> t
+urlAttr attr url = attr (TL.toStrict $ WE.renderURL url)
+
+src = urlAttr HTML.src :: URL.URL -> Attribute
+action = urlAttr HTML.action :: URL.URL -> Attribute
 
 favicon :: URL.URL -> Html
 favicon url = HTML.link ! rel "icon" ! href url $ pure ()
