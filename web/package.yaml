@@ -52,6 +52,7 @@ dependencies:
 - process
 - time
 - mwc-random
+- multiline
 
 library:
   exposed-modules:

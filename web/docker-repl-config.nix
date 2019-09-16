@@ -12,6 +12,7 @@
         hs-minu = f /root/src/hs-minu {};
         render = f /root/src/fw/render {};
         identifiers = f /root/src/identifiers {};
+        multiline = f /root/src/fw/multiline {};
         web-browser = f /root/src/fw/web-browser {};
         web-url = f /root/src/fw/web-url {};
         web = lib.justStaticExecutables (f ./default.nix {});
