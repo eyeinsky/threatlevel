@@ -56,6 +56,7 @@ repl() {
            -v $HOME/src:/root/src \
            -v $HOME/.ssh:/root/.ssh \
            -w /root/src/fw/web \
+           -e NIX_PATH='nixpkgs=/root/src/nixpkgs:/nix/var/nix/profiles/per-user/root/channels' \
            --name docker-repl \
            fw-repl:stable nix-shell
 }
