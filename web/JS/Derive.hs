@@ -1,6 +1,6 @@
 module JS.Derive (deriveJS) where
 
-import Prelude2
+import X.Prelude
 import Data.Aeson
 import Data.Aeson.TH
 import Language.Haskell.TH

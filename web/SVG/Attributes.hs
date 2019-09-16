@@ -1,6 +1,6 @@
 module SVG.Attributes where
 
-import Pr
+import X.Prelude
 import XML
 import TH
 

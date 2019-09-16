@@ -3,9 +3,8 @@
 REPO_PATH=~/src/fw/web
 
 LOCAL_DEPS=$(cat <<END
-- hs-minu
-- ds
-- identifiers
+- fw/identifiers
+- fw/multiline
 - fw/render
 - fw/web-browser
 - fw/web-url

@@ -1,6 +1,6 @@
 module HTTP.Response where
 
-import Pr hiding (Any)
+import X.Prelude hiding (Any)
 
 import qualified Blaze.ByteString.Builder as BBB
 import qualified Data.Text as T
@@ -77,7 +77,7 @@ TODO
       - body can definitely be BS
 module HTTP where
 
-import Prelude2 hiding (unlines)
+import X.Prelude hiding (unlines)
 import Data.Word (Word8, Word16)
 
 -- network, network-simple

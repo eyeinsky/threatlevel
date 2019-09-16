@@ -1,6 +1,6 @@
 module JS.API where
 
-import Prelude2 hiding ((.-), (.=), (.>))
+import X.Prelude hiding ((.-), (.=), (.>))
 import Prelude (Floating(..))
 import JS.DSL
 

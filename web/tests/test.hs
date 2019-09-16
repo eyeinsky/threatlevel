@@ -1,6 +1,6 @@
 module Main where
 
-import Prelude2
+import X.Prelude
 import JS
 
 main = putStr "Tests!"

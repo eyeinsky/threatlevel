@@ -11,7 +11,7 @@ module Web
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
-import Pr
+import X.Prelude
 import XML
 
 import CSS hiding (Document) -- todo

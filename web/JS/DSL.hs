@@ -14,15 +14,11 @@ module JS.DSL
   , call, call0, call1, (!.), (.!), (=:), ex
   ) where
 
-import Prelude (Float, fromRational, toRational, Fractional, Rational)
-import Prelude2 hiding ((.-), for, (.=), (.>), Empty)
-import qualified Prelude2 as Pr
+import Prelude (Float, fromRational, toRational, Fractional((/)), Rational)
+import X.Prelude hiding ((.-), for, (.=), (.>), Empty, State)
+import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
 import qualified Data.Hashable as H
-import Data.Default
-import Control.Monad.Reader
-import Control.Monad.State hiding (State)
-import Control.Monad.Writer
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL

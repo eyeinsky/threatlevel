@@ -4,7 +4,7 @@ module Warp_Helpers
   , TLS.TLSSettings
   ) where
 
-import Pr
+import X.Prelude
 import Data.Function (on)
 import Control.Monad (guard)
 import qualified Data.ByteString.Lazy as BL

@@ -1,6 +1,6 @@
 module SVG.Examples where
 
-import Prelude2
+import X.Prelude
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 

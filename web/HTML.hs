@@ -13,7 +13,7 @@ import Data.Text.Lazy.Lens (utf8)
 
 import qualified Network.HTTP.Types as WT
 
-import Pr hiding (head)
+import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core hiding (Document)

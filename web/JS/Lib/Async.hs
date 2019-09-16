@@ -1,6 +1,6 @@
 module JS.Lib.Async where
 
-import Prelude2 hiding ((.=), (.>))
+import X.Prelude hiding ((.=), (.>))
 import JS
 
 asyncCountdown :: Int -> Int -> Expr () -> Expr () -> M r ()

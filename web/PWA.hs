@@ -2,7 +2,7 @@ module PWA where
 
 import qualified Data.Text.Lazy as TL
 
-import X.Prelude
+import X.Prelude hiding (put)
 import X as DOM
 import qualified JS.API as JS
 

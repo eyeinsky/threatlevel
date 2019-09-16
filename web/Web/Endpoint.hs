@@ -4,7 +4,7 @@ module Web.Endpoint
   ) where
 
 
-import Pr hiding (Reader, Writer, State, (/))
+import X.Prelude hiding (Reader, Writer, State, (/))
 
 import Control.Monad.State (get, put)
 import HTTP.Common (ToPayload(..))

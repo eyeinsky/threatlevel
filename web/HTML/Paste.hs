@@ -1,6 +1,6 @@
 module HTML.Paste where
 
-import Prelude2
+import X.Prelude
 
 tags = map extract . filter' . lines $ paste
   where
@@ -8,7 +8,7 @@ tags = map extract . filter' . lines $ paste
     filter' = filter f
     f xs = if null xs
       then False
-      else eq '<' . Prelude2.head $ xs
+      else eq '<' . head $ xs
     paste = [multiline|
 <a> 	Defines a hyperlink.
 <article> 	Defines an article.

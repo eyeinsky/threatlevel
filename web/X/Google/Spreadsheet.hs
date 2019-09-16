@@ -18,7 +18,7 @@ import qualified Data.ByteString.Lazy.Lens as BL
 
 import Control.Exception
 
-import Prelude2
+import X.Prelude
 
 
 p = Wreq.param

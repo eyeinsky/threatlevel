@@ -2,7 +2,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module CSS.Internal where
 
-import Pr
+import X.Prelude
 import Data.Text.Format
 
 import Numeric (showHex)

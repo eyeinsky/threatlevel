@@ -52,7 +52,8 @@ import Web.CSS as Export
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
-import qualified Data.Text.Lazy.Lens as TL
+import qualified Data.Text.Lazy.Lens as LL
+import qualified Data.Text.Strict.Lens as LS
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -260,7 +261,7 @@ noCrawling = do
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
-  mime = path^.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
+  mime = path^.LS.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
   headers = [Hdr.contentType mime]
   response = WR.rawBl (toEnum 200) headers (bs^.from strict)
   path' = TS.pack path
@@ -296,7 +297,7 @@ staticDiskSubtree' mod notFound (fp :: FilePath) = do
       else Right (TS.unpack $ TS.intercalate "/" parts)
 
 -- | Serve entire path from under created url
-staticDiskSubtree notFound path = staticDiskSubtree' id notFound path
+staticDiskSubtree notFound path = staticDiskSubtree' P.id notFound path
 
 -- | Serve files from filesystem path using a content adressable hash
 assets notFound path = do
@@ -430,4 +431,4 @@ textFormSubmission :: Request -> IO [(TL.Text, Maybe TL.Text)]
 textFormSubmission req = do
   formSubmission req <&> map (f *** fmap f)
   where
-    f = view TL.utf8
+    f = view LL.utf8

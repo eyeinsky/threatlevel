@@ -11,7 +11,7 @@ import Control.Monad.Writer
 
 import Render hiding (concat)
 
-import Pr hiding (id, for)
+import X.Prelude hiding (id, for)
 import qualified JS
 import DOM.Core hiding (Document)
 import DOM.Event

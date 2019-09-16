@@ -1,6 +1,6 @@
 module Web.Response where
 
-import Pr
+import X.Prelude
 import Language.Haskell.TH
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as BS
@@ -14,7 +14,6 @@ import qualified Data.Aeson as Aeson
 
 import qualified Data.Text.Strict.Lens as LS
 import qualified Data.Text.Lazy.Lens as LL
-
 
 import qualified HTTP.Header as Hdr
 import HTTP.Response hiding (redirect, JSON, Response)
@@ -57,7 +56,7 @@ instance ToRaw Response where
     = httpResponse status (origHeaders <> headers) bl
     where
       (headers, bl) = case anyResponse of
-        HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re utf8)
+        HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re LL.utf8)
           where
             html' = HTML.html (HTML.head h >> b)
             tl = "<!DOCTYPE html>" <> render () html'
@@ -116,7 +115,7 @@ raw headers text = Response (toEnum 200) [Hdr.hdr Hdr.ContentType headers] $ Raw
 diskFile :: MonadIO m => FilePath -> m Response
 diskFile path = do
   bytes <- liftIO $ BL.readFile path
-  let ct = path^.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
+  let ct = path^.LS.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
   return $ rawBl (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
 
 -- | Embeds a file from path into binary, resulting file's type will
@@ -124,7 +123,7 @@ diskFile path = do
 embeddedFile :: TL.Text -> ExpQ
 embeddedFile path = let
     filePath = path^.from packed :: FilePath
-    ct = path^.from lazy.to Mime.defaultMimeLookup.LS.utf8.from packed & stringE
+    ct = path^.from lazy.to Mime.defaultMimeLookup.LS.utf8.from LS.packed & stringE
   in [| let header = Hdr.hdr Hdr.ContentType $ct
         in rawBS 200 [header] $(embedFile filePath)
            :: Response|]

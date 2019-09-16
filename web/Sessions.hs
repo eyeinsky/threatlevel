@@ -8,7 +8,7 @@ import Data.Word (Word64)
 import Numeric
 import Control.Concurrent.MVar
 import qualified System.Random.MWC as MWC
-import Prelude2 hiding (map)
+import X.Prelude hiding (map)
 
 -- * API
 

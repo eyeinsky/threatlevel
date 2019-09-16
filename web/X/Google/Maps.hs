@@ -7,7 +7,7 @@ import qualified Data.Text.Encoding as TS
 import Data.List
 import qualified Data.HashMap.Lazy as HM
 
-import Prelude2 hiding ((?=))
+import X.Prelude hiding ((?=))
 import URL
 
 -- * JS

@@ -1,7 +1,7 @@
 module X.Widgets where
 
-import Prelude2 as P hiding (div, (.>), (.=))
-import Data.List
+import X.Prelude as P hiding (div, (.>), (.=))
+import Prelude as P ((/))
 import X
 import qualified CSS
 import DOM.JS
@@ -88,7 +88,7 @@ faidingImages li image ft = keyframes $ do
 
     fade = ft * 2
     period = image + fade
-    n = length li
+    n = P.length li
     total = period * fromIntegral n
     periodP = 100.0 P./ fromIntegral n
     imgP = periodP * (image P./ period)

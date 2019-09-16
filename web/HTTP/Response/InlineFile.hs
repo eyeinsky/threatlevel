@@ -1,6 +1,6 @@
 module HTTP.Response.InlineFile where
 
-import Prelude2
+import X.Prelude
 import HTTP.Response
 import Data.FileEmbed
 import Data.Text as T

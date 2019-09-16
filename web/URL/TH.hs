@@ -2,7 +2,7 @@ module URL.TH where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
-import Prelude2 hiding (un)
+import X.Prelude hiding (un)
 
 import qualified Data.Text as TS
 import Data.List (intercalate)

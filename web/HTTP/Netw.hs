@@ -1,6 +1,6 @@
 module HTTP.Netw where
 
-import Prelude2 hiding (unlines, un, (&))
+import X.Prelude hiding (unlines, un, (&))
 import Data.Word (Word8, Word16)
 
 import qualified Data.Text.Lazy as T

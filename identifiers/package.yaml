@@ -1,6 +1,12 @@
-name: render
+name: identifiers
 version: '0.1.0.0'
+category: Web
+author: Markus Läll
+maintainer: markus.l2ll@gmail.com
 license: BSD3
+homepage: https://github.com/githubuser/identifiers#readme
+extra-source-files:
+- README.md
 default-extensions:
 - Arrows
 - BangPatterns
@@ -36,9 +42,20 @@ default-extensions:
 - InstanceSigs
 dependencies:
 - base
-- bytestring
-- mtl
 - text
 library:
   exposed-modules:
-  - Render
+  - Identifiers
+  dependencies:
+  - lens
+benchmarks:
+  identifier-source:
+    main: identifier-source.hs
+    source-dirs: benchmarks
+    ghc-options:
+    - -w
+    - -O2
+    - -threaded
+    dependencies:
+    - identifiers
+    - criterion

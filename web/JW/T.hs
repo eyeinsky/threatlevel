@@ -11,7 +11,7 @@ import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 import qualified Data.Aeson.Lens as A
 
-import Prelude2
+import X.Prelude
 
 
 base64text :: BS.ByteString -> TL.Text
@@ -21,9 +21,9 @@ decode :: forall a. A.FromJSON a => TS.Text -> Either String (JWT a)
 decode ts = do
   (a, b, c) <- case TS.splitOn "." ts of
     [a, b, c] -> pure (a, b, c)
-    _ -> fail "Failed to split raw JWT to header, payload, signature"
-  a' <- a^.l & maybe (fail "Failed to base64 decode header") pure
-  b' <- b^.l & maybe (fail "Failed to base64 decode payload") pure
+    _ -> Left "Failed to split raw JWT to header, payload, signature"
+  a' <- a^.l & maybe (Left "Failed to base64 decode header") pure
+  b' <- b^.l & maybe (Left "Failed to base64 decode payload") pure
   b'' <- A.parseEither A.parseJSON b'
   pure $ JWT a' b'' c
   where l = re TS.utf8.to B64.decodeLenient.from strict.to A.decode

@@ -41,7 +41,7 @@ dependencies:
 - base
 - bytestring
 - text
-- hs-minu
+- lens
 library:
   exposed-modules:
   - Web.Browser

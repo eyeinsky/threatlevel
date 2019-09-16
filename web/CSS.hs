@@ -11,7 +11,7 @@ module CSS
   , flexbox
   ) where
 
-import Prelude2
+import X.Prelude
 
 import Web.Browser
 
