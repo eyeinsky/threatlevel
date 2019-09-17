@@ -17,6 +17,7 @@ import HTTP.Common hiding (un)
 import Network.HTTP.Types
 import Data.Hashable (Hashable)
 
+deriving instance Generic Port
 deriving instance Hashable Port
 
 instance ToPayload BaseURL where
