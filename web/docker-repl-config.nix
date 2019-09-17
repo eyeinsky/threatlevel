@@ -8,10 +8,9 @@
         f = path: rest: lib.dontCheck (lib.dontHaddock (haskellPackagesNew.callPackage path rest));
 
         rapid = f /root/src/rapid {};
-        ds = f /root/src/ds {};
-        hs-minu = f /root/src/hs-minu {};
         render = f /root/src/fw/render {};
-        identifiers = f /root/src/identifiers {};
+        identifiers = f /root/src/fw/identifiers {};
+        multiline = f /root/src/fw/multiline {};
         web-browser = f /root/src/fw/web-browser {};
         web-url = f /root/src/fw/web-url {};
         web = lib.justStaticExecutables (f ./default.nix {});

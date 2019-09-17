@@ -3,7 +3,7 @@ module TH where
 import qualified Data.Text.Lazy as TL
 import Language.Haskell.TH
 
-import Pr
+import X.Prelude
 
 reserved_ t = if t `elem` ["class", "type", "in"]
   then t <> "_"

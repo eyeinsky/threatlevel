@@ -1,14 +1,13 @@
 module Render where
 
-import Prelude2
+import Prelude
+import Data.Monoid
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad ()
 import Control.Monad.Reader (Reader, runReader, withReader, ask)
-
-import qualified Text.Exts as X
 
 -- * Monad
 
@@ -40,13 +39,17 @@ mseq li = mconcat <$> sequence li
 a <+> b = (<>) <$> a <*> b
 
 -- * Rebinds for own helpers
-par = f X.par
-ang = f X.ang
-curly = f X.curly
-uncomma = f' X.uncomma
+
+sur begin end cont = begin <> cont <> end
+pref n str = TL.replicate n " "
+par = sur "(" ")"
+curly = sur "{" "}"
+ang = sur "[" "]"
+
+uncomma = TL.intercalate ","
+unsemi =  TL.intercalate ";"
+
 tshow = TL.pack . show
-sur a b c = TL.fromStrict (X.sur a b $ TL.toStrict c)
-unsemi = f' X.unsemi
-q'' = TL.fromStrict . X.q''
+
 f g = TL.fromStrict . g . TL.toStrict
 f' g = TL.fromStrict . g . map TL.toStrict

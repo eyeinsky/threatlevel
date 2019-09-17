@@ -1,14 +1,9 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Web.Monad where
 
-import Pr
+import X.Prelude as P hiding (State, Writer)
 import qualified Data.Text.Lazy as TL
 import Data.Default
-
-import Control.Monad.RWS as RWS
-import qualified Control.Monad.Writer as MW
-import qualified Control.Monad.State as MS
-import Control.Monad.Fail
 
 import Network.Wai
 
@@ -61,12 +56,12 @@ instance Semigroup Writer where
 instance Monoid Writer where
   mempty = Writer mempty mempty
 
-newtype WebT m a = WebT { unWebT :: RWS.RWST Conf Writer State m a }
+newtype WebT m a = WebT { unWebT :: RWST Conf Writer State m a }
    deriving (Functor, Applicative, Monad, MonadTrans, MonadIO, MonadFix)
 
 -- | The main runner
 runWebMT :: Conf -> State -> WebT m a -> m (a, State, Writer)
-runWebMT r s wm = RWS.runRWST (unWebT wm) r s
+runWebMT r s wm = runRWST (unWebT wm) r s
 
 foldWM :: Foldable t
   => Conf
@@ -127,7 +122,7 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssRule sl m = WebT $ do
       tell $ mempty & cssCode .~ CSSM.run sl m
    cssId = cssF (Id . Static . TL.toStrict)
-   nextId = WebT $ Pr.head <$> gets (^.cssState.CSSM.idents)
+   nextId = WebT $ P.head <$> gets (^.cssState.CSSM.idents)
    getState = WebT get
    getConf = WebT ask
 
@@ -147,7 +142,7 @@ fontFace = writeRules (\ds -> [CSS.FontFace ds])
 
 instance MonadReader r m => MonadReader r (WebT m) where
   ask   = lift ask
-  local f (WebT (RWS.RWST g)) = WebT $ RWS.RWST $ \r s -> do
+  local f (WebT (RWST g)) = WebT $ RWST $ \r s -> do
     r' <- ask
     local f (g r s)
   reader = lift . reader
@@ -171,7 +166,7 @@ instance MonadFail m => MonadFail (WebT m) where
 
 -- *** Other is MonadWeb if base is MonadWeb
 
-instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
+instance (MonadWeb m, Monoid w) => MonadWeb (WriterT w m) where
   js = lift . js
   css = lift . css
   cssRule a b = lift $ cssRule a b
@@ -181,7 +176,7 @@ instance (MonadWeb m, Monoid w) => MonadWeb (MW.WriterT w m) where
   getConf = lift getConf
   writeRules a b = lift $ writeRules a b
 
-instance (MonadWeb m) => MonadWeb (MS.StateT s m) where
+instance (MonadWeb m) => MonadWeb (StateT s m) where
   js = lift . js
   css = lift . css
   cssRule a b = lift $ cssRule a b

@@ -37,7 +37,6 @@ default-extensions:
 dependencies:
 - base
 - bytestring
-- hs-minu
 - mtl
 - text
 library:

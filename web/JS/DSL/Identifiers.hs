@@ -1,6 +1,6 @@
 module JS.DSL.Identifiers where
 
-import Prelude2
+import X.Prelude
 import Identifiers (identifiersFilter)
 
 identifiers = identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)

@@ -1,6 +1,6 @@
 module HTTP.Common where
 
-import Pr
+import X.Prelude
 
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as TIO

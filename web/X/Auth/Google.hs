@@ -1,6 +1,6 @@
 module X.Auth.Google where
 
-import Prelude2 as P hiding ((.=))
+import X.Prelude as P hiding ((.=))
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString.Lazy  as BL

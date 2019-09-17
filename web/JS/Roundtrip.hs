@@ -14,7 +14,7 @@ import Data.Kind
 import Data.Data
 import GHC.Generics
 
-import Prelude2
+import X.Prelude
 import JS hiding (String)
 import qualified JS
 import Render (render, Render)
@@ -40,10 +40,10 @@ obj c = case fs of
 
     dataType = constrType constr :: DataType
     (constr, totalFieldCount) = getConstr c :: (Constr, Int)
-    constructorCount = Prelude2.length (dataTypeConstrs dataType)
+    constructorCount = X.Prelude.length (dataTypeConstrs dataType)
 
 countFields :: Data a => a -> Int
-countFields c = Prelude2.length $ gmapQ (const ()) (c) -- $
+countFields c = X.Prelude.length $ gmapQ (const ()) (c) -- $
 
 type family Result a :: *
   where Result (a -> b) = Expr a -> Result b
@@ -248,14 +248,14 @@ test orig expr = let
     else do
     putStrLn ""
     putStrLn $ label <> ": NOT OK !!!"
-    putStrLn $ "  aeson:" <> (A.encode orig^.LL.utf8.unpacked)
+    putStrLn $ "  aeson:" <> (A.encode orig^.LL.utf8.LL.unpacked)
     putStrLn $ "  render: " <> rendered
     putStrLn $ "  roundtrip aeson:" <> (show roundtripAeson)
     putStrLn $ "  show: " <> show orig
     putStrLn ""
 
 
-roundtrip :: (Render a1, A.ToJSON a2) => a2 -> a1 -> (Prelude2.Bool, Maybe A.Value)
+roundtrip :: (Render a1, A.ToJSON a2) => a2 -> a1 -> (X.Prelude.Bool, Maybe A.Value)
 roundtrip orig expr =
   (equal, roundtripAeson)
   where

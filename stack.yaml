@@ -1,0 +1,13 @@
+resolver: lts-14.2
+
+packages:
+- identifiers
+- multiline
+- render
+- web-browser
+- web-url
+- web
+
+extra-deps:
+- boomerang-1.4.5.6
+- rapid-0.1.4

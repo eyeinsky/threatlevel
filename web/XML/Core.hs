@@ -8,8 +8,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
 
-import Pr hiding (id)
-import Prelude2.Has (HasId(..))
+import X.Prelude hiding (id)
 import qualified JS
 import DOM.Core
 import DOM.Event

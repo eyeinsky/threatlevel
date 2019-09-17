@@ -1,7 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module DOM.Core where
 
-import Prelude2
+import X.Prelude
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL

@@ -1,0 +1,61 @@
+name: identifiers
+version: '0.1.0.0'
+category: Web
+author: Markus Läll
+maintainer: markus.l2ll@gmail.com
+license: BSD3
+homepage: https://github.com/githubuser/identifiers#readme
+extra-source-files:
+- README.md
+default-extensions:
+- Arrows
+- BangPatterns
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- KindSignatures
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RecursiveDo
+- ScopedTypeVariables
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeFamilies
+- TypeOperators
+- TypeSynonymInstances
+- InstanceSigs
+dependencies:
+- base
+- text
+library:
+  exposed-modules:
+  - Identifiers
+  dependencies:
+  - lens
+benchmarks:
+  identifier-source:
+    main: identifier-source.hs
+    source-dirs: benchmarks
+    ghc-options:
+    - -w
+    - -O2
+    - -threaded
+    dependencies:
+    - identifiers
+    - criterion

@@ -1,6 +1,6 @@
 module SVG.Elements where
 
-import Pr
+import X.Prelude
 import Control.Monad.Writer
 import TH
 import XML

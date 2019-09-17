@@ -1,13 +1,11 @@
 module CSS.Monad where
 
 import qualified Data.Text.Lazy as TL
-import Control.Monad.Reader
-import Control.Monad.Writer
 import Control.Monad.RWS
 
 import Identifiers as Idents
 
-import Pr
+import X.Prelude hiding (State)
 import CSS.Internal
 
 

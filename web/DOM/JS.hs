@@ -1,8 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module DOM.JS where
 
-import Pr hiding ((.=), id)
-import Prelude2.Has (HasId(..))
+import X.Prelude as P hiding ((.=), id)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
@@ -78,7 +77,7 @@ instance FindBy (Expr Class) where
 
 instance FindBy (HTML Both) where
   findBy a
-    | Just id <- Pr.join maybeId = findBy id
+    | Just id <- P.join maybeId = findBy id
     | [cls] <- classes_ = findBy cls
     | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
     | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
@@ -353,7 +352,7 @@ attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> Attri
 attrsJSM t mkAttr as = do
   maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) (as^.id)
   forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
-  when (Pr.not . null $ cls) $
+  when (P.not . null $ cls) $
      t !. "className" .= createClasses cls
   where cls = as^.classes
 

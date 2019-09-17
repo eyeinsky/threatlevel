@@ -1,6 +1,6 @@
 module CSS.Shorthands where
 
-import Prelude2
+import X.Prelude
 import CSS.Internal
 import CSS.Monad
 

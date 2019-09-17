@@ -1,6 +1,6 @@
 module HTTP.Util where
 
-import Prelude2
+import X.Prelude
 import qualified Data.Text.Lazy as TL
 import HTTP.Request
 import HTTP.Response

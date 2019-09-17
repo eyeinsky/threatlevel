@@ -1,6 +1,6 @@
 module HTTP.Header where
 
-import Prelude2 hiding (unlines, find)
+import X.Prelude hiding (unlines, find)
 import Data.Text.Format
 
 import HTTP.Common

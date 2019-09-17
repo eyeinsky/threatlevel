@@ -1,6 +1,6 @@
 module Cookie where
 
-import Prelude2 hiding (un)
+import X.Prelude hiding (un)
 import Data.Text.Format
 import qualified Data.Text.Lazy as TL
 import HTTP.Common

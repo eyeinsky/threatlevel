@@ -2,7 +2,7 @@ module JS.Syntax.Render (Conf(..), unargs) where
 
 import Data.Default
 import qualified Data.Text.Lazy as TL
-import Prelude2 hiding (True, False, Empty, intercalate, unwords, unlines, replicate, Const)
+import X.Prelude hiding (True, False, Empty, intercalate, unwords, unlines, replicate, Const)
 import Control.Monad.Reader
 
 import Render hiding (Conf)

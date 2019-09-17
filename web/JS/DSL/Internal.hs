@@ -4,7 +4,7 @@ module JS.DSL.Internal
   , module JS.DSL.Internal
   ) where
 
-import Prelude2 hiding ((.-), for, (.=), (.>), Empty, Const)
+import X.Prelude hiding ((.-), for, (.=), (.>), Empty, Const, State)
 
 import Data.Default
 
@@ -16,11 +16,6 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.Text.IO as TLIO
 import Data.String
-
-import Control.Monad.Reader
-import Control.Monad.State hiding (State)
-import Control.Monad.Writer
-import Control.Monad.Identity
 
 import qualified JS.Syntax (Conf(..))
 import JS.Syntax hiding (S, putStrLn, Conf)

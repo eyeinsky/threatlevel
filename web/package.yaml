@@ -12,7 +12,6 @@ dependencies:
 - transformers
 - wreq
 - vector
-- hs-minu
 - lens
 - aeson
 - async
@@ -22,7 +21,6 @@ dependencies:
 - case-insensitive
 - containers
 - dlist
-- ds
 - file-embed
 - hashable
 - http-types
@@ -52,6 +50,8 @@ dependencies:
 - process
 - time
 - mwc-random
+- data-default
+- multiline
 
 library:
   exposed-modules:
@@ -105,7 +105,6 @@ library:
   - X.Widgets.Menu
   - X.Wai
   other-modules:
-  - Pr
   - TH
   - JS.Syntax.Types
   - JS.Syntax.Render

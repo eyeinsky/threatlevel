@@ -1,11 +1,12 @@
 module Web.Browser where
 
-import Prelude2
+import Prelude
 
 import qualified Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B
+import Control.Lens
 
 {- | Detect web browser from User-Agent HTTP header.
 
@@ -25,8 +26,8 @@ parseBrowser v
       f x = let len = T.length x
          in T.tails enc
           & map (T.zip x)
-          & takeWhile (eq len . length)
-          & map (and . map (uncurry eq))
+          & takeWhile ((== len) . length)
+          & map (and . map (uncurry (==)))
           & or
 
 data Browser

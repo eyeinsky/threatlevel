@@ -3,8 +3,8 @@ module URL.ToPayload
   , module URL
   ) where
 
-import Pr hiding (null, un)
-import qualified Prelude2 as P
+import X.Prelude hiding (null, un)
+import qualified X.Prelude as P
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text as TS
@@ -17,6 +17,7 @@ import HTTP.Common hiding (un)
 import Network.HTTP.Types
 import Data.Hashable (Hashable)
 
+deriving instance Generic Port
 deriving instance Hashable Port
 
 instance ToPayload BaseURL where

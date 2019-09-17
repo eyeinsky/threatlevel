@@ -5,7 +5,7 @@ import Language.Haskell.TH.Lens
 import Data.Char
 import Data.List
 
-import Prelude2
+import X.Prelude
 
 import JS.Syntax as J hiding (getName, Name)
 import JS.DSL as J hiding (func)
