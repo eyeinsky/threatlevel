@@ -118,6 +118,7 @@ library:
   - SVG.Attributes
   - SVG.Elements
   - XML.Render
+  - Trie
 
 default-extensions:
 - Arrows
