@@ -4,7 +4,7 @@ module X.Prelude
   ) where
 
 import Prelude as Export hiding
-  ( div, rem, (/) -- Prelude
+  ( div, rem, (/), log -- Prelude
   , (.=), text, (?=) -- lens
   , on -- Data.Function
   , traceShowId -- Debug.Trace

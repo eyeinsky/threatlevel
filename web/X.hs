@@ -391,8 +391,7 @@ hotHttp name mc ms url port site = (hot, stop, main)
         handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
     (hot, stop) = mkHot name main
 
--- | mkHot which takes a site
-mkHot'
+hotHttps
   :: (WE.Confy r, Default r, Ord k)
   => k
   -> WM.Conf -> WM.State
@@ -401,7 +400,7 @@ mkHot'
   -> Warp.TLSSettings
   -> WE.T r
   -> (IO (), IO (), IO ())
-mkHot' name mc ms url port tls site = (hot, stop, main)
+hotHttps name mc ms url port tls site = (hot, stop, main)
   where
     settings = Warp.setPort port Warp.defaultSettings
     main = do
