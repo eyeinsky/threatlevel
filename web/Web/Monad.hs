@@ -1,4 +1,5 @@
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE NoDeriveAnyClass #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Web.Monad where
 
 import X.Prelude as P hiding (State, Writer)

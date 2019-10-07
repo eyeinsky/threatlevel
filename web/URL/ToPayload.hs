@@ -18,7 +18,7 @@ import Network.HTTP.Types
 import Data.Hashable (Hashable)
 
 deriving instance Generic Port
-deriving instance Hashable Port
+instance Hashable Port
 
 instance ToPayload BaseURL where
    toPayload (BaseURL proto@ (Proto proto') host port@ (Port port')) =
