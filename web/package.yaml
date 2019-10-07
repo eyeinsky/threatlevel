@@ -119,6 +119,20 @@ library:
   - SVG.Elements
   - XML.Render
   - Trie
+  ghc-options:
+  - -Wall
+  - -Wno-unused-imports
+  - -Wno-dodgy-imports
+  - -Wno-name-shadowing
+  - -Wno-orphans
+  - -Wno-missing-signatures
+  - -Wno-unused-local-binds
+  - -Wno-incomplete-patterns
+  - -Wno-unused-matches
+  - -Wno-unused-do-bind
+  - -Wno-unused-top-binds
+  - -Wno-type-defaults
+  - -Wno-missing-methods
 
 default-extensions:
 - Arrows
