@@ -5,7 +5,7 @@ module X.Prelude
 
 import Prelude as Export hiding
   ( div, rem, (/), log -- Prelude
-  , (.=), text, (?=) -- lens
+  , text, (?=) -- lens
   , on -- Data.Function
   , traceShowId -- Debug.Trace
   , (^) -- GHC.Real
@@ -34,7 +34,7 @@ import Control.Monad.Fail as Export
 
 
 import Control.Arrow as Export (first, second, (***))
-import Control.Lens as Export
+import Control.Lens as Export hiding ((.=))
 
 import GHC.Generics as Export (Generic)
 import Debug.Trace as Export
