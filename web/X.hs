@@ -374,6 +374,27 @@ mkHot name what = let
   stop_ = rapid 1 (\r -> stop r name what)
   in (reload, stop_)
 
+siteMain
+  :: (WE.Confy r, Default r)
+  => WM.Conf
+  -> WM.State
+  -> URL
+  -> Warp.Port
+  -> Maybe Warp.TLSSettings
+  -> T r
+  -> IO ()
+siteMain mc ms url port maybeTls site = do
+  handler <- WE.toHandler mc ms url def site
+  let handler' req respond = do
+        r <- handler req
+        r & fromMaybe err ^ HR.toRaw ^ respond
+  case maybeTls of
+    Just tls -> Warp.runTLS tls settings handler'
+    _ -> Warp.runSettings settings handler'
+  where
+    settings = Warp.setPort port Warp.defaultSettings
+    err = error "path not found"
+
 hotHttp
   :: (WE.Confy r, Default r, Ord k)
   => k
@@ -384,11 +405,7 @@ hotHttp
   -> (IO (), IO (), IO ())
 hotHttp name mc ms url port site = (hot, stop, main)
   where
-    settings = Warp.setPort port Warp.defaultSettings
-    main = do
-      handler <- WE.toHandler mc ms url def site
-      Warp.runSettings settings $ Gzip.gzip def $ \req respond -> do
-        handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
+    main = siteMain mc ms url port Nothing site
     (hot, stop) = mkHot name main
 
 hotHttps
@@ -402,11 +419,7 @@ hotHttps
   -> (IO (), IO (), IO ())
 hotHttps name mc ms url port tls site = (hot, stop, main)
   where
-    settings = Warp.setPort port Warp.defaultSettings
-    main = do
-      handler <- WE.toHandler mc ms url def site
-      Warp.runTLS tls settings $ Gzip.gzip def $ \req respond -> do
-        handler req >>= fromMaybe (error "path not found") ^ HR.toRaw ^ respond
+    main = siteMain mc ms url port (Just tls) site
     (hot, stop) = mkHot name main
 
 -- * Request
