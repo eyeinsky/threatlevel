@@ -43,7 +43,6 @@ dependencies:
 - web-url
 - render
 - rapid
-- mysql-simple
 - cryptonite
 - memory
 - base64-bytestring
