@@ -21,7 +21,9 @@ import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Aeson as A
 
 import JS.Syntax hiding (S, putStrLn, Conf)
 import JS.DSL.Internal as JS
@@ -177,6 +179,8 @@ instance ToExpr Bool     where lit = Lit . Bool
 instance ToExpr TS.Text  where lit = Lit . String
 instance ToExpr TL.Text  where lit = lit . TL.toStrict
 instance ToExpr String   where lit = lit . TL.pack
+instance ToExpr A.Value where
+  lit v = A.encode v ^. TL.utf8 & Raw
 
 instance {-# OVERLAPPABLE #-} ToExpr a => ToExpr [a] where
    lit = Lit . Array . map lit
