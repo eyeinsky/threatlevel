@@ -7,21 +7,12 @@ module JS.DSL.Internal
 
 import X.Prelude hiding ((.>), Empty, Const, State)
 
-import Data.Default
-
-import qualified Data.IntMap as IM
 import qualified Data.Set as S
-import qualified Data.Hashable as H
-
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
-import qualified Data.Text.IO as TLIO
-import Data.String
 
 import qualified JS.Syntax (Conf(..))
 import JS.Syntax hiding (Conf)
 
-import qualified JS.Syntax as JS
 import qualified Identifiers as IS
 import JS.DSL.Identifiers
 import Web.Browser

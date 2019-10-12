@@ -1,13 +1,12 @@
 module Render where
 
 import Prelude
-import Data.Monoid
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TLIO
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad ()
-import Control.Monad.Reader (Reader, runReader, withReader, ask)
+import Control.Monad.Reader (Reader, runReader)
 
 -- * Monad
 

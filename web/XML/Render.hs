@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module XML.Render where
 
-import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
@@ -10,7 +9,6 @@ import Render
 import XML.Core
 import DOM.Core
 import DOM.Event
-import qualified JS
 import qualified JS.Syntax
 
 instance Render Attribute where

@@ -1,23 +1,17 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module HTTP.Header where
 
-import X.Prelude hiding (unlines, find)
-import Data.Text.Format
-
-import HTTP.Common
-
 -- for conversion to Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Header as H
 import qualified Data.CaseInsensitive      as CI
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString as B
-
-import qualified Data.Text       as T
 import qualified Data.Text.Lazy  as TL
 import qualified Data.Text.Encoding as TE
 
-import Network.Mime as Mime
+import X.Prelude hiding (unlines, find)
+
+import HTTP.Common
 import qualified Cookie as C
+
 
 newtype Header = Header (HeaderName, T)
 hdr a b = Header (a, b)

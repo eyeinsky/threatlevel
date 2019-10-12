@@ -1,8 +1,6 @@
 module Sessions where
 
 import qualified Data.Text as TS
-import qualified Data.Text.Strict.Lens as TS
-import qualified Data.Text.Encoding as TS
 import qualified Data.HashMap.Strict as HM
 import Data.Word (Word64)
 import Numeric

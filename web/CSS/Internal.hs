@@ -7,15 +7,10 @@ import X.Prelude
 import Data.Text.Format
 
 import Numeric (showHex)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import Data.Word
 import qualified Data.DList as D
 import Text.Printf
-
-import Control.Monad.Writer
-import Control.Monad.Identity
 
 import DOM.Core hiding (Value)
 import Render (renderM, Render, (<+>))

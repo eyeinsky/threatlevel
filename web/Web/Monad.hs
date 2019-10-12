@@ -2,23 +2,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Web.Monad where
 
-import X.Prelude as P hiding (State, Writer)
 import qualified Data.Text.Lazy as TL
-import Data.Default
 
-import Network.Wai
-
-import HTTP.Response
+import X.Prelude as P hiding (State, Writer)
 
 import qualified CSS as CSS
 import qualified CSS.Monad as CSSM
 import qualified Web.Browser as Br
 import qualified JS
-
 import DOM
-import Render hiding (Conf)
-
-import qualified Identifiers as IS
 
 -- ** WebT
 

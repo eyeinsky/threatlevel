@@ -3,41 +3,14 @@ module HTTP.Response where
 import X.Prelude hiding (Any)
 
 import qualified Blaze.ByteString.Builder as BBB
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.ByteString.Lazy as LBS
 
 -- Wai/Warp conversions
-import Network.Wai ( responseBuilder, responseFile
-                   , Request
-                   , pathInfo, queryString, requestHeaders, requestBody
-                   , requestMethod
-                   )
+import Network.Wai (responseBuilder)
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Internal as WaiI
-import Network.HTTP.Types (
-     ok200, hContentType, hCacheControl, hCookie, queryToQueryText, parseQuery, RequestHeaders, methodGet, urlEncode
-   , hServer, status303, status404, status503, QueryText)
-import qualified Network.HTTP.Types as WT
 
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString      as B
-import qualified Data.ByteString.Builder as BB
-import qualified Data.ByteString.Char8 as B8
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TLE
-
-import Data.FileEmbed
-
-import Data.Aeson as JSON
-
-import qualified HTTP.Header as Hdr
-import           HTTP.Header (hdr)
 import qualified HTTP.Header as H
 import qualified HTTP.Header as Hdr
-
-import HTTP.Common
-import URL.ToPayload
 
 -- * Opaque
 

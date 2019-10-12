@@ -2,7 +2,6 @@ module Web.Browser where
 
 import Prelude
 
-import qualified Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B

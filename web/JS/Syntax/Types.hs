@@ -2,11 +2,8 @@ module JS.Syntax.Types where
 
 import X.Prelude hiding (True, False, Empty, unwords, unlines, replicate)
 
-import Prelude (fromIntegral)
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
-
-import Control.Monad.Reader (ask, withReader)
 
 
 type Code a = [Statement a]

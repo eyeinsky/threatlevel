@@ -1,7 +1,6 @@
 module JS.TH (deriveToExpr) where
 
 import Language.Haskell.TH
-import Language.Haskell.TH.Lens
 import Data.Char
 import Data.List
 

@@ -5,7 +5,6 @@ import URL.Core
 import Data.Attoparsec.Text as Atto
 import qualified Data.Text as TS
 import Data.Char
-import Data.List (find)
 import Data.Maybe (fromJust)
 
 import Control.Applicative

@@ -1,20 +1,15 @@
 module X.Auth.Google where
 
-import X.Prelude as P hiding ((.=))
+import X.Prelude as P
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString.Lazy  as BL
-import qualified Data.ByteString as BS
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 import qualified Network.Wreq as Wreq
-import qualified Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import Warp_Helpers (getRequestBody)
-
-import Control.Monad.IO.Class
-import Control.Monad.Trans
 
 import JS -- todo: add to X?
 import qualified DOM

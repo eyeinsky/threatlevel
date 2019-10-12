@@ -7,7 +7,6 @@ module URL.ToPayload
 import X.Prelude hiding (null, un)
 import qualified X.Prelude as P
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text as TS
 import qualified Data.Text.Encoding as TS
 import qualified Data.Text as T
@@ -16,7 +15,6 @@ import Data.Text.Format
 import URL hiding (T)
 import HTTP.Common hiding (un)
 import Network.HTTP.Types
-import Data.Hashable (Hashable)
 
 instance ToPayload BaseURL where
    toPayload (BaseURL proto@ (Proto proto') host port@ (Port port')) =

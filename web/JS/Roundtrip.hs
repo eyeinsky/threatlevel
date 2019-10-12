@@ -10,13 +10,11 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as LL
 import qualified Data.Aeson as A
 
-import Data.Kind
 import Data.Data
 import GHC.Generics
 
 import X.Prelude
 import JS hiding (String)
-import qualified JS
 import Render (render, Render)
 
 

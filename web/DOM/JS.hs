@@ -10,13 +10,11 @@ import Control.Monad.Writer (execWriter)
 
 import Web.Browser
 import JS hiding (Raw)
-import JS.Syntax (Statement(BareExpr), Expr(Assign, EAttr))
 import qualified JS.Syntax
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
 import HTML
-import DOM.Core
 import DOM.Event
 import XML
 import SVG hiding (onload, id)

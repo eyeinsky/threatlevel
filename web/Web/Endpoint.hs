@@ -7,22 +7,14 @@ module Web.Endpoint
 import X.Prelude hiding (Reader, Writer, State)
 
 import Control.Monad.State (get, put)
-import HTTP.Common (ToPayload(..))
 
 import qualified URL
 import URL (URL, Segment)
 import qualified Web as W
-import Web (Browser)
-import qualified HTTP.Header as Hdr
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
 import qualified Data.Text as TS
 import Render
 import Identifiers (identifierSource)
 
-import Web.Browser (browser)
-import qualified JS.DSL
 import qualified JS
 import DOM
 
@@ -32,11 +24,8 @@ import qualified Network.Wai as Wai
 import qualified Trie as Tr
 
 import Text.Boomerang.Texts
-import Text.Boomerang.TH
 import Text.Boomerang hiding ((.~))
 import qualified Text.Boomerang.Texts as B
-
-import qualified HTTP.Response as HR
 
 
 type M m r = W.WebT (ReaderT r m)

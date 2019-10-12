@@ -1,19 +1,13 @@
 module X.Google.Maps where
 
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text as TS
-import qualified Data.Text.Encoding as TS
 import Data.List
-import qualified Data.HashMap.Lazy as HM
 
 import X.Prelude hiding ((?=))
 import URL
 
 -- * JS
-
-
-
 
 -- * Maps Static API
 

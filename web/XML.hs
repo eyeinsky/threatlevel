@@ -6,7 +6,6 @@ module XML
 import X.Prelude
 import XML.Core as Export hiding ((!-))
 import XML.Render as Export
-import Data.Kind
 
 showHtml = showXml
 

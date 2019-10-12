@@ -1,10 +1,9 @@
 module X.Widgets where
 
-import X.Prelude as P hiding (div, (.>), (.=))
+import X.Prelude as P hiding ((.>))
 import Prelude as P ((/))
 import X
 import qualified CSS
-import DOM.JS
 import qualified JS.Lib as JS
 
 -- parrallax :: _

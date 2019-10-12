@@ -68,7 +68,6 @@ import Web.Cookie as Wai
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Mime as Mime
-import qualified Network.Wai.Middleware.Gzip as Gzip
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
 
@@ -82,13 +81,9 @@ import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 
 import X.Prelude as P
-import Data.Default
-import Render
 import JS hiding (String)
-import qualified JS.Syntax
 
 import CSS.Monad (CSSM)
-import qualified HTTP.Header as HH
 import qualified URL
 import qualified HTML
 import qualified DOM

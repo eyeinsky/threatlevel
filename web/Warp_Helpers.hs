@@ -6,15 +6,12 @@ module Warp_Helpers
   ) where
 
 import X.Prelude
-import Data.Function (on)
 import Control.Monad (guard)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy.Encoding as TLE
-import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString as B
 import qualified Data.HashMap.Strict as HM
 
-import Control.Concurrent
 import qualified Control.Concurrent.Async as Async
 
 import Network.Wai
@@ -22,7 +19,6 @@ import Network.Wai.Handler.Warp hiding (getPort)
 import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
-import HTTP.Common hiding (un)
 import URL.ToPayload as URL
 
 import Data.Hashable (Hashable)

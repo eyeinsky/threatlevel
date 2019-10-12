@@ -1,7 +1,6 @@
 module JS.API where
 
 import X.Prelude hiding ((.>))
-import Prelude (Floating(..))
 import JS.DSL
 
 -- * Object

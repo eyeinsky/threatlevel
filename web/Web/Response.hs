@@ -5,8 +5,6 @@ import Language.Haskell.TH
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
-import qualified Data.Text.Lazy.Encoding as TE
 import Network.Mime as Mime
 import qualified Network.HTTP.Types as WT
 import Data.FileEmbed
@@ -20,9 +18,9 @@ import HTTP.Response
 import qualified JS
 import qualified JS.Syntax
 import qualified HTML
-import URL
 import Render
 import HTTP.Common (ToPayload(..))
+import URL.ToPayload as URL
 
 -- * Url path
 

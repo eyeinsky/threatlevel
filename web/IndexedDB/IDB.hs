@@ -1,10 +1,8 @@
 module IndexedDB.IDB where
 
 import X.Prelude hiding (Index)
-import qualified Data.Text.Lazy as TL
 import X hiding (head, get, Request)
 import JS
-import qualified JS
 
 
 data DB

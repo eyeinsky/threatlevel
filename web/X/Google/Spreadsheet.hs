@@ -1,8 +1,6 @@
 module X.Google.Spreadsheet where
 
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text as TS
 import qualified Data.Text.Encoding as TS
 
@@ -12,11 +10,7 @@ import qualified Network.HTTP.Client as HC
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Strict.Lens as BS
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Lazy.Lens as BL
-
-import Control.Exception
 
 import X.Prelude
 

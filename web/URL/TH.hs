@@ -5,8 +5,6 @@ import Language.Haskell.TH.Quote
 import X.Prelude hiding (un)
 
 import qualified Data.Text as TS
-import Data.List (intercalate)
-import Data.Either
 import URL
 
 url = QuasiQuoter

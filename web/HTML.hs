@@ -8,10 +8,6 @@ module HTML
 
 import Control.Monad.Writer
 import qualified Data.Text as TS
-import qualified Data.Text.Lazy as TL
-import Data.Text.Lazy.Lens (utf8)
-
-import qualified Network.HTTP.Types as WT
 
 import X.Prelude hiding (head)
 import XML hiding (Raw)

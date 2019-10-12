@@ -1,7 +1,6 @@
 module SVG.Elements where
 
 import X.Prelude
-import Control.Monad.Writer
 import TH
 import XML
 import DOM.Core

@@ -4,7 +4,6 @@ module JS.Syntax.Render (Conf(..), unargs) where
 import Data.Default
 import qualified Data.Text.Lazy as TL
 import X.Prelude hiding (True, False, Empty, unwords, unlines, replicate, Const)
-import Control.Monad.Reader
 
 import Render hiding (Conf)
 import qualified Render

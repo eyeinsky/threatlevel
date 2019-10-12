@@ -120,7 +120,6 @@ library:
   - Trie
   ghc-options:
   - -Wall
-  - -Wno-unused-imports
   - -Wno-name-shadowing
   - -Wno-missing-signatures
   - -Wno-type-defaults

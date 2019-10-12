@@ -9,7 +9,6 @@ import qualified Data.ByteString.Base64 as B64
 
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
-import qualified Data.Aeson.Lens as A
 
 import X.Prelude
 

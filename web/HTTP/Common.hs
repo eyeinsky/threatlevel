@@ -1,15 +1,10 @@
 module HTTP.Common where
 
-import X.Prelude
-
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as TIO
-
-import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString      as B
-import qualified Data.ByteString.Char8 as B8
 
-
+import X.Prelude
 
 -- * Request payload type (TODO: to bs)
 
