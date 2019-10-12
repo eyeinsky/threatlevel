@@ -125,7 +125,6 @@ library:
   - -Wno-orphans
   - -Wno-missing-signatures
   - -Wno-incomplete-patterns
-  - -Wno-unused-matches
   - -Wno-unused-do-bind
   - -Wno-type-defaults
 

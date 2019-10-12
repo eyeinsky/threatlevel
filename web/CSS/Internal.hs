@@ -80,7 +80,7 @@ str = Word
 instance Render Value where
    renderM a = case a of
       Word a -> pure a
-      String a -> renderM (Comment "long strings unimplemented")
+      String _ -> renderM (Comment "long strings unimplemented")
 
       Percent a -> pure $ R.tshow a <> "%"
       Em a -> pure $ p a <> "em"
@@ -183,7 +183,7 @@ instance Render CSS where
      where
        isEmpty r = case r of
          Qualified _ ds -> null ds
-         Keyframes name blocks -> False
+         Keyframes _ _ -> False
          AtRule _ _ rs -> null rs
          FontFace rs -> null rs
 

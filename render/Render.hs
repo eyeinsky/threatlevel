@@ -41,7 +41,6 @@ a <+> b = (<>) <$> a <*> b
 -- * Rebinds for own helpers
 
 sur begin end cont = begin <> cont <> end
-pref n str = TL.replicate n " "
 par = sur "(" ")"
 curly = sur "{" "}"
 ang = sur "[" "]"

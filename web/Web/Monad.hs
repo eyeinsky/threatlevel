@@ -143,9 +143,7 @@ fontFace = writeRules (\ds -> [CSS.FontFace ds])
 
 instance MonadReader r m => MonadReader r (WebT m) where
   ask   = lift ask
-  local f (WebT (RWST g)) = WebT $ RWST $ \r s -> do
-    r' <- ask
-    local f (g r s)
+  local f (WebT (RWST g)) = WebT $ RWST $ \r s -> local f (g r s)
   reader = lift . reader
 
 instance MonadState s m => MonadState s (WebT m) where

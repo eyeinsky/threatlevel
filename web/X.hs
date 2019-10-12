@@ -282,7 +282,7 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
 -- error out if path goes outside of the served subtree. And check the
 -- standard of if .. is even allowed in url paths.
 staticDiskSubtree' mod notFound (fp :: FilePath) = do
-  return $ \req -> do
+  return $ \_ -> do
     e <- asks (view WE.dynPath) <&> sanitizePath
     e & either
       (\err -> do
@@ -311,7 +311,7 @@ assets notFound path = do
 
 folderHash :: String -> IO [Char]
 folderHash path = do
-  (i,o,e,h) <- IO.runInteractiveCommand cmd
+  (_, o, e, _) <- IO.runInteractiveCommand cmd
   IO.hGetContents e >>= hPutStrLn stderr
   IO.hGetContents o <&> P.take 40
   where
@@ -325,7 +325,7 @@ folderHashTH path = runIO (folderHash path) >>= stringE
 
 -- todo: The below could be more general!
 getTag a = case execWriter a of
-  e : rest -> let
+  e : _ -> let
       tn = e^?_Element._1 :: Maybe TagName
     in maybe (err "Not elem") ssFrom tn
   _ -> err "No xml content"

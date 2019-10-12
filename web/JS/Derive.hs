@@ -36,7 +36,7 @@ deriveForType tyName = go =<< reify tyName
          NewtypeD _ _ _ _ dc _
             -> pure <$> singleCon dc
          x -> error $ show x
-      x -> error "need a TyConI!"
+      _ -> error "need a TyConI!"
 
     error x = do
       reportError $ x
@@ -62,7 +62,7 @@ multiCon dc = case dc of
     fn = fname dc
     nameBangType name st = case st of
       _ : _ : _ -> funD fn [ dtClause (Just name) True    (length st) ]
-      t : _ -> do
+      _ : _ -> do
         arg <- newName "a"
         funD fn [ clause [varP arg] (normalB
           [| J.lit [ $(mkTag name), $(mkContents $ varE arg) ] |]) [] ]

@@ -24,7 +24,7 @@ instance Render (Code a) where
   renderM li = do
     conf <- ask
     case conf of
-      Indent n -> uncode li <&> TL.unlines
+      Indent _ -> uncode li <&> TL.unlines
       Minify -> uncode li <&> mconcat
 
 

@@ -95,7 +95,7 @@ handle
 handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
   where
     res = runM mc r js_css_st (i_io req)
-    merge (Re.Response s h (Re.HtmlDocument doc), st, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
+    merge (Re.Response s h (Re.HtmlDocument doc), _, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
     merge (other, _, _) = other
 
     collapse :: W.Writer -> W.Document -> W.Document
@@ -172,7 +172,7 @@ nextFullWith top = ask <&> URL.segments <>~ [top]
 -- * Helpers
 
 staticResponse :: (Monad m1, Monad m2) => a -> m1 (p -> m2 a)
-staticResponse response = return $ \req -> return response
+staticResponse response = return $ \_ -> return response
 
 -- | Take url, a unparser, value, and unparse the value to the end of url
 mkUrl :: URL.URL -> Boomerang e [TS.Text] () (r :- ()) -> r -> URL.URL

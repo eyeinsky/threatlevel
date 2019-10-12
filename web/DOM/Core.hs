@@ -61,7 +61,7 @@ instance Render Value where
 deriving instance Show TagName
 instance Show Value where
   show (Static a) = show a
-  show (Dynamic a) = "dynamic"
+  show (Dynamic _) = "dynamic"
 deriving instance Show Id
 deriving instance Show Class
 

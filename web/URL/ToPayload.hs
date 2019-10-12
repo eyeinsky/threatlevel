@@ -32,7 +32,7 @@ instance ToPayload BaseURL where
          | proto' == "https" && port' == 443 = ""
          | otherwise = ":" <> toPayload port
 
-withoutSchema (BaseURL proto@ (Proto proto') host port@ (Port port')) =
+withoutSchema (BaseURL (Proto proto') host port@ (Port port')) =
      toPayload host
   <> portPayload
   where

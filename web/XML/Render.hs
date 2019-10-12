@@ -51,7 +51,7 @@ instance Render (XMLA ns Both) where
           _ -> "/>"
     Text tl -> pure $ htmlTextEscape tl
     Raw tl -> pure tl
-    Dyn tl -> pure $ "error: Can't render browser js in back-end!"
+    Dyn _ -> pure $ "error: Can't render browser js in back-end!"
     Embed a -> renderM a
 
 instance Render [XMLA ns Both] where

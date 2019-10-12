@@ -52,7 +52,7 @@ declareFields [d|
   |]
 
 instance ToRaw Response where
-  toRaw r'@ (Response status origHeaders anyResponse)
+  toRaw (Response status origHeaders anyResponse)
     = httpResponse status (origHeaders <> headers) bl
     where
       (headers, bl) = case anyResponse of

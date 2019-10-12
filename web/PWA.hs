@@ -226,7 +226,7 @@ pwaDiagnostics = do
     return $ htmlDoc (pure ()) $ do
       div ! dest $ ""
 
-  pin "pwa-diag" $ return $ \req -> do
+  pin "pwa-diag" $ return $ \_ -> do
     return $ htmlDoc (pure ()) $ a ! href listCaches $ "list caches"
 
   return ()

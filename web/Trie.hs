@@ -88,6 +88,6 @@ union (Branch (Just _) hm) (Tip v) = Branch (Just v) hm
 union (Branch Nothing hm) (Branch Nothing hm') = Branch Nothing (HM.unionWith union hm hm')
 union (Branch Nothing hm) (Branch (Just v) hm') = Branch (Just v) (HM.unionWith union hm hm')
 union (Branch (Just v) hm) (Branch Nothing hm') = Branch (Just v) (HM.unionWith union hm hm')
-union (Branch (Just v) hm) (Branch (Just v') hm') = Branch (Just v') (HM.unionWith union hm hm')
+union (Branch (Just _) hm) (Branch (Just v') hm') = Branch (Just v') (HM.unionWith union hm hm')
 
 update = putStrLn "OK"

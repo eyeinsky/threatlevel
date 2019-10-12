@@ -88,11 +88,11 @@ instance FindBy (HTML Both) where
 
 instance FindBy Html where
    findBy a = case execWriter a of
-     e : rest -> findBy e
+     e : _ -> findBy e
      _ -> error "FindBy Html: no html to find by"
 instance FindBy (Html -> Html) where
   findBy a = case execWriter $ a $ pure () of
-    e : rest -> findBy e
+    e : _ -> findBy e
     _ -> error "FindBy (Html -> Html): no html to find by"
 
 valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
@@ -214,7 +214,7 @@ doGet' uri data_ cb = do
 ajaxExpr meth uri data_ callback = do
    xhr <- new $ ex "new XMLHttpRequest()"
    ifonly (callback .!== Undefined) $ do
-      wrap <- newf $ \(ret :: Expr ()) -> do
+      wrap <- newf $ \(_ :: Expr ()) -> do
          text <- new $ xhr !. "responseText"
          json <- new $ fromJSON text
          bare $ call1 callback json
@@ -327,7 +327,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       forM_ ts $ bare . flip appendChild t
       return t
     Text txt -> return $ createTextNode (lit txt)
-    Raw txt -> error "XML SVG AttributeSet Both: Raw not implemented"
+    Raw _ -> error "XML SVG AttributeSet Both: Raw not implemented"
     -- ^ fix: see implementation for HTML Both, would that work for svg too?
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a

@@ -81,9 +81,9 @@ instance {-# OVERLAPPABLE #-} (Result a ~ Expr a) => J a where
       _ -> emptyObject
     where
       contents v = ("contents", v)
-  ea c = emptyArray
-  str c t = lit t
-  numberOfFields c = 0
+  ea _ = emptyArray
+  str _ t = lit t
+  numberOfFields _ = 0
 
 emptyObject = lit ([] :: [(String, Expr ())]) -- :: Expr a
 emptyArray = lit ([] :: [Expr ()]) -- :: Expr a

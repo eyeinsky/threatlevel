@@ -69,7 +69,7 @@ getSpreadsheet accessToken docId sheet range =
     opts = Wreq.defaults & Wreq.header "Authorization" .~ (["Bearer " <> accessToken])
 
 
-get clientId secret docId sheet range refreshToken accessTokenMVar = do
+get clientId secret docId sheet range refreshToken _ {- accessTokenMVar -} = do
   tokenResponse :: Maybe Aeson.Value <- refresh refreshToken clientId secret
     <&> (^? Wreq.responseBody . Aeson._JSON)
   let maybeToken = tokenResponse ^? _Just . Aeson.key "access_token" . Aeson._String

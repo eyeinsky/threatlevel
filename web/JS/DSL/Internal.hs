@@ -102,7 +102,7 @@ bind kw expr name = do
    where define name expr = tell [ kw name expr ]
 
 pushNamedExpr :: TS.Text -> Expr a -> M r TS.Text
-pushNamedExpr n e = do
+pushNamedExpr n _ = do
    modify (namedVars %~ S.insert n)
    return n
 

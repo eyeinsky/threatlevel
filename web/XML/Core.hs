@@ -101,9 +101,9 @@ instance Attributable AttributeSet where
   (!-) a attr = case attr of
     AttrClass cs -> a & classes %~ (cs <>)
     AttrId id' -> a & id .~ Just id'
-    Custom k v -> a & attrs %~ (HM.insert k attr)
-    OnEvent e v -> a & attrs %~ (HM.insert (toOn e) attr)
-    Data e v -> a & attrs %~ (HM.insert e attr)
+    Custom k _ -> a & attrs %~ (HM.insert k attr)
+    OnEvent e _ -> a & attrs %~ (HM.insert (toOn e) attr)
+    Data e _ -> a & attrs %~ (HM.insert e attr)
 
 instance Attributable (XMLA ns c) where
   (!-) e attr = e & _Element._2 %~ (!- attr)
