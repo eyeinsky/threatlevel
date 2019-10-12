@@ -129,7 +129,6 @@ library:
   - -Wno-unused-do-bind
   - -Wno-unused-top-binds
   - -Wno-type-defaults
-  - -Wno-missing-methods
 
 default-extensions:
 - Arrows
