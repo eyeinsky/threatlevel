@@ -9,9 +9,9 @@ import qualified Data.Text as T
 
 import Control.Monad.Writer
 
-import Render hiding (concat)
+import Render
 
-import X.Prelude hiding (id, for)
+import X.Prelude hiding (id)
 import qualified JS
 import DOM.Core hiding (Document)
 import DOM.Event

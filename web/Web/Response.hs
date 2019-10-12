@@ -16,7 +16,7 @@ import qualified Data.Text.Strict.Lens as LS
 import qualified Data.Text.Lazy.Lens as LL
 
 import qualified HTTP.Header as Hdr
-import HTTP.Response hiding (redirect, JSON, Response)
+import HTTP.Response
 import qualified JS
 import qualified JS.Syntax
 import qualified HTML

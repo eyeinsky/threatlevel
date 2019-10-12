@@ -4,7 +4,7 @@ module Web.Endpoint
   ) where
 
 
-import X.Prelude hiding (Reader, Writer, State, (/))
+import X.Prelude hiding (Reader, Writer, State)
 
 import Control.Monad.State (get, put)
 import HTTP.Common (ToPayload(..))
@@ -24,7 +24,7 @@ import Identifiers (identifierSource)
 import Web.Browser (browser)
 import qualified JS.DSL
 import qualified JS
-import DOM hiding (M)
+import DOM
 
 import qualified Web.Response as Re
 import Web.Response (renderURL)

@@ -5,9 +5,6 @@ module X.Prelude
 
 import Prelude as Export hiding
   ( div, rem, (/), log -- Prelude
-  , text, (?=) -- lens
-  , on -- Data.Function
-  , traceShowId -- Debug.Trace
   , (^) -- GHC.Real
   , fail
   )
@@ -22,7 +19,6 @@ import Data.String as Export (IsString(..))
 import Data.Functor as Export
 import Data.Monoid as Export hiding (First(..), Last(..))
 import Data.Semigroup as Export
--- import Prelude as Export (Fractional((/)), fail)
 
 import Control.Monad.IO.Class as Export
 import Control.Monad.Identity as Export hiding (fail)

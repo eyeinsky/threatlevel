@@ -4,7 +4,7 @@ module JS.DSL.Internal
   , module JS.DSL.Internal
   ) where
 
-import X.Prelude hiding ((.-), for, (.=), (.>), Empty, Const, State)
+import X.Prelude hiding ((.>), Empty, Const, State)
 
 import Data.Default
 
@@ -18,7 +18,7 @@ import qualified Data.Text.IO as TLIO
 import Data.String
 
 import qualified JS.Syntax (Conf(..))
-import JS.Syntax hiding (S, putStrLn, Conf)
+import JS.Syntax hiding (Conf)
 
 import qualified JS.Syntax as JS
 import qualified Identifiers as IS

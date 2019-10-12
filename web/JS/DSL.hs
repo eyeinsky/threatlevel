@@ -15,7 +15,7 @@ module JS.DSL
   ) where
 
 import Prelude (Float, fromRational, toRational, Fractional((/)), Rational)
-import X.Prelude hiding ((.-), for, (.=), (.>), Empty, State)
+import X.Prelude hiding ((.>), Empty, State)
 import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
 import qualified Data.Hashable as H
@@ -25,7 +25,7 @@ import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Aeson as A
 
-import JS.Syntax hiding (S, putStrLn, Conf)
+import JS.Syntax hiding (Conf)
 import JS.DSL.Internal as JS
 import Render
 import JS.Syntax

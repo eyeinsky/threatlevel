@@ -16,7 +16,7 @@ import X.Prelude
 import Web.Browser
 
 import CSS.Internal hiding
-  ( tag, maybeId, pseudos, IsString(..)
+  ( tag, maybeId, pseudos
   )
 
 import CSS.Monad

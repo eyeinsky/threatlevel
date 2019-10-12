@@ -1,7 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module DOM.JS where
 
-import X.Prelude as P hiding ((.=), id)
+import X.Prelude as P hiding (id)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM

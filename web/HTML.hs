@@ -17,7 +17,7 @@ import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core hiding (Document)
-import HTML.Core hiding ((!), M, map, embed, input)
+import HTML.Core hiding (map, embed, input)
 import qualified HTML.Core as Core
 
 declareFields [d|

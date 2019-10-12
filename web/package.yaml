@@ -121,7 +121,6 @@ library:
   ghc-options:
   - -Wall
   - -Wno-unused-imports
-  - -Wno-dodgy-imports
   - -Wno-name-shadowing
   - -Wno-orphans
   - -Wno-missing-signatures

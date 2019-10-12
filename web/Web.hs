@@ -16,7 +16,7 @@ import XML
 
 import CSS hiding (Document) -- todo
 import Web.CSS (reset)
-import HTML hiding (M, Value, content, font, em, id)
+import HTML hiding (Value, content, font, em, id)
 import Web.Browser
 import Web.Monad
 import Render hiding (Conf)
