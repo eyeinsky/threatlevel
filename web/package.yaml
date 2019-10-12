@@ -127,7 +127,6 @@ library:
   - -Wno-incomplete-patterns
   - -Wno-unused-matches
   - -Wno-unused-do-bind
-  - -Wno-unused-top-binds
   - -Wno-type-defaults
 
 default-extensions:

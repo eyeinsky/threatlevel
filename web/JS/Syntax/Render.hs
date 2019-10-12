@@ -195,4 +195,3 @@ uncode code = do
 spaces n = TL.replicate (fromIntegral n) " "
 
 inf i a b = a <> i <> b
-col (k, v) = inf ": " <$> either renderM renderM k <*> renderM v

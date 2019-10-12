@@ -117,9 +117,6 @@ mkBody mb inContents li = normalB $ appE [|J.lit|] $ listE $ maybe li
 mkTag name = [| ("tag"::String, J.lit $(strName name)) |]
 mkContents xs = [| ("contents" :: String, $xs) |]
 
-arrExpr e = [| $e :: [J.Expr a] |]
-objExpr e = [| $e :: [(a, J.Expr b)] |]
-
 nameCast :: Name {-^ of type Expr a -} -> ExpQ
 nameCast name = [| J.Cast $(varE name) |]
 
@@ -138,9 +135,3 @@ getName c = case c of
    RecC name _ -> name
    NormalC name _ -> name
    GadtC (name : _) _ _ -> name
-
-newType p = VarT <$> newName p
-
-constType n t = go n
-  where
-    go n = AppT (AppT ArrowT t) . go (n - 1)
