@@ -92,7 +92,6 @@ recClause mTag ifcontents xs = do
     mkTup :: String -> Name -> ExpQ
     mkTup s n = let
         k = stringE s
-        v = nameCast n
       in [| ($k, $(nameCast n)) |]
 
 dtClause :: Maybe Name -> Bool -> Int -> ClauseQ

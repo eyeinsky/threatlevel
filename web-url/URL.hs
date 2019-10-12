@@ -25,5 +25,3 @@ instance Monoid Params where
 
 (?=) :: TS.Text -> TS.Text -> URL -> URL
 (?=) k v url = url & params <>~ Params [(k, Just v)]
-  where
-    pair = k <> "=" <> v :: TS.Text

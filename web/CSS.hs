@@ -40,7 +40,6 @@ resetCSS = run (TagName "body") no <> run (TagName "div") no
 setBoxSizing :: [Rule]
 setBoxSizing = run (TagName "html") (boxSizing "border-box") <> run anyTag inherit
   where
-    forAny = inherit >> before inherit >> after inherit
     inherit = boxSizing "inherit"
 
 centerContent :: CSSM ()

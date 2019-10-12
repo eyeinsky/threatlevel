@@ -89,7 +89,6 @@ faidingImages li image ft = keyframes $ do
     fade = ft * 2
     period = image + fade
     n = P.length li
-    total = period * fromIntegral n
     periodP = 100.0 P./ fromIntegral n
     imgP = periodP * (image P./ period)
     fadeHalfP = periodP * (ft P./ period)

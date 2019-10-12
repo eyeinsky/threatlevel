@@ -124,7 +124,6 @@ library:
   - -Wno-name-shadowing
   - -Wno-orphans
   - -Wno-missing-signatures
-  - -Wno-unused-local-binds
   - -Wno-incomplete-patterns
   - -Wno-unused-matches
   - -Wno-unused-do-bind

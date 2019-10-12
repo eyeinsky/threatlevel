@@ -42,7 +42,6 @@ deriveToExpr name' = do
         in do
         (d : _) <- [d| $(varP $ mkName name) = \f v -> fmap (\newVal -> setAttr name newVal v) (f $ v !. name) |] :: DecsQ
         pure <$> instanceD (pure []) (appT (appT (conT cls) src) dest) [pure d]
-      printMe = names
 
   -- runIO $ print ("here", cons)
   -- let lenses = [hasName $ head $ head namesTypes]

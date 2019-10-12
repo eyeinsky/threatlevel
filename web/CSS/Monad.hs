@@ -52,7 +52,7 @@ type M = CSSM
 runCSSM :: Conf -> State -> CSSM () -> ([Rule], State)
 runCSSM r s m = (r' : cssw^.rules, state)
   where
-    (ret, state, cssw) = runRWS m r s
+    (_, state, cssw) = runRWS m r s
     r' = mkRule (r^.selector) (cssw^.decls)
 
 -- * For export
