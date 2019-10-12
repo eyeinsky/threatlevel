@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Warp_Helpers
   ( module Warp_Helpers
   , TLS.tlsSettings
@@ -23,6 +24,8 @@ import Network.HTTP.Types
 
 import HTTP.Common hiding (un)
 import URL.ToPayload as URL
+
+import Data.Hashable (Hashable)
 
 getRequestBody :: Request -> IO BL.ByteString
 getRequestBody req = BL.fromChunks <$> loop
@@ -82,6 +85,8 @@ getDomain :: Request -> Maybe B.ByteString
 getDomain = lookup "Host" . requestHeaders
 
 -- * Run web server
+
+instance Hashable URL.Port where
 
 runServer :: Server -> IO ()
 runServer (Server https defs rules) = let

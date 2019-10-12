@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
@@ -14,7 +15,7 @@ module JS.DSL
   , call, call0, call1, (!.), (.!), (=:), ex
   ) where
 
-import Prelude (Float, fromRational, toRational, Fractional((/)), Rational)
+import Prelude (Float, Floating(..), fromRational, toRational, Fractional((/)), Rational)
 import X.Prelude hiding ((.>), Empty, State)
 import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
@@ -266,8 +267,27 @@ instance {-# OVERLAPPABLE #-} Semigroup (Expr Object) where
 instance {-# OVERLAPPABLE #-} Monoid (Expr Object) where
   mempty = Lit $ Object []
 
--- | Expr a defaults to Expr Object
 instance {-# OVERLAPPABLE #-} Semigroup (Expr a) where
   a <> b = call (ex "Object" !. "assign") [mempty :: Expr Object, Cast a, Cast b]
 instance {-# OVERLAPPABLE #-} Monoid (Expr a) where
   mempty = Lit $ Object []
+
+instance {-# OVERLAPPABLE #-} Semigroup (Expr String) where
+  a <> b = a + b
+instance Monoid (Expr String) where
+  mempty = ""
+
+instance Floating (Expr a) where
+  pi = lit pi
+  exp = todo
+  log = todo
+  sin = todo
+  cos = todo
+  asin = todo
+  acos = todo
+  atan n = call1 (math "atan") n
+  sinh = todo
+  cosh = todo
+  asinh = todo
+  acosh = todo
+  atanh = todo

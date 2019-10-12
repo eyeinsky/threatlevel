@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module URL.ToPayload
   ( module URL.ToPayload
   , module URL
@@ -16,9 +17,6 @@ import URL hiding (T)
 import HTTP.Common hiding (un)
 import Network.HTTP.Types
 import Data.Hashable (Hashable)
-
-deriving instance Generic Port
-instance Hashable Port
 
 instance ToPayload BaseURL where
    toPayload (BaseURL proto@ (Proto proto') host port@ (Port port')) =

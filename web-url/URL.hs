@@ -17,11 +17,5 @@ localhost = URL (Proto "http") auth (Path []) (Params []) (Fragment "")
 
 -- * Shorthand to set url
 
-instance Semigroup Params where
-  Params a <> Params b = Params (a <> b)
-instance Monoid Params where
-  mempty = Params mempty
-  mappend = (<>)
-
 (?=) :: TS.Text -> TS.Text -> URL -> URL
 (?=) k v url = url & params <>~ Params [(k, Just v)]

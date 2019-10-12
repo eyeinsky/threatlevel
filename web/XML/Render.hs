@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module XML.Render where
 
 import qualified Data.Text as TS

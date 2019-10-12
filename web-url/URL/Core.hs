@@ -7,6 +7,7 @@ import Data.Word (Word8, Word16)
 import qualified Data.Text as T
 import Data.Text.Lens
 import Control.Lens
+import GHC.Generics (Generic)
 
 type T = T.Text
 
@@ -42,16 +43,25 @@ instance Num Port where
 instance Read Port where
   readsPrec _ str = [(Port (read str), "")]
 
+deriving instance Generic Port
+
 type Segment = T
 declareFields [d|
   data Path = Path { pathSegments :: [Segment] }
   |]
-deriving instance Semigroup Path
-deriving instance Monoid Path
+instance Semigroup Path where
+  Path a <> Path b = Path (a <> b)
+instance Monoid Path where
+  mempty = Path mempty
 
 declareFields [d|
   data Params = Params { paramsUn :: [(T, Maybe T)] }
   |]
+instance Semigroup Params where
+  Params a <> Params b = Params (a <> b)
+instance Monoid Params where
+  mempty = Params mempty
+
 data Fragment = Fragment T
 
 declareFields [d|

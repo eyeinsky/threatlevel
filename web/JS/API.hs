@@ -93,11 +93,6 @@ split str sep = call1 (str !. "split") sep
 trim :: Expr String -> Expr String
 trim s = call0 (s !. "trim")
 
-instance {-# OVERLAPPABLE #-} Semigroup (Expr String) where
-  a <> b = a + b
-instance Monoid (Expr String) where
-  mempty = ""
-
 -- * Number
 
 parseFloat a = call1 (ex "parseFloat") a
@@ -111,21 +106,6 @@ max a b = ternary (a .> b) a b
 floor' = call1 (math "floor")
 
 ceiling' = call1 (math "ceil")
-
-instance Floating (Expr a) where
-  pi = lit pi
-  exp = todo
-  log = todo
-  sin = todo
-  cos = todo
-  asin = todo
-  acos = todo
-  atan n = call1 (math "atan") n
-  sinh = todo
-  cosh = todo
-  asinh = todo
-  acosh = todo
-  atanh = todo
 
 -- * Async
 

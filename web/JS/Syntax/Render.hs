@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module JS.Syntax.Render (Conf(..), unargs) where
 
 import Data.Default

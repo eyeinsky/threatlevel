@@ -122,7 +122,6 @@ library:
   - -Wall
   - -Wno-unused-imports
   - -Wno-name-shadowing
-  - -Wno-orphans
   - -Wno-missing-signatures
   - -Wno-incomplete-patterns
   - -Wno-unused-do-bind

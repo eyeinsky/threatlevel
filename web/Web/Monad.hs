@@ -131,10 +131,6 @@ instance (Monad m) => MonadWeb (WebT m) where
      let ds = execWriter dm :: [CSS.Declaration]
      tell $ mempty & cssCode .~ g ds
 
-
-instance CSSM.HasDecls [CSS.Declaration] [CSS.Declaration] where
-  decls = id
-
 fontFace = writeRules (\ds -> [CSS.FontFace ds])
 
 -- ** Instances

@@ -1,4 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module JS.DSL.Internal
   ( module Web.Browser
   , module JS.DSL.Internal

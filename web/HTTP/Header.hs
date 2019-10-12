@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module HTTP.Header where
 
 import X.Prelude hiding (unlines, find)
@@ -23,13 +24,6 @@ hdr a b = Header (a, b)
 
 header :: HeaderName -> T -> Header
 header h v = Header (h, v)
-
-{-
-data ResponseHeader = ResponseHeader {
-
-   ,
-   }
--}
 
 instance ToPayload Header where
    toPayload (Header (k, v)) = find k headerMap <> ": " <> v

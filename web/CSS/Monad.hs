@@ -44,6 +44,9 @@ instance Semigroup CSSW where
 instance Monoid CSSW where
   mempty = CSSW mempty mempty
 
+instance HasDecls [Declaration] [Declaration] where
+  decls = id
+
 type DM = Writer [Declaration]
 
 type CSSM = RWST Conf CSSW State Identity
