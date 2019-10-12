@@ -59,10 +59,12 @@ class J c where
   str :: c -> TagName -> Result c
   numberOfFields :: c -> Int
 instance (J b) => J (a -> b) where
-  rf (f : fs) acc c = \(a :: Expr a) -> rf fs (acc <> [(f, Cast a)]) (c undefined)
+  rf fs' acc c = case fs' of
+    (f : fs) -> \(a :: Expr a) -> rf fs (acc <> [(f, Cast a)]) (c undefined)
+    _ -> todo
   pf acc mStub c = \(a :: Expr a) -> pf (acc <> [Cast a]) mStub (c undefined)
-  ea c = \(a :: Expr a) -> ea (c undefined)
-  str c stub = \(a :: Expr a) -> str (c undefined) stub
+  ea c = \(_ :: Expr a) -> ea (c undefined)
+  str c stub = \(_ :: Expr a) -> str (c undefined) stub
   numberOfFields c = 1 + numberOfFields (c undefined)
 instance {-# OVERLAPPABLE #-} (Result a ~ Expr a) => J a where
   rf _ acc _ = Cast (lit acc)

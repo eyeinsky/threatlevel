@@ -308,6 +308,8 @@ instance RenderJSM (HTML Both) where
         Data _ v -> (e !. "dataset" !. (TL.toStrict $ kebab2camel $ TL.fromStrict k)) .= lit v
         OnEvent et expr -> e !. toOn et .= expr
         Custom _ v -> e !. k .= lit v
+        AttrClass _ -> todo
+        AttrId _ -> todo
 
 createHtmls :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls m = do
@@ -338,6 +340,8 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
         Data _ v -> e & setAttr ("data-" <> k) v & bare
         OnEvent et expr -> e !. toOn et .= expr -- todo: does this work/fire?
         Custom _ v -> e & setAttr k v & bare
+        AttrClass _ -> todo
+        AttrId _ -> todo
         where
           setAttr :: TS.Text -> TS.Text -> Expr a -> Expr b
           setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]

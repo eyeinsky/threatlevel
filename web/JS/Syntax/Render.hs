@@ -64,6 +64,8 @@ instance Render (Statement a) where
     Empty -> pure ""
     Let name exp -> define "let " name =: renderM exp
     Const name exp -> define "const " name =: renderM exp
+    FuncDefStm name as code -> function "function " (Just name) as code
+    -- TryCatch _ _ -> error "Not implemented"
     where
       define kw name = pure kw <+> renderM name
       var = define "var "
@@ -83,7 +85,6 @@ instance Render (Expr a) where
     Generator mbName as code -> function "function* " mbName as code
     Async mbName as code -> function "async function " mbName as code
     TypedFCall f as -> (par <$> renderM f) <+> (unargs $ args as)
-    -- DELME TypedFDef as code -> "function" <> unargs (args as) <> uncode code
     Ternary b t f -> par <$> mseq [renderM b, pure "?", renderM t, pure ":", renderM f]
     Null -> pure "null"
     Undefined -> pure "undefined"
@@ -96,13 +97,15 @@ instance Render (Expr a) where
     YieldDelegate e -> pure "yield* " <+> renderM e
     Await e -> pure "await " <+> renderM e
 
-    where
-      function kw mbName as code = mseq
-        [ pure $ kw <> TL.fromStrict (maybe "" getName mbName)
-        , unargs as
-        , pure " "
-        , curlyCode code
-        ]
+    -- TypedFDef _ _ -> todo
+
+function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
+function kw mbName as code = mseq
+  [ pure $ kw <> TL.fromStrict (maybe "" getName mbName)
+  , unargs as
+  , pure " "
+  , curlyCode code
+  ]
 
 a =: b = a <+> pure eq' <+> b
 eq' = " = "

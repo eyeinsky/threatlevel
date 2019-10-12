@@ -202,7 +202,7 @@ fetchAndCache req cache = do
   return resp
 
 pwaDiagnostics = do
-  listCaches <- api $ return $ \req -> do
+  listCaches <- api $ return $ \_ -> do
     cssRule body $ do
       whiteSpace "pre"
     js $ do

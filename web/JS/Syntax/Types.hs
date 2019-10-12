@@ -23,7 +23,7 @@ data Statement a where
 
    While    :: Expr a -> Code b{-X-} -> Statement c
 
-   TryCatch :: Code r -> Code r -> Statement r
+   -- TryCatch :: Code r -> Code r -> Statement r
    Return   :: Expr a -> Statement a
    Empty    :: Statement a
 
@@ -52,7 +52,7 @@ data Expr a where
    Async :: Maybe Name -> [Name] -> Code b -> Expr c
 
    -- ^ function maybeName(exprs) {code}
-   TypedFDef  :: Args a => a -> Code b -> Expr c
+   -- TypedFDef  :: Args a => a -> Code b -> Expr c
    TypedFCall :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
 
    Ternary   :: Expr Bool -> Expr a -> Expr a -> Expr a

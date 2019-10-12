@@ -20,7 +20,9 @@ deriveToExpr name' = do
   info <- reify name'
   -- get field names
   -- drop type name prefix, lower-case the first letter
-  let Just (tyName, cons) = case info of TyConI dec -> constructors dec
+  let Just (tyName, cons) = case info of
+        TyConI dec -> constructors dec
+        _ -> todo
       namesTypes = map (fieldNames ^ lensFields) cons :: [[(String, Type)]]
       names = map fst $ head namesTypes :: [String]
 

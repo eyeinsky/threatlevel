@@ -59,10 +59,12 @@ declareFields [d|
   |]
 
 instance Aeson.FromJSON Tokeninfo where
-   parseJSON (Aeson.Object v) = Tokeninfo
-      <$> v Aeson..: "email"
-      <*> v Aeson..: "picture"
-      <*> v Aeson..: "name"
+   parseJSON = \case
+     Aeson.Object v -> Tokeninfo
+       <$> v Aeson..: "email"
+       <*> v Aeson..: "picture"
+       <*> v Aeson..: "name"
+     _ -> todo
 
 instance Aeson.ToJSON Tokeninfo where
   toJSON t = Aeson.object ["email" Aeson..= email']

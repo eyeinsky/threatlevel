@@ -56,7 +56,10 @@ instance IsString Value where
   fromString = Static . fromString
 
 instance Render Value where
-  renderM (Static v) = pure $ TL.fromStrict v
+  renderM v' = case v' of
+     Static v -> pure $ TL.fromStrict v
+     _ -> todo
+
 
 deriving instance Show TagName
 instance Show Value where

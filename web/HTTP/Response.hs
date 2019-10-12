@@ -60,6 +60,8 @@ httpResponse status headers body
 waiAddHeaders hs r = case r of
    WaiI.ResponseBuilder st hdrs builder -> WaiI.ResponseBuilder st (hs <> hdrs) builder
    WaiI.ResponseFile st hdrs path mFilePart -> WaiI.ResponseFile st (hs <> hdrs) path mFilePart
+   WaiI.ResponseStream _ _ _ -> todo
+   WaiI.ResponseRaw _ _ -> todo
 
 -- * Caching
 

@@ -123,7 +123,6 @@ library:
   - -Wno-unused-imports
   - -Wno-name-shadowing
   - -Wno-missing-signatures
-  - -Wno-incomplete-patterns
   - -Wno-type-defaults
 
 default-extensions:

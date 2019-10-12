@@ -18,6 +18,9 @@ instance Render Attribute where
     Custom k v -> eq (TL.fromStrict k) (TL.fromStrict v)
     OnEvent et expr -> eq (TL.fromStrict $ toOn et) (renderJS expr)
     Data k v -> eq (TL.fromStrict $ "data-" <> k) (TL.fromStrict v)
+    AttrClass _ -> todo
+    AttrId _ -> todo
+
 
 eq k v = k <> "=" <> q v
   where

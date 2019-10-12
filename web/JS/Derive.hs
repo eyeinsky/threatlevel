@@ -58,6 +58,7 @@ multiCon dc = case dc of
   RecC name vst   -> funD fn [recClause (Just name) False $ map vstName vst ]
   NormalC name bt -> nameBangType name bt
   GadtC (name : _) bt _ -> nameBangType name bt
+  _ -> todo
   where
     fn = fname dc
     nameBangType name st = case st of
@@ -80,7 +81,9 @@ singleCon dc = case dc of
     _ : _ : _ -> func dc [dtClause  Nothing False (length st)]
     -- ^ single-data multi-value constructor ()
     _ : _ -> newName "a" >>= \ n -> func dc [clause [varP n] (normalB $ varE n) []]
+    _ -> todo
     -- ^ single-data single-value constructor (data A = A Int)
+  _ -> todo
 
 -- * Helpers
 
@@ -135,3 +138,4 @@ getName c = case c of
    RecC name _ -> name
    NormalC name _ -> name
    GadtC (name : _) _ _ -> name
+   _ -> todo
