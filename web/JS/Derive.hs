@@ -16,8 +16,8 @@ deriveJS
   -> Q [Dec]
 deriveJS mbAesonOpts typeName = do
   let li = [ConT typeName]
-  reifyInstances ''ToJSON li
-  reifyInstances ''FromJSON li
+  _ <- reifyInstances ''ToJSON li
+  _ <- reifyInstances ''FromJSON li
   aesonToFrom <- maybe (const $ return []) deriveJSON mbAesonOpts $ typeName
   js <- deriveForType typeName
   runIO $ putStrLn $ pprint js

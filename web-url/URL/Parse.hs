@@ -84,11 +84,7 @@ paramsP = some <|> no
     paramVal a b = if TS.null b
       then (a, Nothing)
       else (a, Just $ TS.tail b)
-
-    some = do
-      char '?'
-      parts :: [TS.Text] <- sepBy part (char '&')
-      return $ Params (map split parts)
+    some = char '?' >> (Params . map split <$> sepBy part (char '&'))
     no = pure (Params [])
 
 fragmentP :: Parser Fragment

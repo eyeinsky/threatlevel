@@ -152,7 +152,7 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
     return ((a, w), ss, ww)
   pass (WebT (RWST f)) = WebT $ RWST $ \r s -> do
     ((a, f :: w -> w), ss, ww) <- f r s
-    pass $ return (a, f)
+    _ <- pass $ return (a, f)
     return (a, ss, ww)
 
 instance MonadFail m => MonadFail (WebT m) where

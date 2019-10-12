@@ -124,7 +124,6 @@ library:
   - -Wno-name-shadowing
   - -Wno-missing-signatures
   - -Wno-incomplete-patterns
-  - -Wno-unused-do-bind
   - -Wno-type-defaults
 
 default-extensions:
