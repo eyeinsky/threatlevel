@@ -126,7 +126,7 @@ tcall f as = TypedFCall f as
 -- | Create function from a literal: provide JSM state and reader
 funcPrim
   :: Function a
-  => (Maybe Name -> [Expr ()] -> Code (Final a) -> Expr (Type a))
+  => (Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a))
   -> Conf -> State -> a -> (Expr (Type a), State)
 funcPrim constr r s0 fexp = (constr Nothing args code, s1)
    where
@@ -137,7 +137,7 @@ funcPrim constr r s0 fexp = (constr Nothing args code, s1)
 class Function a where
    type Type a
    type Final a
-   funcLit :: a -> M (Final a) [Expr ()]
+   funcLit :: a -> M (Final a) [Name]
 instance Function (M r a) where
    type Type (M r a) = r
    type Final (M r a) = r
@@ -150,9 +150,9 @@ instance (Function b) => Function (Expr a -> b) where
    type Type (Expr a -> b) = a -> Type b
    type Final (Expr a -> b) = Final b
    funcLit f = do
-      arg :: Expr a <- EName <$> next
-      args <- funcLit (f arg)
-      return $ Cast arg : args
+      arg <- next
+      args <- funcLit (f $ EName $ arg)
+      return (arg : args)
 
 -- | The convert/back combo turns typed function expressions to actual
 -- haskell function calls.

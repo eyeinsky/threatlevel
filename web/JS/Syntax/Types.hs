@@ -12,7 +12,7 @@ import Control.Monad.Reader (ask, withReader)
 type Code a = [Statement a]
 
 data Statement a where
-   FuncDefStm :: Name -> FormalArgs -> Code a -> Statement b
+   FuncDefStm :: Name -> [Name] -> Code a -> Statement b
    Var      :: Name -> Statement a
    VarDef   :: Name -> Expr a -> Statement b
    BareExpr :: Expr a -> Statement b
@@ -47,9 +47,9 @@ data Expr a where
    -- untyped
    FuncCall  :: Expr a -> [Expr b]  -> Expr c -- func(*expr)
    -- typed
-   AnonFunc :: Maybe Name -> [Expr a] -> Code b -> Expr c
-   Generator :: Maybe Name -> [Expr a] -> Code b -> Expr c
-   Async :: Maybe Name -> [Expr a] -> Code b -> Expr c
+   AnonFunc :: Maybe Name -> [Name] -> Code b -> Expr c
+   Generator :: Maybe Name -> [Name] -> Code b -> Expr c
+   Async :: Maybe Name -> [Name] -> Code b -> Expr c
 
    -- ^ function maybeName(exprs) {code}
    TypedFDef  :: Args a => a -> Code b -> Expr c

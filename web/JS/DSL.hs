@@ -117,7 +117,7 @@ fn' n f = newf' n f <&> convert []
 -- | Create function, getting state and reader from enclosing monad.
 func
   :: Function f
-  => (Maybe Name -> [Expr ()] -> Code (Final f) -> Expr (Type f))
+  => (Maybe Name -> [Name] -> Code (Final f) -> Expr (Type f))
   -> f
   -> M parent (Expr (Type f))
 func constr f = do
