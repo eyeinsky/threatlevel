@@ -26,7 +26,7 @@ import Data.Hashable (Hashable)
 getRequestBody :: Request -> IO BL.ByteString
 getRequestBody req = BL.fromChunks <$> loop
    where
-      loop = requestBody req >>= re
+      loop = getRequestBodyChunk req >>= re
       re chunk = B.null chunk ? return [""] $ (chunk:) <$> loop
 
 myRun :: URL.Port -> Handler -> IO ()
