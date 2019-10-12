@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module CSS.Shorthands where
 
 import X.Prelude

@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module HTML.Core
   ( module HTML.Core
   , module DOM.Core

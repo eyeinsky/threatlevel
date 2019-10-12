@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module SVG.Attributes where
 
 import X.Prelude
