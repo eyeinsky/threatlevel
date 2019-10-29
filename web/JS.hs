@@ -5,5 +5,7 @@ module JS
    ) where
 
 import JS.DSL
-import JS.API
+import JS.API hiding (
+  join -- It's in common use joining nested monads
+  )
 import JS.Derive

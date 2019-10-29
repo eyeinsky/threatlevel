@@ -10,6 +10,7 @@ import Control.Monad.Writer (execWriter)
 
 import Web.Browser
 import JS hiding (Raw)
+import qualified JS.API as JS
 import qualified JS.Syntax
 
 import qualified DOM.Core as D
