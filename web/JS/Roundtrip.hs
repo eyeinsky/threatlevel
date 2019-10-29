@@ -90,6 +90,9 @@ emptyArray = lit ([] :: [Expr ()]) -- :: Expr a
 
 -- * GetConstr
 
+-- | Get the data constructor and total field count.
+--
+-- TODO: this should be refactored to separate concerns.
 class GetConstr a where
   getConstr :: a -> (Constr, Int)
 instance {-# OVERLAPPING #-} (GetConstr b) => GetConstr (a -> b) where
@@ -108,8 +111,7 @@ countAllFields dc = sum ns
   where
     dt = dataTypeOf dc :: DataType
     dcs = dataTypeConstrs dt :: [Constr]
-    f dc = fromConstr dc :: a
-    ns = map (countFields . f) dcs
+    ns = map ((countFields :: a -> Int) . fromConstr) dcs
 
 -- ** Examples
 

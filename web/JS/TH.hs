@@ -8,27 +8,28 @@ import X.Prelude
 
 import JS.Syntax as J hiding (getName, Name)
 import JS.DSL as J hiding (func)
+import JS.Lib as J
 
 
 
 -- * Data type to lens-like object
 
+dcNamesTypes :: [Con] -> [[(String, Type)]]
+dcNamesTypes dcs = map (fieldNames ^ lensFields) dcs :: [[(String, Type)]]
+
 deriveToExpr :: Name -> Q [Dec]
 deriveToExpr name' = do
-  -- get data type name
-  info <- reify name'
-  -- get field names
-  -- drop type name prefix, lower-case the first letter
-  let Just (tyName, cons) = case info of
-        TyConI dec -> constructors dec
-        _ -> todo
-      namesTypes = map (fieldNames ^ lensFields) cons :: [[(String, Type)]]
+
+  Just (typeName, dataCons) <- reify name' <&> \case
+    TyConI dec -> constructors dec
+    _ -> Nothing
+
+  let namesTypes = dcNamesTypes dataCons
       names = map fst $ head namesTypes :: [String]
 
       toTup :: String -> ExpQ
       toTup name = [e| ($(stringE name), lit (v ^. $(varE $ mkName name)) ) |]
 
-      -- instance ToExpr Type where lit v = [("field", lit (v^.field))]
       toExpr :: DecsQ
       toExpr = [d|
         instance {-# OVERLAPPING #-} ToExpr $(conT tyName) where
@@ -38,39 +39,44 @@ deriveToExpr name' = do
       hasName :: (String, Type) -> DecsQ
       hasName (name, type_) = let
           cls = mkName $ "Has" <> (name & ix 0 %~ toUpper)
-          src = [t| Expr $(conT tyName) |] :: TypeQ
+          src = [t| Expr $(conT typeName) |] :: TypeQ
           dest = [t| Expr $(pure type_) |] :: TypeQ
         in do
-        (d : _) <- [d| $(varP $ mkName name) = \f v -> fmap (\newVal -> setAttr name newVal v) (f $ v !. name) |] :: DecsQ
+        (d : _) <- [d| $(varP $ mkName name) = \f v -> fmap (\newVal -> J.setAttr name newVal v) (f $ v !. name) |] :: DecsQ
         pure <$> instanceD (pure []) (appT (appT (conT cls) src) dest) [pure d]
 
-  -- runIO $ print ("here", cons)
-  -- let lenses = [hasName $ head $ head namesTypes]
   let lenses = map hasName (head namesTypes)
   concat <$> sequence (toExpr : lenses)
 
--- | Constructors
-
+-- | Extract data constructors from type declaration.
 constructors :: Dec -> Maybe (Name, [Con])
 constructors dec = case dec of
-  DataD    _ name _ _ ds _ -> Just (name, ds)
-  NewtypeD _ name _ _ d _ -> Just (name, [d])
+  DataD    _ name _ _ dataCons _ -> Just (name, dataCons)
+  NewtypeD _ name _ _ dataCon _ -> Just (name, [dataCon])
   _ -> Nothing
 
 -- | Con -> ("Constr", ["ConstrField1", "ConstrField2"])
 fieldNames :: Con -> (String, [(String, Type)])
-fieldNames c = case c of
-  RecC n x -> (nameBase n, f x)
-  RecGadtC (n : _) x _ -> (nameBase n, f x)
+fieldNames dataCon = case dataCon of
   _ -> error "hej hej"
+  RecC name varBangTypes -> (nameBase name, nameType varBangTypes)
+  RecGadtC (name : _) varBangTypes _ -> (nameBase name, nameType varBangTypes)
   where
-    f = map (\(v, _, t) -> (nameBase v, t))
+    nameType = map (\(varName, _, type_) -> (nameBase varName, type_))
 
--- | ("Constr", ["ConstrField1", "ConstrField2"]) -> ["field1", "field2"]
+{- | Use constructor name to strip its prefix from fields,
+     return just the unprefixed field names.
+
+   ("Constr", ["ConstrField1", "ConstrField2"]) -> ["field1", "field2"]
+-}
 lensFields :: (String, [(String, Type)]) -> [(String, Type)]
-lensFields (n, li) = li''
+lensFields (conName, fieldNames) = go fieldNames
   where
-    firstToLower = ix 0 %~ toLower :: String -> String
-    n' = firstToLower n
-    li' = map (first (stripPrefix n')) li :: [(Maybe String, Type)]
-    li'' = map (first (ix 0 %~ toLower)) $ map (first fromJust) $ filter (fst ^ isJust) li'
+    lower = ix 0 %~ toLower :: String -> String
+    strip = stripPrefix (lower conName)
+
+    go xs = case xs of
+      (prefixed, type_) : rest -> case strip prefixed of
+        Just fieldName -> (lower fieldName, type_) : go rest
+        _ -> go rest
+      _ -> []
