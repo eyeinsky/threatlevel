@@ -52,6 +52,7 @@ type DM = Writer [Declaration]
 type CSSM = RWST Conf CSSW State Identity
 type M = CSSM
 
+-- | Full runner for nested CSS
 runCSSM :: Conf -> State -> CSSM () -> ([Rule], State)
 runCSSM r s m = (r' : cssw^.rules, state)
   where

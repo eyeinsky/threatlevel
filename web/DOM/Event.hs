@@ -62,6 +62,11 @@ data HTMLFormEvent
    | Focus
    | Blur
 
+   -- | Fires on <input>, <select>, <textarea>, or where
+   -- `contenteditable` or `designMode` are turned one
+   | Input
+
+
 
 -- No "on" prefixed attributes for html elements these events:
 
