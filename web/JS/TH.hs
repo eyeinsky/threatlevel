@@ -32,8 +32,10 @@ deriveToExpr name' = do
 
       toExpr :: DecsQ
       toExpr = [d|
-        instance {-# OVERLAPPING #-} ToExpr $(conT tyName) where
-          lit v = lit $(listE $ map toTup names) -- names
+        instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where
+          lit v = lit $(case names of
+            [] -> [e|show v|]
+            _ -> listE $ map toTup names :: ExpQ)
         |]
 
       hasName :: (String, Type) -> DecsQ
@@ -58,9 +60,10 @@ constructors dec = case dec of
 -- | Con -> ("Constr", ["ConstrField1", "ConstrField2"])
 fieldNames :: Con -> (String, [(String, Type)])
 fieldNames dataCon = case dataCon of
-  _ -> error "hej hej"
   RecC name varBangTypes -> (nameBase name, nameType varBangTypes)
   RecGadtC (name : _) varBangTypes _ -> (nameBase name, nameType varBangTypes)
+  NormalC name _ -> (nameBase name, [])
+  a -> error (show a)
   where
     nameType = map (\(varName, _, type_) -> (nameBase varName, type_))
 
