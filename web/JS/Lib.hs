@@ -10,7 +10,6 @@ import JS.Lib.Async
 
 import Prelude hiding (repeat)
 import JS
-import JS.API
 import JS.DSL (not)
 
 -- * Text
@@ -29,11 +28,11 @@ round = \ n p -> do
    tens <- new $ p * lit 10
    retrn $ nearestInt (n * tens) / tens
 
-nf = \ n places -> do
-   repeat <- lib $ newf repeat
+nf = \ n _ -> do
+   -- repeat <- lib $ newf repeat
    x <- new $ JS.split (toString n) (lit ".")
-   x1 <- new $ x !- 1
-   y <- new $ ternary (x1 .=== Undefined) (call repeat [places, lit "0"]) x1
+   -- x1 <- new $ x !- 1
+   -- y <- new $ ternary (x1 .=== Undefined) (call repeat [places, lit "0"]) x1
    retrn $ (x!-0) -- .+ lit "." .+ call (y !. "slice") [lit 0, places]
 
 -- * Object
@@ -51,5 +50,5 @@ iterArray arr f = do
   ix <- new 0
   length <- new $ arr !. "length"
   while (ix .< length) $ do
-    f ix
+    _ <- f ix
     ix .+= 1
