@@ -25,6 +25,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Aeson as A
+import Data.Time
 
 import JS.Syntax hiding (Conf)
 import JS.DSL.Internal as JS
@@ -201,6 +202,12 @@ instance IsString (Expr a) where
 
 instance ToExpr a => ToExpr (Maybe a) where
   lit = maybe Null lit
+
+instance ToExpr UTCTime where
+  lit t = lit $ formatTime defaultTimeLocale format t
+    where
+      format = iso8601DateFormat (Just "%H:%M:%S%QZ")
+      -- Prints ISO8601, e.g "2019-11-04T15:42:18.608734Z"
 
 data RegExp
 regex str opts = Lit $ RegExp str opts :: Expr RegExp
