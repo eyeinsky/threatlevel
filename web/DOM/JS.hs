@@ -3,6 +3,7 @@
 module DOM.JS where
 
 import X.Prelude as P hiding (id)
+import qualified X.Prelude as P
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
@@ -166,15 +167,6 @@ createTextNode txt = docCall' "createTextNode" txt
 createDocumentFragment :: Expr DocumentFragment
 createDocumentFragment = call0 (document !. "createDocumentFragment")
 
-createClasses :: [Class] -> Expr ()
-createClasses cs = if null dynamics'
-  then statics
-  else dynamics
-  where
-    (statics', dynamics') = partitionEithers $ map (value2either . unClass) cs
-    statics = lit $ TL.fromChunks statics'
-    dynamics = JS.join " " $ lit dynamics'
-
 -- *** Text input
 
 -- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
@@ -322,8 +314,8 @@ createHtmls m = do
 
 instance  RenderJSM (XML SVG AttributeSet Both) where
   renderJSM xml = case xml of
-    Element tn as children -> do
-      t <- new $ mkElem tn
+    Element tagName as children -> do
+      t <- new $ mkElem tagName
       attrsJSM t mkAttr as
       ts :: [Expr Tag] <- mapM renderJSM children
       forM_ ts $ bare . flip appendChild t
@@ -356,9 +348,8 @@ attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> Attri
 attrsJSM t mkAttr as = do
   maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) (as^.id)
   forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
-  when (P.not . null $ cls) $
-     t !. "className" .= createClasses cls
-  where cls = as^.classes
+  forM_ (map (value2either . unClass) $ as^.classes) $ \cls -> do
+     bare $ t !. "classList" !// "add" $ either lit P.id cls
 
 -- * Helpers
 
