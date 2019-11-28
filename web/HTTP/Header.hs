@@ -51,6 +51,7 @@ data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
    Warning :: HeaderName
    WWWAuthenticate :: HeaderName
    StrictTransportSecurity :: HeaderName
+   ContentDisposition :: HeaderName
    -- ** CSP
    ContentSecurityPolicy :: HeaderName
    ContentSecurityPolicyReportOnly :: HeaderName
@@ -99,6 +100,7 @@ headerMap =
    , p "Warning"              Warning
    , p "WWW-Authenticate"     WWWAuthenticate
    , p "Strict-Transport-Security" StrictTransportSecurity
+   , p "Content-Disposition"  ContentDisposition
    , p "Allow"                Allow
    , p "Content-Base"         ContentBase
    , p "Content-Encoding"     ContentEncoding
