@@ -122,8 +122,8 @@ for id = HTML.for (static $ unId id)
 
 -- * HTML + Date.Time
 
-textTime :: (Monad m, ParseTime t) => String -> TS.Text -> m t
-textTime fmt inp =
+parseTextTime :: (Monad m, ParseTime t) => String -> TS.Text -> m t
+parseTextTime fmt inp =
   parseTimeM True defaultTimeLocale fmt str
   where
     str = TS.unpack inp
