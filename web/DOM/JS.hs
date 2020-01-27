@@ -297,7 +297,8 @@ instance RenderJSM (HTML Both) where
       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
         Data _ v -> (e !. "dataset" !. (TL.toStrict $ kebab2camel $ TL.fromStrict k)) .= lit v
-        OnEvent et expr -> e !. toOn et .= expr
+        OnEvent event expr ->
+          bare $ addEventListener (Cast e) event expr
         Custom _ v -> e !. k .= lit v
         AttrClass _ -> todo
         AttrId _ -> todo
@@ -329,7 +330,8 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
         Data _ v -> e & setAttr ("data-" <> k) v & bare
-        OnEvent et expr -> e !. toOn et .= expr -- todo: does this work/fire?
+        OnEvent event expr ->
+          bare $ addEventListener (Cast e) event expr
         Custom _ v -> case k of
           "xmlns" -> pure ()
           _ -> e & setAttr k v & bare

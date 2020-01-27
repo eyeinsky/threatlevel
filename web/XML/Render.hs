@@ -10,11 +10,14 @@ import XML.Core
 import DOM.Core
 import DOM.Event
 import qualified JS.Syntax
+import qualified JS
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
     Custom k v -> eq (TL.fromStrict k) (TL.fromStrict v)
-    OnEvent et expr -> eq (TL.fromStrict $ toOn et) (renderJS expr)
+    OnEvent et handler -> let
+      value = renderJS $ JS.call1 handler $ JS.ex "event"
+      in eq (TL.fromStrict $ toOn et) value
     Data k v -> eq (TL.fromStrict $ "data-" <> k) (TL.fromStrict v)
     AttrClass _ -> todo
     AttrId _ -> todo
