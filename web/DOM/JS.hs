@@ -330,7 +330,9 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       mkAttr e k attr = case attr of
         Data _ v -> e & setAttr ("data-" <> k) v & bare
         OnEvent et expr -> e !. toOn et .= expr -- todo: does this work/fire?
-        Custom _ v -> e & setAttr k v & bare
+        Custom _ v -> case k of
+          "xmlns" -> pure ()
+          _ -> e & setAttr k v & bare
         AttrClass _ -> todo
         AttrId _ -> todo
         where
