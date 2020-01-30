@@ -49,6 +49,13 @@ repl-create() {
     docker commit docker-repl fw-repl:stable
 }
 
+nixos-repl() {
+    add-default-nixs
+    cabal2nix --shell . > shell.nix
+    patch shell.nix local-deps.patch
+    nix-shell --command 'cabal new-repl'
+}
+
 repl() {
     add-default-nixs
     hpack
