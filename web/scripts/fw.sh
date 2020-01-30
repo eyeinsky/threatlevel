@@ -8,7 +8,6 @@ LOCAL_DEPS=$(cat <<END
 - fw/render
 - fw/web-browser
 - fw/web-url
-- rapid
 END
 );
 
