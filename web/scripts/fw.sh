@@ -27,9 +27,16 @@ echo_() {
 docker-local-env() { eval $(docker-machine env -u); }
 
 add-default-nixs() {
+    local MSG='add default.nix'
     for pkgPath in $(local_deps) fw/web; do
-        (cd $HOME/src/$pkgPath && cabal2nix . > default.nix) 2>/dev/null
-        echo $pkgPath
+        local P=$HOME/src/$pkgPath
+        if [ -d "$P" ]; then
+            (cd $HOME/src/$pkgPath && cabal2nix . > default.nix) 2>/dev/null
+            echo_ $MSG: $pkgPath
+        else
+            echo_ $MSG: MISSING: $P
+            exit 1
+        fi
     done
 }
 
