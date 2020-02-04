@@ -11,3 +11,7 @@ packages:
 extra-deps:
 - boomerang-1.4.5.6
 - rapid-0.1.4
+
+nix:
+  enable: true
+  packages: [ zlib ]
