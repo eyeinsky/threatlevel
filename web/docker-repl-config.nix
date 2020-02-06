@@ -7,7 +7,6 @@
       overrides = haskellPackagesNew: haskellPackagesOld: rec {
         f = path: rest: lib.dontCheck (lib.dontHaddock (haskellPackagesNew.callPackage path rest));
 
-        rapid = f /root/src/rapid {};
         render = f /root/src/fw/render {};
         identifiers = f /root/src/fw/identifiers {};
         multiline = f /root/src/fw/multiline {};
