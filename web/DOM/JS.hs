@@ -272,6 +272,14 @@ alert x = call1 (ex "alert") x
 
 -- * RenderJSM instances
 
+mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
+mkAttrCommon e k attr = case attr of
+  OnEvent event expr ->
+    bare $ addEventListener (Cast e) event expr
+  DynamicA _ expr -> e !. k .= expr
+  AttrClass _ -> error "mkAttrCommon: AttrClass"
+  AttrId _ -> error "mkAttrCommon: AttrId"
+
 instance RenderJSM (HTML Both) where
   renderJSM html = case html of
     Element tn as children -> do
@@ -297,11 +305,8 @@ instance RenderJSM (HTML Both) where
       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
         Data _ v -> (e !. "dataset" !. (TL.toStrict $ kebab2camel $ TL.fromStrict k)) .= lit v
-        OnEvent event expr ->
-          bare $ addEventListener (Cast e) event expr
         Custom _ v -> e !. k .= lit v
-        AttrClass _ -> todo
-        AttrId _ -> todo
+        _ -> mkAttrCommon e k attr
 
 createHtmls :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls m = do
@@ -330,13 +335,10 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
         Data _ v -> e & setAttr ("data-" <> k) v & bare
-        OnEvent event expr ->
-          bare $ addEventListener (Cast e) event expr
         Custom _ v -> case k of
           "xmlns" -> pure ()
           _ -> e & setAttr k v & bare
-        AttrClass _ -> todo
-        AttrId _ -> todo
+        _ -> mkAttrCommon e k attr
         where
           setAttr :: TS.Text -> TS.Text -> Expr a -> Expr b
           setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]

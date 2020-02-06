@@ -58,6 +58,7 @@ embed xml = tell $ map Embed $ execWriter xml
 -- * Attribute
 
 data Attribute where
+  DynamicA :: TS.Text -> JS.Expr a -> Attribute
   Custom :: TS.Text -> TS.Text -> Attribute
   OnEvent :: Event event => event -> JS.Expr a -> Attribute
   Data ::  TS.Text -> TS.Text -> Attribute
@@ -99,6 +100,7 @@ class Attributable a where
 
 instance Attributable AttributeSet where
   (!-) a attr = case attr of
+    DynamicA k _ -> a & attrs %~ (HM.insert k attr)
     AttrClass cs -> a & classes %~ (cs <>)
     AttrId id' -> a & id .~ Just id'
     Custom k _ -> a & attrs %~ (HM.insert k attr)

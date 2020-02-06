@@ -14,6 +14,7 @@ import qualified JS
 
 instance Render Attribute where
   renderM attr = pure $ case attr of
+    DynamicA k v -> eq (TL.fromStrict k) (renderJS v)
     Custom k v -> eq (TL.fromStrict k) (TL.fromStrict v)
     OnEvent et handler -> let
       value = renderJS $ JS.call1 handler $ JS.ex "event"
