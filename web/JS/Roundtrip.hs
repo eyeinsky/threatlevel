@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module JS.Roundtrip
-  ( Data, Generic
+  ( Data, Generic, Typeable
   , module JS
   , obj
   ) where
 
+import Data.Char
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as LL
@@ -14,15 +15,16 @@ import Data.Data
 import GHC.Generics
 
 import X.Prelude
-import JS hiding (String)
+import JS hiding (String, length)
 import Render (render, Render)
 
+import Debug.Trace
 
 -- * Generic data type handling in front-end
 
 obj :: forall a. (J a, GetConstr a) => a -> Result a
-obj c = case fs of
-  _ : _ -> rf fs (maybe mempty pure stub) c
+obj c = case fieldNames of
+  _ : _ -> rf fieldNames (maybe mempty pure stub) c
   _ -> case totalFieldCount of
     0 -> case constructorCount of
       0 -> error "error" -- Void
@@ -30,18 +32,32 @@ obj c = case fs of
       _ -> str c (tag c)
     _ -> pf [] stub c
   where
-    fs = recordFields c :: [String]
+    fieldNames = dropTypeName name $ recordFields c :: [String]
     stub :: Maybe (String, Expr ())
     stub = if maxConstrIndex dataType > 1
       then Just ("tag", lit $ tag c)
       else Nothing
 
     dataType = constrType constr :: DataType
+    name = dataTypeName dataType
+
     (constr, totalFieldCount) = getConstr c :: (Constr, Int)
     constructorCount = X.Prelude.length (dataTypeConstrs dataType)
 
 countFields :: Data a => a -> Int
 countFields c = X.Prelude.length $ gmapQ (const ()) (c) -- $
+
+dropTypeName :: String -> [String] -> [String]
+dropTypeName name fields = map go fields
+  where
+    lowerFirst (s : tring) = toLower s : tring
+    name' = lowerFirst name
+    length' = length name'
+    go field
+      | name' `isPrefixOf` field = lowerFirst $ drop length' field
+      | otherwise = field
+
+
 
 type family Result a :: *
   where Result (a -> b) = Expr a -> Result b
