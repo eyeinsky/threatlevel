@@ -209,6 +209,9 @@ instance ToExpr UTCTime where
       format = iso8601DateFormat (Just "%H:%M:%S%QZ")
       -- Prints ISO8601, e.g "2019-11-04T15:42:18.608734Z"
 
+instance ToExpr Day where
+  lit t = lit $ show t
+
 data RegExp
 regex str opts = Lit $ RegExp str opts :: Expr RegExp
 
