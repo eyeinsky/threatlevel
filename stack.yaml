@@ -14,4 +14,4 @@ extra-deps:
 
 nix:
   enable: true
-  packages: [ zlib ]
+  packages: [ zlib, pkgconfig, pcre, mysql, cacert ]
