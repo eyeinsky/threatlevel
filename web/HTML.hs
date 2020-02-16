@@ -12,8 +12,8 @@ import qualified Data.Text as TS
 import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
-import DOM.Core hiding (Document)
-import HTML.Core hiding (map, embed, input)
+import DOM.Core hiding (Document, Class, Id)
+import HTML.Core hiding (map, embed, input, Class, Id)
 import qualified HTML.Core as Core
 
 declareFields [d|
@@ -39,10 +39,10 @@ input = Core.input $ pure ()
 checkbox :: Html
 checkbox = input ! type_ "checkbox"
 
-placeholder :: TS.Text -> Attribute
+placeholder :: Value -> Attribute
 placeholder = Custom "placeholder"
 
-metaNC :: TS.Text -> TS.Text -> Html
+metaNC :: Value -> Value -> Html
 metaNC name content = meta
   ! Custom "name" name
   ! Custom "content" content
@@ -68,18 +68,21 @@ cssTag = style ! type_ "text/css"
 jsTag :: Html -> Html
 jsTag = script ! type_ "text/javascript"
 
-favicon :: TS.Text -> Html
+favicon :: Value -> Html
 favicon adr = link
   ! rel "shortcut icon"
   ! type_ "image/x-icon"
   ! href adr
   $ pure ()
 
-property :: TS.Text -> TS.Text -> Html
-property name value = meta ! Custom "property" name ! Custom "content" value $ pure ()
+property :: Value -> Value -> Html
+property name value = meta
+  ! Custom "property" name
+  ! Custom "content" value
+  $ pure ()
 
-og :: TS.Text -> TS.Text -> Html
-og name value = property ("og:" <> name) value
+og :: TS.Text -> Value -> Html
+og name value = property (Static $ "og:" <> name) value
 
 docBody :: Html -> Document
 docBody = Document (return ())

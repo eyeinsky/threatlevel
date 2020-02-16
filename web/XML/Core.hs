@@ -10,7 +10,8 @@ import Control.Monad.Writer
 
 import X.Prelude hiding (id)
 import qualified JS
-import DOM.Core
+import DOM.Core hiding (Id(..), Class(..))
+import qualified DOM.Core as DOM.Core
 import DOM.Event
 import qualified Render
 
@@ -58,17 +59,16 @@ embed xml = tell $ map Embed $ execWriter xml
 -- * Attribute
 
 data Attribute where
-  DynamicA :: TS.Text -> JS.Expr a -> Attribute
-  Custom :: TS.Text -> TS.Text -> Attribute
+  Custom :: TS.Text -> Value -> Attribute
+  Class :: [Value] -> Attribute
+  Id :: Value -> Attribute
+  Data :: TS.Text -> Value -> Attribute
   OnEvent :: Event event => event -> JS.Expr a -> Attribute
-  Data ::  TS.Text -> TS.Text -> Attribute
-  AttrClass :: [Class] -> Attribute
-  AttrId :: Id -> Attribute
 
 declareFields [d|
   data AttributeSet = AttributeSet
-    { attributeSetId :: Maybe Id
-    , attributeSetClasses :: [Class]
+    { attributeSetId :: Maybe Value
+    , attributeSetClasses :: [Value]
     , attributeSetAttrs :: HM.HashMap TS.Text Attribute
     }
   |]
@@ -77,12 +77,6 @@ instance Semigroup AttributeSet where
   _ <> _ = todoMsg "mappend not implemented for AttributeSet"
 instance Monoid AttributeSet where
   mempty = AttributeSet Nothing mempty mempty
-
-id_ :: Id -> Attribute
-id_ id = AttrId id :: Attribute
-
-cls_ :: [Class] -> Attribute
-cls_ cs = AttrClass cs
 
 -- * Writer monad
 
@@ -100,12 +94,12 @@ class Attributable a where
 
 instance Attributable AttributeSet where
   (!-) a attr = case attr of
-    DynamicA k _ -> a & attrs %~ (HM.insert k attr)
-    AttrClass cs -> a & classes %~ (cs <>)
-    AttrId id' -> a & id .~ Just id'
-    Custom k _ -> a & attrs %~ (HM.insert k attr)
-    OnEvent e _ -> a & attrs %~ (HM.insert (toOn e) attr)
-    Data e _ -> a & attrs %~ (HM.insert e attr)
+    Custom k v -> a & attrs %~ (HM.insert k attr)
+    Class cs -> a & classes %~ (cs <>)
+    Id v -> a & id .~ Just v
+    Data k v -> a & attrs %~ (HM.insert k attr)
+    OnEvent e v -> a & attrs %~ (HM.insert (toOn e) attr)
+
 
 instance Attributable (XMLA ns c) where
   (!-) e attr = e & _Element._2 %~ (!- attr)
@@ -129,20 +123,20 @@ instance Attributable (XMLM ns c -> XMLM ns c) where
 class Exclamatable e a where
   (!) :: e -> a -> e
 
-instance Exclamatable (XMLM ns c) Id where
-  (!) e id = e !- id_ id
-instance Exclamatable (XMLM ns c -> XMLM ns c) Id where
-  (!) e id = e !- id_ id
+instance Exclamatable (XMLM ns c) DOM.Core.Id where
+  (!) e id = e !- Id (DOM.Core.unId id)
+instance Exclamatable (XMLM ns c -> XMLM ns c) DOM.Core.Id where
+  (!) e id = e !- Id (DOM.Core.unId id)
 
-instance Exclamatable (XMLM ns c) [Class] where
-  (!) e cs = e !- cls_ cs
-instance Exclamatable (XMLM ns c -> XMLM ns c) [Class] where
-  (!) e cs = e !- cls_ cs
+instance Exclamatable (XMLM ns c) [DOM.Core.Class] where
+  (!) e cs = e !- Class (map DOM.Core.unClass cs)
+instance Exclamatable (XMLM ns c -> XMLM ns c) [DOM.Core.Class] where
+  (!) e cs = e !- Class (map DOM.Core.unClass cs)
 
-instance Exclamatable (XMLM ns c) Class where
-  (!) e c = e !- cls_ [c]
-instance Exclamatable (XMLM ns c -> XMLM ns c) Class where
-  (!) e c = e !- cls_ [c]
+instance Exclamatable (XMLM ns c) DOM.Core.Class where
+  (!) e c = e !- Class [DOM.Core.unClass c]
+instance Exclamatable (XMLM ns c -> XMLM ns c) DOM.Core.Class where
+  (!) e c = e !- Class [DOM.Core.unClass c]
 
 instance Exclamatable (XMLM ns c) Attribute where
   (!) e c = e !- c

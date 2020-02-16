@@ -13,18 +13,19 @@ import qualified Data.Text.Lazy as TL
 
 import X.Prelude
 import XML
+import qualified HTML hiding (Id, Class)
 
 import CSS hiding (Document) -- todo
 import Web.CSS (reset)
-import HTML hiding (Value, content, font, em, id)
+import HTML hiding (Value, content, font, em, id, Id, Class)
 import Web.Browser
 import Web.Monad
 import Render hiding (Conf)
 
 -- * Inline styling
 
-styleAttr :: TS.Text -> Attribute
+styleAttr :: HTML.Value -> Attribute
 styleAttr = Custom "style"
 
 decls :: DeclM a -> Attribute
-decls = renderDecls ^ TL.toStrict ^ styleAttr
+decls = renderDecls ^ TL.toStrict ^ Static ^ styleAttr

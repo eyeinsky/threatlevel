@@ -57,9 +57,13 @@ instance IsString Value where
 
 instance Render Value where
   renderM v' = case v' of
-     Static v -> pure $ TL.fromStrict v
-     _ -> todo
+    Static v -> pure $ TL.fromStrict v
+    _ -> error "XML.Core: can't render dynamic attribute"
 
+instance JS.ToExpr Value where
+  lit v = case v of
+    Static a -> JS.lit a
+    Dynamic a -> Cast a
 
 deriving instance Show TagName
 instance Show Value where

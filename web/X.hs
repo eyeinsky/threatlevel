@@ -11,7 +11,9 @@ import HTML as Export hiding (
   em, font, content, Value,
   -- used in HTTP
   header,
-  raw
+  raw,
+  -- conflict with DOM.Core
+  Id, Class
   )
 import CSS as Export hiding (
   -- generic
@@ -115,10 +117,10 @@ getJs url = DOM.xhrJs "GET" (lit $ WR.renderURL url)
 -- * HTML
 
 href :: URL.URL -> Attribute
-href url = HTML.href (TL.toStrict $ WR.renderURL url)
+href url = HTML.href (Static $ TL.toStrict $ WR.renderURL url)
 
 for :: Id -> Attribute
-for id = HTML.for (static $ unId id)
+for id = HTML.for (unId id)
 
 -- * HTML + Date.Time
 
@@ -218,7 +220,7 @@ param k v = params . URL.un <>~ [(k, Just v)]
 -- * URL + HTML
 
 includeCss' :: TS.Text -> Html
-includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href url $ pure ()
+includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url) $ pure ()
 
 includeCss :: URL.URL -> Html
 includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
@@ -227,11 +229,14 @@ includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
 -- | Helper to turn attribute into URL
-urlAttr :: (TS.Text -> t) -> URL -> t
-urlAttr attr url = attr (TL.toStrict $ WE.renderURL url)
+urlAttr :: URL.URL -> DOM.Value
+urlAttr url = Static $ TL.toStrict $ WE.renderURL url
 
-src = urlAttr HTML.src :: URL.URL -> Attribute
-action = urlAttr HTML.action :: URL.URL -> Attribute
+src :: URL.URL -> Attribute
+src url = HTML.src (urlAttr url)
+
+action :: URL.URL -> Attribute
+action url = HTML.action (urlAttr url)
 
 favicon :: URL.URL -> Html
 favicon url = HTML.link ! rel "icon" ! href url $ pure ()

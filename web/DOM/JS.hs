@@ -63,29 +63,29 @@ queryParents s e = let
 
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
-instance FindBy Id where
-   findBy (Id id) = valueSelf id (docCall "getElementById")
-instance FindBy Class where
-   findBy (Class a) = case a of
+instance FindBy D.Id where
+   findBy (D.Id id) = valueSelf id (docCall "getElementById")
+instance FindBy D.Class where
+   findBy (D.Class a) = case a of
      Static v -> call1 (document !. "getElementsByClassName") (lit v)
      Dynamic v -> Cast v
 instance FindBy TagName where
    findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
-instance FindBy (Expr Id) where
+instance FindBy (Expr D.Id) where
    findBy a = docCall' "getElementById" a
-instance FindBy (Expr Class) where
+instance FindBy (Expr D.Class) where
    findBy a = docCall' "getElementsByClassName" a
 
 instance FindBy (HTML Both) where
   findBy a
-    | Just id <- P.join maybeId = findBy id
+    | Just id <- P.join maybeId = findBy (D.Id id)
     | [cls] <- classes_ = findBy cls
     | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
     | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
     | otherwise = error "FindBy (HTML a): nothing to find by"
     where
-      maybeId = a ^? _Element._2.id :: Maybe (Maybe Id)
-      classes_ = a ^. _Element._2.classes :: [Class]
+      maybeId = a ^? _Element._2.id
+      classes_ = a ^. _Element._2.classes.P.to (map D.Class) :: [D.Class]
 
 instance FindBy Html where
    findBy a = case execWriter a of
@@ -99,11 +99,6 @@ instance FindBy (Html -> Html) where
 valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
 valueSelf v f = case v of
   Static a -> f a
-  Dynamic a -> Cast a
-
-valueExpr :: D.Value -> Expr ()
-valueExpr v = case v of
-  Static a -> lit a
   Dynamic a -> Cast a
 
 docCall' f a = call1 (document !. f) a
@@ -159,7 +154,7 @@ setInnerHTML e x = innerHTML e .= x
 innerHTML e = e !. "innerHTML"
 
 createElement :: TagName -> Expr Tag
-createElement tn = docCall' "createElement" $ valueExpr $ unTagName tn
+createElement tn = docCall' "createElement" $ lit $ unTagName tn
 
 createTextNode :: Expr String -> Expr Tag
 createTextNode txt = docCall' "createTextNode" txt
@@ -275,10 +270,9 @@ alert x = call1 (ex "alert") x
 mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
 mkAttrCommon e k attr = case attr of
   OnEvent event expr ->
-    bare $ addEventListener (Cast e) event expr
-  DynamicA _ expr -> e !. k .= expr
-  AttrClass _ -> error "mkAttrCommon: AttrClass"
-  AttrId _ -> error "mkAttrCommon: AttrId"
+     bare $ addEventListener (Cast e) event expr
+  Class _ -> error "mkAttrCommon: AttrClass"
+  Id _ -> error "mkAttrCommon: AttrId"
 
 instance RenderJSM (HTML Both) where
   renderJSM html = case html of
@@ -340,7 +334,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
           _ -> e & setAttr k v & bare
         _ -> mkAttrCommon e k attr
         where
-          setAttr :: TS.Text -> TS.Text -> Expr a -> Expr b
+          setAttr :: TS.Text -> Value -> Expr a -> Expr b
           setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]
           -- ^ The regular setAttribute supposedly doesn't work in all browsers.
           -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
@@ -348,13 +342,13 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       ns = "http://www.w3.org/2000/svg"
 
       mkElem :: TagName -> Expr Tag
-      mkElem tagName = call (document !. "createElementNS") [ns, valueExpr $ unTagName tagName]
+      mkElem tagName = call (document !. "createElementNS") [ns, lit $ unTagName tagName]
 
 attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
 attrsJSM t mkAttr as = do
-  maybe (return ()) (\id -> t !. "id" .= valueExpr (unId id)) (as^.id)
+  maybe (return ()) (\id -> t !. "id" .= lit id) (as^.id)
   forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
-  forM_ (map (value2either . unClass) $ as^.classes) $ \cls -> do
+  forM_ (map (value2either) $ as^.classes) $ \cls -> do
      bare $ t !. "classList" !// "add" $ either lit P.id cls
 
 -- * Helpers

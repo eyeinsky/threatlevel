@@ -29,7 +29,7 @@ platform = script
 clientId :: TS.Text -> Html
 clientId id = meta
   ! Custom "name" "google-signin-client_id"
-  ! Custom "content" (id <> suffix)
+  ! Custom "content" (Static $ id <> suffix)
   $ pure ()
   where suffix = ".apps.googleusercontent.com"
 

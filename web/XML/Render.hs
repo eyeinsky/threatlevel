@@ -2,27 +2,30 @@
 module XML.Render where
 
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
 import X.Prelude hiding (eq, id, concat)
 import Render
 import XML.Core
-import DOM.Core
+import DOM.Core hiding (Id(..), Class(..))
 import DOM.Event
 import qualified JS.Syntax
 import qualified JS
 
 instance Render Attribute where
-  renderM attr = pure $ case attr of
-    DynamicA k v -> eq (TL.fromStrict k) (renderJS v)
-    Custom k v -> eq (TL.fromStrict k) (TL.fromStrict v)
-    OnEvent et handler -> let
+  renderM attr = case attr of
+    Custom k v -> eq' k v
+    OnEvent et handler -> pure $ let
       value = renderJS $ JS.call1 handler $ JS.ex "event"
       in eq (TL.fromStrict $ toOn et) value
-    Data k v -> eq (TL.fromStrict $ "data-" <> k) (TL.fromStrict v)
-    AttrClass _ -> todo
-    AttrId _ -> todo
-
+    Data k v -> eq' ("data-" <> k) v
+    Class _ -> todo
+    Id _ -> todo
+    where
+      f = pure . TL.fromStrict
+      eq' :: TS.Text -> Value -> Reader (Conf Value) TL.Text
+      eq' k v = eq <$> f k <*> renderM v
 
 eq k v = k <> "=" <> q v
   where
@@ -32,12 +35,12 @@ instance Render AttributeSet where
   renderM attrSet = fmap TL.unwords $ (catMaybes [id',  cs] <>) <$> rest
     where
       id' :: Maybe TL.Text
-      id' = (eq "id" . TL.fromStrict . static . unId) <$> attrSet^.id
+      id' = (eq "id" . TL.fromStrict . static) <$> attrSet^.id
       cs :: Maybe TL.Text
       cs = let cs = attrSet^.classes
         in null cs
           ? Nothing
-          $ Just $ eq "class" (TL.unwords $ map (TL.fromStrict . static . unClass) cs)
+          $ Just $ eq "class" (TL.unwords $ map (TL.fromStrict . static) cs)
       rest = mapM renderM $ HM.elems (attrSet^.attrs)
 
 instance Render (XMLA ns Both) where
