@@ -20,6 +20,9 @@ instance Render Attribute where
       value = renderJS $ JS.call1 handler $ JS.ex "event"
       in eq (TL.fromStrict $ toOn et) value
     Data k v -> eq' ("data-" <> k) v
+    Boolean k v -> if v
+      then f k
+      else error "False booleans shouldn't be here"
     Class _ -> todo
     Id _ -> todo
     where
@@ -41,7 +44,10 @@ instance Render AttributeSet where
         in null cs
           ? Nothing
           $ Just $ eq "class" (TL.unwords $ map (TL.fromStrict . static) cs)
-      rest = mapM renderM $ HM.elems (attrSet^.attrs)
+
+      boolean = \case Boolean _ b -> b; _ -> True
+      rest' = attrSet^.attrs & HM.elems & filter boolean
+      rest = mapM renderM rest'
 
 instance Render (XMLA ns Both) where
   renderM html = case html of

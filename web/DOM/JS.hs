@@ -271,6 +271,7 @@ mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
 mkAttrCommon e _ attr = case attr of
   OnEvent event expr ->
      bare $ addEventListener (Cast e) event expr
+  Boolean k v -> e !. k .= lit v
   _ -> error "mkAttrCommon: Should be handled elsewhere"
 
 instance RenderJSM (HTML Both) where
