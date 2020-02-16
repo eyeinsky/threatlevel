@@ -94,7 +94,7 @@ class Attributable a where
 
 instance Attributable AttributeSet where
   (!-) a attr = case attr of
-    Custom k v -> a & attrs %~ (HM.insert k attr)
+    Custom k _ -> a & attrs %~ (HM.insert k attr)
     Class cs -> a & classes %~ (cs <>)
     Id v -> a & id .~ Just v
     Data k v -> a & attrs %~ (HM.insert k attr)

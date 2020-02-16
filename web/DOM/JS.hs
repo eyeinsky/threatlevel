@@ -268,11 +268,10 @@ alert x = call1 (ex "alert") x
 -- * RenderJSM instances
 
 mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
-mkAttrCommon e k attr = case attr of
+mkAttrCommon e _ attr = case attr of
   OnEvent event expr ->
      bare $ addEventListener (Cast e) event expr
-  Class _ -> error "mkAttrCommon: AttrClass"
-  Id _ -> error "mkAttrCommon: AttrId"
+  _ -> error "mkAttrCommon: Should be handled elsewhere"
 
 instance RenderJSM (HTML Both) where
   renderJSM html = case html of
