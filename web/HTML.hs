@@ -58,7 +58,13 @@ emptyFavicon = link
   $ pure ()
 
 required :: Attribute
-required = Custom "required" ""
+required = Boolean "required" True
+
+readOnly :: Attribute
+readOnly = Boolean "readOnly" True
+
+disabled :: Attribute
+disabled = Boolean "disabled" True
 
 --
 
