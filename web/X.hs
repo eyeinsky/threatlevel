@@ -471,3 +471,34 @@ textFormSubmission req = do
   formSubmission req <&> map (f *** fmap f)
   where
     f = view LL.utf8
+
+-- * Templating
+
+-- | Creates ids, creates variables for the elements, returns a
+-- function to bind them.
+idsElems :: MonadWeb m => Int -> m ([Id], [Expr Tag], Expr b)
+idsElems n = do
+  ids <- replicateM n newId
+  js $ do
+    elems <- mapM (const $ new Null) ids
+    mount <- newf $ do
+      forM (zip ids elems) $ \(id, el) -> el .= findBy id
+    return (ids, elems, mount)
+
+class Templating a where
+  templating
+    :: MonadWeb m
+    => m
+      -- ids: list of Id's that are attached to the html
+      ( [Id]
+      -- mount: find elements with ids and bind them
+      , Expr ()
+      -- create: js-create the html
+      , Expr (a -> DocumentFragment)
+      -- update: js-update the html
+      , Expr (a -> ())
+      -- ssr: render an empty or filled form
+      , Maybe a -> Html
+      -- get: get values from form
+      , Expr a
+      )
