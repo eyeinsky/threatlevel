@@ -81,6 +81,7 @@ next = do
 
 new, let_, const :: Expr a -> M r (Expr a)
 new = newPrim VarDef
+{-# DEPRECATED new "Use cons, let_ or var instead." #-}
 var = new
 let_ = newPrim Let
 const = newPrim Const

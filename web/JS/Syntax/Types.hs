@@ -60,6 +60,8 @@ data Expr a where
    YieldDelegate :: Expr a -> Expr b
    Await     :: Expr a -> Expr b
 
+   New       :: Name -> Expr a -> Expr b
+
 data FormalArgs = FA [TL.Text]
 data Name = Name { getName :: TS.Text }
 
