@@ -137,6 +137,8 @@ instance Render BOp where
     Lt    -> "<"  ; Gt   -> ">"
     LEt   -> "<=" ; GEt  -> ">="
 
+    Instanceof -> " instanceof "
+
 instance Render Attr where
   type Conf Attr = Conf
   renderM (Attr exp name) = sur "(" ")" <$> (inf "." <$> renderM exp <*> renderM name)

@@ -85,6 +85,7 @@ data BOp
    | Eq  | NEq | EEq | NEEq
    | And | Or
    | Gt  | Lt  | GEt | LEt
+   | Instanceof
 
 data OpExpr a where
    OpBinary :: BOp -> Expr a -> Expr b -> OpExpr c

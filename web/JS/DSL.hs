@@ -169,6 +169,8 @@ e1 % e2 = Op $ OpBinary Modulus e1 e2
 
 infixl 7  %
 
+e1 `instanceof` e2 = Op $ OpBinary Instanceof e1 e2
+
 -- * Literals
 
 class ToExpr a where lit :: a -> Expr b
