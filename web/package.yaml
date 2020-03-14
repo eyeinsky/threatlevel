@@ -53,6 +53,8 @@ dependencies:
 - multiline
 
 library:
+  source-dirs:
+  - .
   exposed-modules:
   - Cookie
   - DOM.Core
@@ -103,21 +105,6 @@ library:
   - X.Widgets
   - X.Widgets.Menu
   - X.Wai
-  other-modules:
-  - TH
-  - JS.Syntax.Types
-  - JS.Syntax.Render
-  - JS.DSL.Identifiers
-  - JS.DSL.Internal
-  - CSS.Internal
-  - CSS.Monad
-  - CSS.Shorthands
-  - HTML.Core
-  - HTML.Paste
-  - SVG.Attributes
-  - SVG.Elements
-  - XML.Render
-  - Trie
   ghc-options:
   - -Wall
   - -Wno-name-shadowing
