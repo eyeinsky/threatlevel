@@ -87,6 +87,8 @@ type XMLM ns c = Writer [XMLA ns c] ()
 instance Semigroup (XMLM ns c) where
   a <> b = a >> b
 
+instance Monoid (XMLM ns c) where
+  mempty = pure ()
 
 -- * Add attributes with !
 
