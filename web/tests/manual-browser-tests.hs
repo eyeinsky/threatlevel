@@ -81,9 +81,9 @@ site = T $ mdo
         bare $ findBy test2buttonHtml !/ "click"
         bare $ findBy test2buttonJs !/ "click"
     let test2 = testSection $ do
-        testTitle "Add event handlers to html created via javascript"
-        test2button ! test2buttonHtml
-        div ! test2target $ ""
+          testTitle "Add event handlers to html created via javascript"
+          test2button ! test2buttonHtml
+          div ! test2target $ ""
 
     -- * Test 3: Dynamic attributes
 
