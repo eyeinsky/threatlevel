@@ -111,6 +111,11 @@ library:
   - -Wno-missing-signatures
   - -Wno-type-defaults
 
+tests:
+  test:
+    main: manual-browser-tests.hs
+    source-dirs:
+    - tests
 default-extensions:
 - Arrows
 - BangPatterns
