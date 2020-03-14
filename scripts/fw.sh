@@ -38,11 +38,12 @@ add-default-nixs() {
 }
 
 repl() {
+    CMD="${@:-cabal new-repl}"
     add-default-nixs
     cd web
     cabal2nix --shell . > shell.nix
     patch shell.nix local-deps.patch
-    nix-shell --command 'cabal new-repl'
+    nix-shell --command "$CMD"
 }
 
 cd $REPO_PATH
