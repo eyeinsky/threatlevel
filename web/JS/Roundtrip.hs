@@ -5,6 +5,7 @@ module JS.Roundtrip
   , obj
   ) where
 
+import qualified Prelude
 import Data.Char
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text.Lazy as TL
@@ -45,7 +46,7 @@ obj c = case fieldNames of
     constructorCount = X.Prelude.length (dataTypeConstrs dataType)
 
 countFields :: Data a => a -> Int
-countFields c = X.Prelude.length $ gmapQ (const ()) (c) -- $
+countFields c = X.Prelude.length $ gmapQ (Prelude.const ()) (c) -- $
 
 dropTypeName :: String -> [String] -> [String]
 dropTypeName name fields = map go fields

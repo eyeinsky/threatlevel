@@ -12,6 +12,8 @@ import HTML as Export hiding (
   -- used in HTTP
   header,
   raw,
+  -- used in JS.DSL
+  var,
   -- conflict with DOM.Core
   Id, Class
   )
@@ -54,6 +56,7 @@ import Web.CSS as Export
 
 import Warp_Helpers as Export (getRequestBody)
 
+import qualified Prelude
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
@@ -277,7 +280,7 @@ execCall = exec' f
     f = call0 . Par . AnonFunc Nothing []
 
 noCrawling = do
-  pin "robots.txt" $ return $ const $ return $ WR.raw "text/plain"
+  pin "robots.txt" $ return $ Prelude.const $ return $ WR.raw "text/plain"
     [unindent|
       User-agent: *
       Disallow: /
@@ -480,7 +483,7 @@ idsElems :: MonadWeb m => Int -> m ([Id], [Expr Tag], Expr b)
 idsElems n = do
   ids <- replicateM n newId
   js $ do
-    elems <- mapM (const $ new Null) ids
+    elems <- mapM (Prelude.const $ new Null) ids
     mount <- newf $ do
       forM (zip ids elems) $ \(id, el) -> el .= findBy id
     return (ids, elems, mount)

@@ -2,7 +2,8 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
-  , M, State(..), JS.Conf(..), runM, new, library, Function, mkCode, Final
+  , M, State(..), JS.Conf(..), runM
+  , new, const, var, let_, library, Function, mkCode, Final
   , HasConf(..)
   , HasRenderConf(..)
 
@@ -16,7 +17,7 @@ module JS.DSL
   ) where
 
 import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
-import X.Prelude hiding ((.>), Empty, State)
+import X.Prelude hiding ((.>), Empty, State, const)
 import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
 import qualified Data.Hashable as H

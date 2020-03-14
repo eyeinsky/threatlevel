@@ -1,6 +1,7 @@
 module JS.Derive (deriveJS) where
 
-import X.Prelude
+import qualified Prelude
+import X.Prelude as P
 import Data.Aeson
 import Data.Aeson.TH
 import Language.Haskell.TH
@@ -18,7 +19,7 @@ deriveJS mbAesonOpts typeName = do
   let li = [ConT typeName]
   _ <- reifyInstances ''ToJSON li
   _ <- reifyInstances ''FromJSON li
-  aesonToFrom <- maybe (const $ return []) deriveJSON mbAesonOpts $ typeName
+  aesonToFrom <- maybe (Prelude.const $ return []) deriveJSON mbAesonOpts $ typeName
   js <- deriveForType typeName
   runIO $ putStrLn $ pprint js
   return (aesonToFrom <> js)

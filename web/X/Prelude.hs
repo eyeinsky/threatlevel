@@ -4,7 +4,7 @@ module X.Prelude
   ) where
 
 import Prelude as Export hiding
-  ( div, rem, (/), log -- Prelude
+  ( div, rem, (/), log, const -- Prelude
   , (^) -- GHC.Real
   , fail
   )
@@ -39,6 +39,7 @@ import Data.Text.Multiline as Export
 
 
 import qualified Data.Text.Lazy as TL
+import qualified Prelude
 
 -- Data.Function
 infixr 9 ^
@@ -46,7 +47,7 @@ infixr 9 ^
 
 -- Data.Bool
 infix 1 ?
-(?) bool = if bool then const else flip const
+(?) bool = if bool then Prelude.const else flip Prelude.const
 
 bool f t b = if b then t else f
 
