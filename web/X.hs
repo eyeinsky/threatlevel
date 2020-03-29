@@ -89,6 +89,7 @@ import qualified HTTP.Response as HR
 
 import X.Prelude as P
 import JS hiding (String)
+import qualified JS.DSL.Internal as JS
 
 import CSS.Monad (CSSM)
 import qualified URL
@@ -110,6 +111,15 @@ on event handler = OnEvent event handler
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
     -- expressions.
+
+onEvent
+  :: (Event e, Function h) => e -> Expr a -> h
+  -> M r (Expr (JS.Type h))
+onEvent eventType obj handler = do
+  handler' <- async handler
+  bare $ addEventListener (Cast obj) eventType handler'
+  return $ Cast handler'
+
 
 post url dt cb = DOM.xhrRaw "POST" (lit $ WR.renderURL url) dt cb
 get url dt cb = DOM.xhrRaw "GET" (lit $ WR.renderURL url) dt cb
