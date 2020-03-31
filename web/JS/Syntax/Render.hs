@@ -96,7 +96,7 @@ instance Render (Expr a) where
     YieldDelegate e -> pure "yield* " <+> renderM e
     Await e -> pure "await " <+> renderM e
 
-    New name e -> pure "new " <+> renderM name <+> renderM e
+    New e -> pure "new " <+> renderM e
     -- TypedFDef _ _ -> todo
 
 function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
