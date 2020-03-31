@@ -28,7 +28,7 @@ add-default-nixs() {
     for PKG_PATH in $(local_deps) web; do
         local P=$REPO_PATH/$PKG_PATH
         if [ -d "$P" ]; then
-            (cd $P && cabal2nix . > default.nix)
+            (cd $P && hpack && cabal2nix . > default.nix)
             echo_ $MSG: $PKG_PATH
         else
             echo_ $MSG: MISSING: $P

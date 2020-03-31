@@ -40,7 +40,7 @@ import DOM as Export hiding (
 
 import JS as Export hiding (
   -- todo: describe these
-  dir, for, browser, runM, Conf, String, State
+  dir, for, runM, Conf, String, State
   )
 
 import Web.Response as Export hiding (

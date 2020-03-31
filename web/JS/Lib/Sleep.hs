@@ -1,6 +1,7 @@
 module JS.Lib.Sleep where
 
-import Prelude
+import X.Prelude
+import qualified Prelude as P
 import JS
 
 mkSleep :: (Expr Double -> Expr Double -> Expr Double) -> Expr Double -> M r ()
@@ -12,4 +13,4 @@ sleep :: Expr Double -> M r ()
 sleep d = mkSleep (*) (Cast d)
 
 usleep :: Expr Double -> M r ()
-usleep = mkSleep (/)
+usleep = mkSleep (P./)

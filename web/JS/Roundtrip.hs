@@ -7,19 +7,12 @@ module JS.Roundtrip
 
 import qualified Prelude
 import Data.Char
-import qualified Data.ByteString.Lazy.Char8 as BL
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Lens as LL
-import qualified Data.Aeson as A
 
 import Data.Data
 import GHC.Generics
 
 import X.Prelude
 import JS hiding (String, length)
-import Render (render, Render)
-
-import Debug.Trace
 
 -- * Generic data type handling in front-end
 
@@ -52,6 +45,7 @@ dropTypeName :: String -> [String] -> [String]
 dropTypeName name fields = map go fields
   where
     lowerFirst (s : tring) = toLower s : tring
+    lowerFirst _ = []
     name' = lowerFirst name
     length' = length name'
     go field

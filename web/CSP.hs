@@ -1,10 +1,8 @@
 module CSP where
 
-import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text as TS
-import qualified Data.Text.Lens as TS
 import qualified Crypto.Hash as C
 
 import qualified Data.ByteArray.Encoding as BA
@@ -79,7 +77,7 @@ instance Render CSP where
     & TL.intercalate ";"
     & pure
     where
-      f lens label = map render' (csp ^. lens :: [Value]) :: [TL.Text]
+      f lens _ = map render' (csp ^. lens :: [Value]) :: [TL.Text]
       li =
         [ f defaultSrc "default-src"
         , f scriptSrc "script-src"
