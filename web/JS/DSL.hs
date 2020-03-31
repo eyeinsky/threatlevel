@@ -9,7 +9,7 @@ module JS.DSL
 
   -- * JS.Syntax
   , Statement(BareExpr)
-  , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New)
+  , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await)
   , Attr(..)
   , Literal(..)
   , Code
