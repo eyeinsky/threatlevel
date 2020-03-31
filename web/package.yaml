@@ -56,11 +56,6 @@ library:
   source-dirs:
   - .
   exposed-modules:
-  - Cookie
-  - DOM.Core
-  - DOM.Event
-  - DOM.JS
-  - DOM
   - HTTP.Common
   - HTTP.Header
   - HTTP.Response
@@ -88,11 +83,19 @@ library:
   - JS.Lib.Async
   - JS
   - JS.Roundtrip
-  - IndexedDB.IDB
-  - PWA
   - JW.T
   - Sessions
   - JS.TH
+
+  # WebAPIs
+  - JS.Console
+  - IndexedDB.IDB
+  - Cookie
+  - DOM.Core
+  - DOM.Event
+  - DOM.JS
+  - DOM
+  - PWA
 
   - X
   - X.Prelude
