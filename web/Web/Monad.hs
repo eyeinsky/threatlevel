@@ -177,3 +177,4 @@ instance (MonadWeb m) => MonadWeb (StateT s m) where
 
 newId :: MonadWeb m => m Id
 newId = cssId $ return ()
+{-# DEPRECATED newId "Use `cssId (pure ())` instead." #-}
