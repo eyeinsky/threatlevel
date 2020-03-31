@@ -69,9 +69,6 @@ delete req cache = call1 (cache !. "delete") req
 
 -- * Fetch API
 
-fetch :: Expr Request -> Promise Response
-fetch req = call1 (ex "fetch") req
-
 request :: Expr DOM.ServiceWorkerEvent -> Expr Request
 request fetchEvent = fetchEvent !. "request"
 
@@ -195,7 +192,7 @@ generate gen = do
     defaultFetch event = consoleLog ["fetch: url(", url $ request event, ")", "no conditions"]
 
 fetchAndCache req cache = do
-  resp :: Expr Response <- await $ fetch req
+  resp :: Expr Response <- await $ fetch (Cast req) []
   putCache <- async $ do -- created to see that it happens async
     await $ put req (clone resp) cache
   bare $ call0 putCache

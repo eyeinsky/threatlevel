@@ -127,6 +127,23 @@ get url dt cb = DOM.xhrRaw "GET" (lit $ WR.renderURL url) dt cb
 postJs url = DOM.xhrJs "POST" (lit $ WR.renderURL url)
 getJs url = DOM.xhrJs "GET" (lit $ WR.renderURL url)
 
+
+type Opts a b = (IsString a, IsString b, ToExpr [(a, b)])
+fetch :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+fetch url extra = call (ex "fetch") [ url, lit extra ]
+
+fetchMethod
+  :: Opts a b => b -> Expr URL -> [(a, b)] -> Expr c
+fetchMethod method url extra = fetch url opts
+  where
+    opts =  [("method", method)] <> extra
+
+fetchPost :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+fetchPost = fetchMethod "POST"
+
+fetchPut :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+fetchPut = fetchMethod "PUT"
+
 -- * HTML
 
 href :: URL.URL -> Attribute
