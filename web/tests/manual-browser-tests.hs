@@ -31,6 +31,21 @@ main = do
 site :: T RunConf
 site = T $ mdo
   liftIO $ putStrLn "Site init"
+
+  pin "js-try-catch" $ return $ \_ -> do
+
+    js $ do
+      log "tryCatch"
+      tryCatch
+        (log "try, throws 123" >> throw "123")
+        (\e -> log "catch" >> log e)
+      tryCatchFinally
+        (log "try, throws 234" >> throw "234")
+        (\e -> log "catch" >> log e)
+        (log "finally")
+
+    return $ htmlDoc "" ""
+
   return $ \_ -> do
 
     testSection <- styled section $ do

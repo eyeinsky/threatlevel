@@ -20,7 +20,9 @@ data Statement a where
 
    While    :: Expr a -> Code b{-X-} -> Statement c
 
-   -- TryCatch :: Code r -> Code r -> Statement r
+   TryCatchFinally :: Code r -> [(Name, Code r)] -> Maybe (Code r) -> Statement r
+   Throw    :: Expr a -> Statement r
+
    Return   :: Expr a -> Statement a
    Empty    :: Statement a
 

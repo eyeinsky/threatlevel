@@ -64,7 +64,21 @@ instance Render (Statement a) where
     Let name exp -> define "let " name =: renderM exp
     Const name exp -> define "const " name =: renderM exp
     FuncDefStm name as code -> function "function " (Just name) as code
-    -- TryCatch _ _ -> error "Not implemented"
+    TryCatchFinally try catches maybeFinally ->
+      pure "try" <+> curlyCode try
+      <+> (mconcat <$> mapM mkCatchBlock catches)
+      <+> maybe (pure mempty)
+          (fmap ("finally" <>) . curlyCode) maybeFinally
+      where
+        mkCatchBlock
+          :: (Name, Code r) -> ReaderT Conf Identity TL.Text
+        mkCatchBlock (err, code) = mseq
+          [ pure "catch"
+          , par <$> renderM err
+          , curlyCode code
+          ]
+
+    Throw e -> pure "throw " <+> renderM e
     where
       define kw name = pure kw <+> renderM name
       var = define "var "

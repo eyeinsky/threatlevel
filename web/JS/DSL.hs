@@ -8,7 +8,7 @@ module JS.DSL
   , HasRenderConf(..)
 
   -- * JS.Syntax
-  , Statement(BareExpr)
+  , Statement(BareExpr, TryCatchFinally)
   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await)
   , Attr(..)
   , Literal(..)
@@ -62,6 +62,34 @@ ifelse c t e = ifmelse c t (Just e)
 ifonly :: Expr Bool -> M r a -> M r ()
 ifonly c t   = ifmelse c t Nothing
 
+retrn :: Expr a -> M a ()
+retrn e = tell $ [Return $ Cast e]
+
+empty :: M a ()
+empty = tell [Empty]
+
+-- * try/catch
+
+tryCatch :: M r () -> (Expr n -> M r ()) -> M r ()
+tryCatch try catch = do
+  try' <- mkCode try
+  err <- next
+  catch' <- mkCode $ catch (EName err)
+  tell [TryCatchFinally try' [(err, catch')] Nothing]
+
+tryCatchFinally :: M r () -> (Expr n -> M r ()) -> M r () -> M r ()
+tryCatchFinally try catch finally = do
+  try' <- mkCode try
+  err <- next
+  catch' <- mkCode $ catch (EName err)
+  finally' <- mkCode finally
+  tell [TryCatchFinally try' [(err, catch')] (Just finally')]
+
+throw :: Expr a -> M r ()
+throw e = tell [Throw e]
+
+-- * Loops
+
 for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For Empty cond Empty
@@ -73,12 +101,6 @@ forin expr f = do
 while :: Expr r -> M r a -> M r ()
 while cond code = tell . (:[]) . f =<< mkCode code
    where f = While cond
-
-retrn :: Expr a -> M a ()
-retrn e = tell $ [Return $ Cast e]
-
-empty :: M a ()
-empty = tell [Empty]
 
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
