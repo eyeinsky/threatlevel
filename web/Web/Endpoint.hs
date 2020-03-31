@@ -11,7 +11,6 @@ import Control.Monad.State (get, put)
 import qualified URL
 import URL (URL, Segment)
 import qualified Web.Monad as W
-import qualified Web.Browser as W
 import qualified HTML
 import qualified Data.Text as TS
 import Render
@@ -56,14 +55,12 @@ type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
 type Built r = Tr.Trie Segment (EHandler r, W.State, W.Writer)
 
 build
-  :: (W.HasBrowser r W.Browser)
-  => W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
+  :: W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
 build mc ms domain r m = Tr.fromList <$> list
   where
     list = eval mc ms domain r m <&> fmap (_1 %~ tail . Re.toTextList)
 
-    eval :: (W.HasBrowser r W.Browser)
-      => W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
+    eval :: W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
     eval mc js_css_st0 url (r :: r) (m :: T r) = do
       ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w) <- runM mc r js_css_st0 (runT url m)
       let
@@ -102,7 +99,7 @@ class HasDynPath s a | s -> a where
   dynPath :: Lens' s a
   {-# MINIMAL dynPath #-}
 
-type Confy r = (HasDynPath r [URL.Segment], W.HasBrowser r W.Browser)
+type Confy r = (HasDynPath r [URL.Segment])
 
 toHandler
   :: forall r. Confy r
@@ -111,14 +108,11 @@ toHandler
 toHandler mc ms domain conf0 site = do
   app <- build mc ms domain conf0 site
   return $ \req -> let
-    hdrs = Wai.requestHeaders req
     path = Wai.pathInfo req :: [Segment]
-    browser' = maybe W.Unknown W.parseBrowser $ lookup "User-Agent" hdrs
-    conf1 = conf0 & W.browser .~ browser'
     res :: Maybe (EHandler r, W.State, W.Writer)
     (res, conf2) = case Tr.lookupPrefix path app of
-      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf1 & dynPath .~ pathSuffix)
-      _ -> (Nothing, conf1)
+      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf0 & dynPath .~ pathSuffix)
+      _ -> (Nothing, conf0)
     in traverse (handle mc conf2 req) res
 
 -- * Dyn path

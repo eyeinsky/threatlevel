@@ -277,20 +277,19 @@ getRenderConf = WM.getConf <&> view (WM.jsConf. JS.renderConf)
 
 -- | Render JSM to Expr a within the current MonadWeb context.
 evalJSM
-  :: forall s m b a. (MonadReader s m, JS.HasBrowser s JS.Browser, MonadWeb m)
+  :: forall s m b a. (MonadReader s m, MonadWeb m)
   => JS.M b a -> m (Code b)
 evalJSM jsm = do
-  browser <- asks (view JS.browser)
   stWeb <- WM.getState
   conf' <- WM.getConf
   let
     state = stWeb^.WM.jsState
     conf = conf' ^. WM.jsConf.JS.renderConf
-    ((_, code :: Code b), _) = JS.runM (JS.Conf browser True conf) state jsm
+    ((_, code :: Code b), _) = JS.runM (JS.Conf True conf) state jsm
   return code
 
 exec'
-  :: (MonadReader s m, JS.HasBrowser s JS.Browser, MonadWeb m)
+  :: (MonadReader s m, MonadWeb m)
   => (Code b -> Expr x) -> JS.M b a -> m WR.Response
 exec' f jsm = do
   code <- evalJSM jsm

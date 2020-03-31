@@ -1,8 +1,7 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module JS.DSL.Internal
-  ( module Web.Browser
-  , module JS.DSL.Internal
+  ( module JS.DSL.Internal
   ) where
 
 import X.Prelude hiding (Empty, Const, State)
@@ -15,7 +14,6 @@ import JS.Syntax hiding (Conf)
 
 import qualified Identifiers as IS
 import JS.DSL.Identifiers
-import Web.Browser
 
 -- * Monad
 
@@ -24,8 +22,7 @@ type W r = Code r
 
 declareFields [d|
   data Conf = Conf
-    { confBrowser :: Browser
-    , confNamedVars :: Bool
+    { confNamedVars :: Bool
     , confRenderConf :: JS.Syntax.Conf
     } deriving (Eq, Show, Read)
   |]
@@ -45,15 +42,11 @@ class HasConf s a | s -> a where
 instance HasConf Conf Conf where
   conf = id
 
-instance {-# OVERLAPS #-} (HasConf c Conf) => HasBrowser c Browser where
-  browser = conf.browser
-
-
 instance Default State where
   def = State identifiers S.empty S.empty
 
 instance Default Conf where
-  def = Conf Unknown True (JS.Syntax.Indent 2)
+  def = Conf True (JS.Syntax.Indent 2)
 
 type M r = WriterT (W r) (StateT State (ReaderT Conf Identity))
 

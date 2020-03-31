@@ -8,7 +8,6 @@ import X.Prelude as P hiding (State, Writer)
 
 import qualified CSS as CSS
 import qualified CSS.Monad as CSSM
-import qualified Web.Browser as Br
 import qualified JS
 import DOM
 
@@ -31,15 +30,11 @@ declareFields [d|
 declareFields [d|
   data Conf = Conf
     { confJsConf :: JS.Conf
-    , confCssConf :: Br.Browser
     }
   |]
 
 instance Default Conf where
-  def = Conf def Br.Unknown
-
-instance Br.HasBrowser Conf Br.Browser where
-  browser = cssConf
+  def = Conf def
 
 instance Default State where
   def = State def def
