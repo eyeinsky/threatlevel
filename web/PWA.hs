@@ -160,7 +160,7 @@ generate gen = do
     cacheOnly :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, M r ())
     cacheOnly event url' = let
       code = do
-        req <- new $ request event
+        req <- const $ request event
         p <- promise $ do
           cache <- await $ open "cache" caches
           resp <- await $ match req cache
@@ -172,7 +172,7 @@ generate gen = do
     cacheNetwork :: Expr ServiceWorkerEvent -> URL -> (Expr Bool, M r ())
     cacheNetwork event url' = let
       code = do
-        req <- new $ request event
+        req <- const $ request event
         p <- promise $ do
           cache :: Expr Cache <- await $ open "cache" caches
           resp :: Expr Response <- await $ match req cache
@@ -209,7 +209,7 @@ pwaDiagnostics = do
         cache <- await $ open cacheName caches
         requests <- await $ keys cache
         g <- newf $ \req -> retrn $ url req
-        urls <- new $ call1 (requests !. "map") g
+        urls <- const $ call1 (requests !. "map") g
         let links = call1 (urls !. "map") mklink
         retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
       main <- async $ do

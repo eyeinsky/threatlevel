@@ -54,7 +54,7 @@ transaction
   => Expr DB -> [Expr String] -> Expr Mode -> f
   -> JS.M r (Promise (Final f))
 transaction db storeNames mode body = do
-  tx :: Expr Transaction <- new $ call (db !. "transaction") [lit storeNames, lit mode]
+  tx :: Expr Transaction <- const $ call (db !. "transaction") [lit storeNames, lit mode]
   let stores = map (objectStore tx) storeNames :: [Expr (ObjectStore a)]
   body' <- async body
   pure $ call (Cast body') (Cast tx : stores)

@@ -30,10 +30,10 @@ sticky scrollContainer elemId extraCss = do
     extraCss
 
   js $ onLoad $ do
-    doc <- new scrollContainer
-    menuElem <- new $ findBy elemId
-    initialTop <- new $ menuElem !. "offsetTop"
-    is <- new $ lit False
+    doc <- const scrollContainer
+    menuElem <- const $ findBy elemId
+    initialTop <- const $ menuElem !. "offsetTop"
+    is <- const $ lit False
     f <- newf $ do
       let top = doc !. "scrollTop"
           should = top .> initialTop

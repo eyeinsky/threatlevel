@@ -55,8 +55,8 @@ queryParents :: JSSelector a => a -> Expr D.Tag -> Expr c
 queryParents s e = let
   str = jsSelectorFrom s
   in flip call [Cast str, e] $ funcPure $ \(selector :: Expr String) elem -> do
-    e' <- new elem
-    r <- new Null
+    e' <- let_ elem
+    r <- let_ Null
     JS.for (e' !. "matches") $ do
       ifelse (matches selector e') (do r .= e'; bare $ ex "break") (e' .= DOM.JS.parentNode e')
     retrn e'
@@ -166,9 +166,9 @@ createDocumentFragment = call0 (document !. "createDocumentFragment")
 
 -- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
 cursorPosition e = do
-      start <- new $ e !. "selectionStart"
-      end <- new $ e !. "selectionEnd"
-      new $ ternary (start .== end) (Cast start) (Cast Null)
+      start <- let_ $ e !. "selectionStart"
+      end <- const $ e !. "selectionEnd"
+      let_ $ ternary (start .== end) (Cast start) (Cast Null)
    {- ^ Get caret position from textarea/input type=text
 
       IE not implemented, see here for how:
@@ -199,11 +199,11 @@ doGet' uri data_ cb = do
    bare $ call aj [lit "GET", uri, data_, cb]
 
 ajaxExpr meth uri data_ callback = do
-   xhr <- new $ ex "new XMLHttpRequest()"
+   xhr <- const $ ex "new XMLHttpRequest()"
    ifonly (callback .!== Undefined) $ do
       wrap <- newf $ \(_ :: Expr ()) -> do
-         text <- new $ xhr !. "responseText"
-         json <- new $ fromJSON text
+         text <- const $ xhr !. "responseText"
+         json <- const $ fromJSON text
          bare $ call1 callback json
       xhr !. "onload" .= Cast wrap
    bare (call (xhr !. "open") [meth, uri, lit True])
@@ -211,7 +211,7 @@ ajaxExpr meth uri data_ callback = do
 
 xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
 xhrRaw meth uri data_ callback = do
-  xhr <- new $ ex "new XMLHttpRequest()"
+  xhr <- const $ ex "new XMLHttpRequest()"
   ifonly (callback .!== Undefined) $ do
     xhr !. "onload" .= callback
   bare (call (xhr !. "open") [Cast meth, uri, lit True])
@@ -277,18 +277,18 @@ mkAttrCommon e _ attr = case attr of
 instance RenderJSM (HTML Both) where
   renderJSM html = case html of
     Element tn as children -> do
-      t <- new $ createElement tn
+      t <- const $ createElement tn
       attrsJSM t mkAttr as
       ts :: [Expr Tag] <- mapM renderJSM children
       forM_ ts $ bare . flip appendChild t
       return t
     Text txt -> return $ createTextNode (lit txt)
     Raw txt -> do
-      tmp <- new $ createElement "div"
+      tmp <- const $ createElement "div"
       innerHTML tmp .= lit txt
-      nodes <- new $ tmp !. "childNodes"
-      frag <- fmap Cast $ new $ createDocumentFragment
-      i <- new 0
+      nodes <- const $ tmp !. "childNodes"
+      frag <- fmap Cast $ const $ createDocumentFragment
+      i <- let_ 0
       JS.for (JS.length nodes JS..> 0) $ do
         bare $ appendChild (nodes .! 0) frag
         i .+= 1
@@ -304,7 +304,7 @@ instance RenderJSM (HTML Both) where
 
 createHtmls :: Html -> JS.M r (Expr DocumentFragment)
 createHtmls m = do
-  f <- new $ createDocumentFragment
+  f <- const $ createDocumentFragment
   forM_ (execWriter m) $ \ html -> do
     e <- renderJSM html
     bare $ appendChild e (Cast f)
@@ -315,7 +315,7 @@ createHtmls m = do
 instance  RenderJSM (XML SVG AttributeSet Both) where
   renderJSM xml = case xml of
     Element tagName as children -> do
-      t <- new $ mkElem tagName
+      t <- const $ mkElem tagName
       attrsJSM t mkAttr as
       ts :: [Expr Tag] <- mapM renderJSM children
       forM_ ts $ bare . flip appendChild t

@@ -5,7 +5,7 @@ import JS
 
 mkSleep :: (Expr Double -> Expr Double -> Expr Double) -> Expr Double -> M r ()
 mkSleep f s = do
-  e <- new $ getTime + (Cast $ f s $ lit 1000)
+  e <- const $ getTime + (Cast $ f s $ lit 1000)
   while (getTime .<= e) empty
 
 sleep :: Expr Double -> M r ()

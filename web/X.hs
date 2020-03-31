@@ -510,7 +510,7 @@ idsElems :: MonadWeb m => Int -> m ([Id], [Expr Tag], Expr b)
 idsElems n = do
   ids <- replicateM n (cssId $ pure ())
   js $ do
-    elems <- mapM (Prelude.const $ new Null) ids
+    elems <- mapM (Prelude.const $ const Null) ids
     mount <- newf $ do
       forM (zip ids elems) $ \(id, el) -> el .= findBy id
     return (ids, elems, mount)

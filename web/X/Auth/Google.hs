@@ -67,7 +67,7 @@ instance Aeson.ToJSON Tokeninfo where
       email' = Aeson._String # TL.toStrict (t^.email) :: Aeson.Value
 
 googleSignout = do
-  auth2 <- new $ call0 (ex "gapi.auth2.getAuthInstance");
+  auth2 <- const $ call0 (ex "gapi.auth2.getAuthInstance");
   await $ call0 (auth2 !. "signOut")
 
 verifyToken id callback = do
@@ -83,7 +83,7 @@ verifyToken id callback = do
 
   doSignIn <- lift $ js $ do
 
-    doGoogleSignIn <- new Undefined
+    doGoogleSignIn <- let_ Undefined
     onLoad <- newf $ do
       -- | Create promise, which, when run, will set the doLogin
       -- variable to a callable function, which will do the login with
@@ -95,13 +95,13 @@ verifyToken id callback = do
         googleAuth <- await $ call1 (auth2 !. "init") params
         doLogin' <- async $ do
           user <- await $ call1 (googleAuth !. "signIn") prompt
-          token <- new $ call0 (user !. "getAuthResponse") !. "id_token"
+          token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
           DOM.xhrJs "POST" (lit $ renderURL url) ("id_token=" + token) []
         doGoogleSignIn .= doLogin'
         consoleLog ["google ready"]
 
-      new $ call (gapi !. "load") ["auth2", prepareLogin]
+      const $ call (gapi !. "load") ["auth2", prepareLogin]
     bare $ DOM.addEventListener (Cast DOM.window) Load onLoad
     return doGoogleSignIn
 

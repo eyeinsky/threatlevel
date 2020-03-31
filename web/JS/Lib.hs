@@ -15,22 +15,22 @@ import JS.DSL (not)
 -- * Text
 
 wn = \ str -> do
-   m <- new $ call (str !. "match") [ call (ex "new RegExp") ["\\s", "g"] ]
+   m <- const $ call (str !. "match") [ call (ex "new RegExp") ["\\s", "g"] ]
    retrn $ ternary (m .=== Null) (lit 1) (m !. "length" + lit 1)
 
 repeat = \ n c -> do
-   res <- new $ lit ""
-   i <- new $ lit 0
+   res <- let_ $ lit ""
+   i <- let_ $ lit 0
    for (i .< n) $ do res .= res + c; i .= i + lit 1;
    retrn res
 
 round = \ n p -> do
-   tens <- new $ p * lit 10
-   retrn $ nearestInt (n * tens) / tens
+   tens <- const $ p * lit 10
+   retrn $ nearestInt (n * tens) P./ tens
 
 nf = \ n _ -> do
    -- repeat <- lib $ newf repeat
-   x <- new $ JS.split (toString n) (lit ".")
+   x <- const $ JS.split (toString n) (lit ".")
    -- x1 <- new $ x !- 1
    -- y <- new $ ternary (x1 .=== Undefined) (call repeat [places, lit "0"]) x1
    retrn $ (x!-0) -- .+ lit "." .+ call (y !. "slice") [lit 0, places]
@@ -47,8 +47,8 @@ pair k v = Lit $ Object [(Right $ Cast k, Cast v)]
 
 iterArray :: Expr [a] -> (Expr Int -> M r b) -> M r ()
 iterArray arr f = do
-  ix <- new 0
-  length <- new $ arr !. "length"
+  ix <- let_ 0
+  length <- const $ arr !. "length"
   while (ix .< length) $ do
     _ <- f ix
     ix .+= 1

@@ -17,7 +17,7 @@ module JS.DSL
   ) where
 
 import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
-import X.Prelude hiding (Empty, State, const)
+import X.Prelude hiding (Empty, State)
 import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
 import qualified Data.Hashable as H
@@ -36,13 +36,13 @@ import JS.Syntax
 new' :: TS.Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks (^.namedVars)
    where
-      name = bind VarDef e . Name =<< pushNamedExpr n e
-      ignore = new e
+      name = bind Let e . Name =<< pushNamedExpr n e
+      ignore = let_ e
 
 bare :: Expr a -> M r ()
 bare e  = tell [ BareExpr e ]
 
-block    = new    <=< blockExpr
+block    = let_    <=< blockExpr
 block' n = new' n <=< blockExpr
 
 -- * Control flow
@@ -87,7 +87,7 @@ lhs .= rhs = tell [BareExpr $ lhs =: rhs]
 type Promise = Expr
 
 await :: Expr a -> JS.M r (Expr a)
-await = new . JS.Syntax.Await
+await = let_ . JS.Syntax.Await
 
 -- | Make a promise out of a function through async
 promise :: Function f => f -> JS.M r (Promise b)
@@ -105,9 +105,9 @@ arguments = ex "arguments"
 -- * Typed functions
 
 newf, async, generator :: Function f => f -> M r (Expr (Type f))
-newf = new <=< func AnonFunc
-async = new <=< func Async
-generator = new <=< func Generator
+newf = let_ <=< func AnonFunc
+async = let_ <=< func Async
+generator = let_ <=< func Generator
 
 newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
 newf' n = new' n <=< func AnonFunc
