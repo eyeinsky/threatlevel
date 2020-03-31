@@ -93,9 +93,6 @@ await = let_ . JS.Syntax.Await
 promise :: Function f => f -> JS.M r (Promise b)
 promise f = call0 <$> async f
 
-browser :: M r Browser
-browser = asks (view JS.browser)
-
 blockExpr :: M r a -> M r (Expr r)
 blockExpr = fmap (AnonFunc Nothing []) . mkCode
 -- ^ Writes argument 'M r a' to writer and returns a callable name

@@ -69,7 +69,6 @@ library:
   - URL.ToPayload
   - URL.TH
   - Warp_Helpers
-  - Web
   - CSS
   - SVG
   - HTML

@@ -10,7 +10,9 @@ import Control.Monad.State (get, put)
 
 import qualified URL
 import URL (URL, Segment)
-import qualified Web as W
+import qualified Web.Monad as W
+import qualified Web.Browser as W
+import qualified HTML
 import qualified Data.Text as TS
 import Render
 import Identifiers (identifierSource)
@@ -87,12 +89,12 @@ handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
     merge (Re.Response s h (Re.HtmlDocument doc), _, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
     merge (other, _, _) = other
 
-    collapse :: W.Writer -> W.Document -> W.Document
+    collapse :: W.Writer -> HTML.Document -> HTML.Document
     collapse code doc
       = doc
-      & add (W.style $ W.raw $ render () $ code ^. W.cssCode)
-      & add (W.script $ W.raw $ render (mc^.W.jsConf.JS.renderConf) $ code ^. W.jsCode)
-      where add w = W.head' %~ (>> w)
+      & add (HTML.style $ HTML.raw $ render () $ code ^. W.cssCode)
+      & add (HTML.script $ HTML.raw $ render (mc^.W.jsConf.JS.renderConf) $ code ^. W.jsCode)
+      where add w = HTML.head' %~ (>> w)
 
 -- * To handler
 

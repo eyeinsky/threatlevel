@@ -95,7 +95,6 @@ import CSS.Monad (CSSM)
 import qualified URL
 import qualified HTML
 import qualified DOM
-import qualified Web as W
 import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
@@ -234,11 +233,11 @@ instance ToHtml Html where toHtml a = a
 -- ** Front-end
 
 instance ToHtml (Expr DocumentFragment) where
-  toHtml a = W.dyn a
+  toHtml a = HTML.dyn a
 instance ToHtml (Expr String) where
-  toHtml a = W.dyn $ createTextNode a
+  toHtml a = HTML.dyn $ createTextNode a
 instance ToHtml (Expr TS.Text) where
-  toHtml a = W.dyn $ createTextNode $ Cast a
+  toHtml a = HTML.dyn $ createTextNode $ Cast a
 
 html = to toHtml
 
@@ -273,24 +272,24 @@ favicon url = HTML.link ! rel "icon" ! href url $ pure ()
 
 -- * Endpoint
 
-getRenderConf = WM.getConf <&> view (W.jsConf. JS.renderConf)
+getRenderConf = WM.getConf <&> view (WM.jsConf. JS.renderConf)
 
 -- | Render JSM to Expr a within the current MonadWeb context.
 evalJSM
-  :: forall s m b a. (MonadReader s m, W.HasBrowser s W.Browser, MonadWeb m)
+  :: forall s m b a. (MonadReader s m, JS.HasBrowser s JS.Browser, MonadWeb m)
   => JS.M b a -> m (Code b)
 evalJSM jsm = do
-  browser <- asks (view W.browser)
+  browser <- asks (view JS.browser)
   stWeb <- WM.getState
   conf' <- WM.getConf
   let
     state = stWeb^.WM.jsState
-    conf = conf' ^. W.jsConf.JS.renderConf
+    conf = conf' ^. WM.jsConf.JS.renderConf
     ((_, code :: Code b), _) = JS.runM (JS.Conf browser True conf) state jsm
   return code
 
 exec'
-  :: (MonadReader s m, W.HasBrowser s W.Browser, MonadWeb m)
+  :: (MonadReader s m, JS.HasBrowser s JS.Browser, MonadWeb m)
   => (Code b -> Expr x) -> JS.M b a -> m WR.Response
 exec' f jsm = do
   code <- evalJSM jsm
@@ -401,6 +400,12 @@ fontSrc url mbFmt
   = Url (renderURL url) <> maybe "" f mbFmt
   where
     f fmt = Word $ "format(\"" <> fmt <> "\")"
+
+styleAttr :: HTML.Value -> Attribute
+styleAttr = Custom "style"
+
+decls :: DeclM a -> Attribute
+decls = renderDecls ^ TL.toStrict ^ Static ^ styleAttr
 
 -- * Html + CSS + MonadWeb
 

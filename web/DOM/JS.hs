@@ -133,14 +133,6 @@ insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
 
 replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
 
-remove' :: Expr Tag -> JS.M r (Expr Tag)
-remove' e = JS.browser <&> \b -> case b of
-  IE -> removeChild (parentNode e) e
-  _ -> call0 (e !. "remove")
-
-remove :: Expr Tag -> JS.M r ()
-remove e = remove' e >>= bare
-
 removeChild :: Expr Tag -> Expr Tag -> Expr Tag
 removeChild parent child = call1 (parent !. "removeChild") child
 
