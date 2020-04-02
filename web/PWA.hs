@@ -222,7 +222,7 @@ pwaDiagnostics = do
         bare $ DOM.documentWrite str
       bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
 
-    dest <- newId
+    dest <- cssId $ pure ()
     return $ htmlDoc (pure ()) $ do
       div ! dest $ ""
 

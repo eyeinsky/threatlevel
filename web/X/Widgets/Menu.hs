@@ -58,7 +58,7 @@ dropdown tr = do
       go t = case t of
         Node label' sub -> do
           subHtml <- mapM go sub <&> sequence_
-          id <- newId
+          id <- cssId $ pure ()
           return $ li $ do
             checkbox ! hidden ! id
             label ! parent ! X.for id $ label'

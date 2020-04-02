@@ -481,7 +481,7 @@ textFormSubmission req = do
 -- function to bind them.
 idsElems :: MonadWeb m => Int -> m ([Id], [Expr Tag], Expr b)
 idsElems n = do
-  ids <- replicateM n newId
+  ids <- replicateM n (cssId $ pure ())
   js $ do
     elems <- mapM (Prelude.const $ new Null) ids
     mount <- newf $ do
