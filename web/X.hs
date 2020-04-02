@@ -70,6 +70,7 @@ import Data.Time
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.Writer
+import Control.Concurrent
 
 import Web.Cookie as Wai
 import Network.Wai as Wai
@@ -483,6 +484,13 @@ hotHttps name mc ms url port tls site = (hot, stop, main)
   where
     main = siteMain mc ms url port (Just tls) site
     (hot, stop) = mkHot name main
+
+redirectToHttps :: URL -> IO ()
+redirectToHttps url =
+  void $ forkIO $ Warp.runSettings settings
+    $ \_ respond -> redirect url & HR.toRaw & respond
+  where
+    settings = Warp.setPort 80 Warp.defaultSettings
 
 -- * Request
 
