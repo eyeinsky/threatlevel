@@ -4,7 +4,7 @@ module X.Prelude
   ) where
 
 import Prelude as Export hiding
-  ( div, rem, (/), log, const -- Prelude
+  ( div, rem, (/), log, const, span -- Prelude
   , (^) -- GHC.Real
   , fail
   )
@@ -30,7 +30,7 @@ import Control.Monad.Fail as Export
 
 
 import Control.Arrow as Export (first, second, (***))
-import Control.Lens as Export hiding ((.=))
+import Control.Lens as Export hiding ((.=), (.>))
 
 import GHC.Generics as Export (Generic)
 import Debug.Trace as Export

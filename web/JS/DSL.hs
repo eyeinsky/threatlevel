@@ -17,7 +17,7 @@ module JS.DSL
   ) where
 
 import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
-import X.Prelude hiding ((.>), Empty, State, const)
+import X.Prelude hiding (Empty, State, const)
 import qualified X.Prelude as Pr hiding (State)
 import qualified Data.Set as S
 import qualified Data.Hashable as H

@@ -5,7 +5,7 @@ module JS.DSL.Internal
   , module JS.DSL.Internal
   ) where
 
-import X.Prelude hiding ((.>), Empty, Const, State)
+import X.Prelude hiding (Empty, Const, State)
 
 import qualified Data.Set as S
 import qualified Data.Text as TS

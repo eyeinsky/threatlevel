@@ -1,6 +1,6 @@
 module JS.API where
 
-import X.Prelude hiding ((.>))
+import X.Prelude
 import JS.DSL
 
 -- * Object

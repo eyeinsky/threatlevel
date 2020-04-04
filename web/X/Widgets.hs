@@ -1,6 +1,6 @@
 module X.Widgets where
 
-import X.Prelude as P hiding ((.>))
+import X.Prelude as P
 import Prelude as P ((/))
 import X
 import qualified CSS
