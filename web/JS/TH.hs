@@ -8,7 +8,7 @@ import X.Prelude
 
 import JS.Syntax as J hiding (getName, Name)
 import JS.DSL as J hiding (func)
-import JS.Lib as J
+import JS.BuiltIns as J
 
 
 
@@ -48,7 +48,7 @@ deriveToExpr name' = do
         pure <$> instanceD (pure []) (appT (appT (conT cls) src) dest) [pure d]
 
   let lenses = map hasName (head namesTypes)
-  concat <$> sequence (toExpr : lenses)
+  X.Prelude.concat <$> sequence (toExpr : lenses)
 
 -- | Extract data constructors from type declaration.
 constructors :: Dec -> Maybe (Name, [Con])

@@ -4,7 +4,8 @@ import qualified Data.Text.Lazy as TL
 
 import X.Prelude hiding (put)
 import X as DOM
-import qualified JS.API as JS
+import qualified JS as JS
+import qualified JS.BuiltIns.Full as JS
 
 
 -- * Web Worker

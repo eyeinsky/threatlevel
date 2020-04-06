@@ -9,7 +9,7 @@ import X.Prelude hiding (eq, id, concat)
 import Render
 import XML.Core
 import DOM.Core hiding (Id(..), Class(..))
-import DOM.Event
+import JS.Event
 import qualified JS.Syntax
 import qualified JS
 

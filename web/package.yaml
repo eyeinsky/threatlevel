@@ -74,18 +74,26 @@ library:
   - XML
   - XML.Core
 
+  # JavaScript syntax and meta
   - JS.Syntax
   - JS.DSL
-  - JS.API
   - JS.Derive
-  - JS.Lib
-  - JS.Lib.Sleep
-  - JS.Lib.Async
-  - JS
   - JS.Roundtrip
-  - JW.T
   - Sessions
   - JS.TH
+
+  # JavaScript standard built-in objects
+  - JS.API
+  - JW.T
+  - JS.BuiltIns.JSON
+  - JS.BuiltIns.Date
+  - JS.BuiltIns.String
+  - JS.BuiltIns.Number
+  - JS.BuiltIns.Object
+  - JS.BuiltIns
+
+  # JavaScript APIs
+  - JS.Event
 
   # WebAPIs
   - JS.Console
@@ -96,6 +104,11 @@ library:
   - DOM.JS
   - DOM
   - PWA
+
+  - JS
+  - JS.Lib
+  - JS.Lib.Sleep
+  - JS.Lib.Async
 
   - X
   - X.Prelude

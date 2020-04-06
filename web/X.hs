@@ -24,6 +24,7 @@ import CSS as Export hiding (
   Document
   )
 import Web.Monad as Export
+import JS.Event as Export
 import DOM.Event as Export
 
 import URL as Export hiding (T, base)
@@ -95,6 +96,7 @@ import qualified JS.DSL.Internal as JS
 import CSS.Monad (CSSM)
 import qualified URL
 import qualified HTML
+import qualified JS.Event
 import qualified DOM
 import qualified Web.Monad as WM
 import qualified Web.Response as WR
@@ -105,7 +107,7 @@ import qualified Web.Endpoint as WE
 -- * DOM.Event
 
 -- | Create inline on-event attribute
-on :: DOM.Event e => e -> Expr a -> Attribute
+on :: JS.Event.Event e => e -> Expr a -> Attribute
 on event handler = OnEvent event handler
   where
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
@@ -113,8 +115,8 @@ on event handler = OnEvent event handler
     -- expressions.
 
 onEvent
-  :: (Event e, Function h) => e -> Expr a -> h
-  -> M r (Expr (JS.Type h))
+  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
+  -> M r (Expr b) -- (Expr (JS.Type h))
 onEvent eventType obj handler = do
   handler' <- async handler
   bare $ addEventListener (Cast obj) eventType handler'

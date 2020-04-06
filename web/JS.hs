@@ -1,11 +1,15 @@
 module JS
    ( module JS.DSL
-   , module JS.API
    , module JS.Derive
+   , module JS.BuiltIns
+   , module JS.Event
+
+   , module JS.Console
    ) where
 
 import JS.DSL
-import JS.API hiding (
-  join -- It's in common use joining nested monads
-  )
 import JS.Derive
+import JS.BuiltIns
+import JS.Event
+
+import JS.Console

@@ -12,7 +12,7 @@ import X.Prelude hiding (id)
 import qualified JS
 import DOM.Core hiding (Id(..), Class(..))
 import qualified DOM.Core as DOM.Core
-import DOM.Event
+import JS.Event
 import qualified Render
 
 data XML ns a c where
