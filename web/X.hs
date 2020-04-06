@@ -146,6 +146,13 @@ fetchPost = fetchMethod "POST"
 fetchPut :: Opts a b => Expr URL -> [(a, b)] -> Expr c
 fetchPut = fetchMethod "PUT"
 
+jsonPayload :: Expr a -> [(String, Expr String)]
+jsonPayload data_ =
+  [ ("body", toJSON data_)
+  , ("headers", Lit $ Object
+      [(Right "Content-Type", "application/json")])
+  ]
+
 -- * HTML
 
 href :: URL.URL -> Attribute
