@@ -209,15 +209,20 @@ instance ToExpr A.Value where
 instance {-# OVERLAPPABLE #-} ToExpr a => ToExpr [a] where
    lit = Lit . Array . map lit
 
+-- ** Object
+
 instance ToExpr v => ToExpr [(TS.Text, v)] where
    lit li = Lit $ Object $ map f li
       where f (k, v) = (Left $ Name k, lit v)
-
 ck f = lit . map (first f)
 instance ToExpr v => ToExpr [(TL.Text, v)] where
    lit = ck TL.toStrict
 instance ToExpr v => ToExpr [(String, v)] where
   lit = ck TS.pack
+instance ToExpr v => ToExpr [(Expr k, v)] where
+   lit li = Lit $ Object $ map f li
+      where f (k, v) = (Right $ Cast k, lit v)
+
 
 instance IsString (Expr a) where
    fromString s = lit s

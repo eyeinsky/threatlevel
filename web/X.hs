@@ -91,9 +91,9 @@ import qualified HTTP.Response as HR
 
 import X.Prelude as P
 import JS hiding (String)
-import qualified JS.DSL.Internal as JS
 
 import CSS.Monad (CSSM)
+import qualified CSS.Internal as CSS
 import qualified URL
 import qualified HTML
 import qualified JS.Event
@@ -149,8 +149,8 @@ fetchPut = fetchMethod "PUT"
 jsonPayload :: Expr a -> [(String, Expr String)]
 jsonPayload data_ =
   [ ("body", toJSON data_)
-  , ("headers", Lit $ Object
-      [(Right "Content-Type", "application/json")])
+  , ("headers", lit
+      [(lit "Content-Type", "application/json")])
   ]
 
 -- * HTML
@@ -189,6 +189,13 @@ instance ToExpr Id where
 
 instance ToExpr Class where
   lit = unClass ^ render' ^ lit
+
+instance ToExpr SimpleSelector where
+  lit s = lit
+    $ (maybe mempty render' $ s^.CSS.tag)
+    <> (maybe mempty render' $ s^.CSS.maybeId)
+    <> (TL.concat $ map render' $ s^.P.classes)
+    <> (TL.concat $ map render' $ s^.CSS.pseudos)
 
 -- * HTTP.Response
 
