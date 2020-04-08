@@ -98,6 +98,12 @@ forin expr f = do
    name <- next
    tell [ForIn name expr [BareExpr . call1 f $ EName name]]
 
+forAwait :: Expr p -> (Expr n -> M r ()) -> M r ()
+forAwait expr mkBlock = do
+   name <- next
+   block <- mkCode $ mkBlock (EName name)
+   tell [ForAwait name expr block]
+
 while :: Expr r -> M r a -> M r ()
 while cond code = tell . (:[]) . f =<< mkCode code
    where f = While cond

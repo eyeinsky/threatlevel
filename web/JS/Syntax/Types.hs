@@ -17,6 +17,7 @@ data Statement a where
    For      :: Statement a -> Expr b -> Statement c -> Code d{-X-} -> Statement e -- NOTE: X = implemented as function, therefore b /= c
             -- init           cond      post           body
    ForIn    :: Name -> Expr a -> Code b{-X-} -> Statement c
+   ForAwait :: Name -> Expr a -> Code b -> Statement c
 
    While    :: Expr a -> Code b{-X-} -> Statement c
 

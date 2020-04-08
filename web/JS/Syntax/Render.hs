@@ -48,6 +48,17 @@ instance Render (Statement a) where
           ]
       , curlyCode code
       ]
+
+    ForAwait name expr code -> mseq
+      [ pure "for await"
+      , par <$> mseq
+          [ const name
+          , pure " of "
+          , renderM expr
+          ]
+      , curlyCode code
+      ]
+
     While cond code -> mseq
       [ pure "while"
       , par <$> renderM cond
@@ -82,6 +93,7 @@ instance Render (Statement a) where
     where
       define kw name = pure kw <+> renderM name
       var = define "var "
+      const = define "const "
 
 instance Render (Expr a) where
   type Conf (Expr a) = Conf
