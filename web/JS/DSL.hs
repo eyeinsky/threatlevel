@@ -108,6 +108,10 @@ while :: Expr r -> M r a -> M r ()
 while cond code = tell . (:[]) . f =<< mkCode code
    where f = While cond
 
+break = tell [Break Nothing]
+continue = tell [Continue Nothing]
+q
+
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
 lhs .= rhs = tell [BareExpr $ lhs =: rhs]

@@ -7,6 +7,7 @@ import Prelude as Export hiding
   ( div, rem, (/), log, const, span -- Prelude
   , (^) -- GHC.Real
   , fail
+  , break
   )
 
 import Data.Default as Export

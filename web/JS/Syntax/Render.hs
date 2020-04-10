@@ -64,6 +64,10 @@ instance Render (Statement a) where
       , par <$> renderM cond
       , curlyCode code
       ]
+
+    Continue maybeLabel -> withLabel "continue" maybeLabel
+    Break maybeLabel -> withLabel "breac" maybeLabel
+
     IfElse cond true mbElse -> mseq
       [ pure "if"
       , par <$> renderM cond
@@ -94,6 +98,9 @@ instance Render (Statement a) where
       define kw name = pure kw <+> renderM name
       var = define "var "
       const = define "const "
+      withLabel statement maybeLabel = case maybeLabel of
+        Just label -> pure statement <+> pure " " <+> renderM label
+        _ -> pure statement
 
 instance Render (Expr a) where
   type Conf (Expr a) = Conf

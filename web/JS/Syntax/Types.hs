@@ -14,12 +14,14 @@ data Statement a where
    VarDef   :: Name -> Expr a -> Statement b
    BareExpr :: Expr a -> Statement b
    IfElse   :: Expr b -> Code r -> Maybe (Code r) -> Statement r
+
    For      :: Statement a -> Expr b -> Statement c -> Code d{-X-} -> Statement e -- NOTE: X = implemented as function, therefore b /= c
             -- init           cond      post           body
    ForIn    :: Name -> Expr a -> Code b{-X-} -> Statement c
    ForAwait :: Name -> Expr a -> Code b -> Statement c
-
    While    :: Expr a -> Code b{-X-} -> Statement c
+   Continue :: Maybe Name -> Statement a
+   Break :: Maybe Name -> Statement a
 
    TryCatchFinally :: Code r -> [(Name, Code r)] -> Maybe (Code r) -> Statement r
    Throw    :: Expr a -> Statement r
