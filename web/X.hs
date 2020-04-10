@@ -560,3 +560,59 @@ class Templating a where
       -- get: get values from form
       , Expr a
       )
+
+-- | Turn event handler to async iterator
+iterEvent :: Event e => e -> Expr a -> M r (Expr b)
+iterEvent eventType element = do
+
+  let
+    eventType' = lit $ eventString eventType :: Expr String
+    wrap done value = lit
+      [("done", done), ("value" :: TS.Text, value)]
+
+  event <- let_ Null
+  resolver <- let_ Null
+
+  handler <- newf $ \ev -> do
+    ifelse resolver
+      (bare $ call1 resolver $ wrap false ev)
+      (event .= ev)
+
+  let pair = [eventType', Cast handler]
+
+  next <- newf $ do
+    executor <- newf $ \resolve -> do
+      ifelse event
+        (do bare $ call1 resolve $ wrap false event
+            event .= Null)
+        (resolver .= resolve)
+    retrn $ newPromise executor
+
+  bare $ call (element !. "addEventListener") pair
+
+  it <- newf $ retrn $ ex "this"
+  return_ <- newf $ do
+    bare $ call (element !. "removeEventListener") pair
+    bare $ call1 resolver $ wrap true Undefined
+    retrn $ wrap true Undefined
+  throw_ <- newf $ \err -> do
+    retrn $ wrap true $ reject err
+  const $ lit
+    [ (ex "Symbol" !. "asyncIterator", it)
+    , (lit "next", next)
+    , (lit "return", return_)
+    , (lit "throw", Cast throw_)
+    ]
+
+eventPromise
+  :: forall a b r e. Event e
+  => Expr a -> e -> (Expr b -> Expr Bool) -> M r (Expr b)
+eventPromise el eventType p = do
+  executor <- newf $ \resolve -> mdo
+    let args = [lit $ eventString eventType, handler]
+    handler <- newf $ \ev -> do
+      ifonly (p ev) $ do
+        bare $ call1 resolve ev
+        bare $ call (el !. "removeEventListener") args
+    bare $ call (el !. "addEventListener") args
+  return $ newPromise executor

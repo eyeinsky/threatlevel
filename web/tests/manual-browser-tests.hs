@@ -46,6 +46,23 @@ site = T $ mdo
 
     return $ htmlDoc "" ""
 
+  pin "async-iterator" $ return $ \_ -> do
+
+    testAsyncIter <- cssId $ pure ()
+    stop <- cssId $ pure ()
+    js $ onEvent Load window $ do
+      iter <- iterEvent Click (findBy testAsyncIter)
+      onEvent Click (findBy stop) $ do
+        bare $ iter !/ "return"
+        log "stop"
+      forAwait iter $ \ev -> do
+        consoleLog ["event", ev]
+        log2 "iter" iter
+      log "after for await"
+    return $ htmlDoc "" $ do
+      button ! testAsyncIter $ "test button"
+      button ! stop $ "stop"
+
   return $ \_ -> do
 
     testSection <- styled section $ do
@@ -111,7 +128,7 @@ site = T $ mdo
     jsAttrValue <- js $ new value
     let
       test3html = div
-        ! DynamicA key jsAttrValue
+        ! Custom key (Dynamic jsAttrValue)
         ! test3element
         $ do
           "My attribute \"" <> toHtml key <> "\" has value"
