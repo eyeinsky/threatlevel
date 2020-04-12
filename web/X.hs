@@ -77,8 +77,8 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Concurrent
 
-import Web.Cookie as Wai
-import Network.Wai as Wai
+import qualified Web.Cookie as Wai
+import qualified Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 
@@ -288,13 +288,13 @@ postKvs req = do
   bs <- getRequestBody req
   return $ Wai.parseQueryText $ BL.toStrict bs
 
-queryParam' :: TS.Text -> Request -> Maybe (Maybe TS.Text)
+queryParam' :: TS.Text -> Wai.Request -> Maybe (Maybe TS.Text)
 queryParam' name req = lookup name $ queryText req
 
-queryParam :: TS.Text -> Request -> Maybe TS.Text
+queryParam :: TS.Text -> Wai.Request -> Maybe TS.Text
 queryParam name req = join $ queryParam' name req
 
-hasParam :: TS.Text -> Request -> Bool
+hasParam :: TS.Text -> Wai.Request -> Bool
 hasParam name req = isJust $ lookup name $ queryText req
 
 -- * HTML
@@ -425,22 +425,22 @@ redirectToHttps url =
 
 -- * Request
 
-queryText :: Request -> QueryText
-queryText = queryString ^ queryToQueryText
+queryText :: Wai.Request -> Wai.QueryText
+queryText = Wai.queryString ^ Wai.queryToQueryText
 
 -- textFormSubmission :: Request -> IO [(Maybe TL.Text, Maybe (Maybe TL.Text))]
-formSubmission :: Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
+formSubmission :: Wai.Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
 formSubmission req = do
-  lb <- strictRequestBody req
+  lb <- Wai.strictRequestBody req
   let pairs = BL8.split '&' lb :: [BL.ByteString] -- queryString
       f (k, v) = case v of
         "" -> (k, Nothing)
         _ -> (k, Just $ BL8.tail v)
-      g = strict %~ urlDecode True
+      g = strict %~ Wai.urlDecode True
       decode (k, v) = (g k, g <$> v)
   return $ map (decode . f . BL8.break (== '=')) pairs
 
-textFormSubmission :: Request -> IO [(TL.Text, Maybe TL.Text)]
+textFormSubmission :: Wai.Request -> IO [(TL.Text, Maybe TL.Text)]
 textFormSubmission req = do
   formSubmission req <&> map (f *** fmap f)
   where
