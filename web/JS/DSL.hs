@@ -94,9 +94,11 @@ for :: Expr r -> M r a -> M r ()
 for cond code = tell . (:[]) . f =<< mkCode code
    where f = For Empty cond Empty
 
-forin expr f = do
+forIn :: Expr p -> (Expr n -> M r ()) -> M r ()
+forIn expr mkBlock = do
    name <- next
-   tell [ForIn name expr [BareExpr . call1 f $ EName name]]
+   block <- mkCode $ mkBlock (EName name)
+   tell [ForIn name expr block]
 
 forAwait :: Expr p -> (Expr n -> M r ()) -> M r ()
 forAwait expr mkBlock = do
@@ -110,7 +112,8 @@ while cond code = tell . (:[]) . f =<< mkCode code
 
 break = tell [Break Nothing]
 continue = tell [Continue Nothing]
-q
+
+-- *
 
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
