@@ -64,7 +64,7 @@ data Attribute where
   Id :: Value -> Attribute
   Data :: TS.Text -> Value -> Attribute
   Boolean :: TS.Text -> Bool -> Attribute
-  OnEvent :: Event event => event -> JS.Expr a -> Attribute
+  On :: Event event => event -> JS.Expr a -> Attribute
 
 declareFields [d|
   data AttributeSet = AttributeSet
@@ -102,7 +102,7 @@ instance Attributable AttributeSet where
     Id v -> a & id .~ Just v
     Data k _ -> a & attrs %~ (HM.insert k attr)
     Boolean k _ -> a & attrs %~ (HM.insert k attr)
-    OnEvent e _ -> a & attrs %~ (HM.insert (toOn e) attr)
+    On e _ -> a & attrs %~ (HM.insert (toOn e) attr)
 
 
 instance Attributable (XMLA ns c) where

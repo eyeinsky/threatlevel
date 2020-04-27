@@ -108,11 +108,12 @@ import qualified Web.Endpoint as WE
 
 -- | Create inline on-event attribute
 on :: JS.Event.Event e => e -> Expr a -> Attribute
-on event handler = OnEvent event handler
+on event handler = On event handler
   where
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
     -- expressions.
+{-# DEPRECATED on "Use `On` instead." #-}
 
 onEvent
   :: (JS.Event.Event e, Function h) => e -> Expr a -> h

@@ -16,7 +16,7 @@ import qualified JS
 instance Render Attribute where
   renderM attr = case attr of
     Custom k v -> eq' k v
-    OnEvent et handler -> pure $ let
+    On et handler -> pure $ let
       value = renderJS $ JS.call1 handler $ JS.ex "event"
       in eq (TL.fromStrict $ toOn et) value
     Data k v -> eq' ("data-" <> k) v
