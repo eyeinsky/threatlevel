@@ -3,7 +3,7 @@
 module JS.DSL
   ( module JS.DSL
   , M, State(..), JS.Conf(..), runM
-  , new, const, var, let_, library, Function, mkCode, Final
+  , library, Function, mkCode, Final
   , HasConf(..)
   , HasRenderConf(..)
 
@@ -17,8 +17,8 @@ module JS.DSL
   ) where
 
 import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
-import X.Prelude hiding (Empty, State)
-import qualified X.Prelude as Pr hiding (State)
+import X.Prelude hiding (Empty, State, Const)
+import qualified X.Prelude as Pr
 import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS
@@ -29,9 +29,27 @@ import qualified Data.Aeson as A
 import Data.Time
 
 import JS.Syntax hiding (Conf)
-import JS.DSL.Internal as JS
+import JS.DSL.Function as JS
+import JS.DSL.Monad as JS
 import Render
 import JS.Syntax
+
+-- * Variable declarations
+
+bind :: forall a b r. (Name -> Expr a -> Statement r) -> Expr a -> Name -> M r (Expr b)
+bind decl expr name = do
+  write $ decl name expr
+  return $ EName name
+
+newPrim :: (Name -> Expr a -> Statement r) -> Expr a -> M r (Expr a)
+newPrim kw e = bind kw e =<< next
+
+new, let_, const :: Expr a -> M r (Expr a)
+new = newPrim VarDef
+{-# DEPRECATED new "Use const, let_ or var instead." #-}
+var = new
+let_ = newPrim Let
+const = newPrim Const
 
 new' :: TS.Text -> Expr a -> M r (Expr a)
 new' n e = bool ignore name =<< asks (^.namedVars)
@@ -40,7 +58,7 @@ new' n e = bool ignore name =<< asks (^.namedVars)
       ignore = let_ e
 
 bare :: Expr a -> M r ()
-bare e  = tell [ BareExpr e ]
+bare e  = write $ BareExpr e
 
 block    = let_    <=< blockExpr
 block' n = new' n <=< blockExpr
@@ -54,7 +72,7 @@ ifmelse :: Expr Bool -> M r a -> Maybe (M r a) -> M r ()
 ifmelse cond true mFalse = do
    trueCode <- mkCode true
    mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
-   tell [IfElse cond trueCode mElseCode]
+   write $ IfElse cond trueCode mElseCode
 
 ifelse :: Expr Bool -> M r a -> M r a -> M r ()
 ifelse c t e = ifmelse c t (Just e)
@@ -63,10 +81,10 @@ ifonly :: Expr Bool -> M r a -> M r ()
 ifonly c t   = ifmelse c t Nothing
 
 retrn :: Expr a -> M a ()
-retrn e = tell $ [Return $ Cast e]
+retrn e = write $ Return $ Cast e
 
 empty :: M a ()
-empty = tell [Empty]
+empty = write Empty
 
 -- * try/catch
 
@@ -75,7 +93,7 @@ tryCatch try catch = do
   try' <- mkCode try
   err <- next
   catch' <- mkCode $ catch (EName err)
-  tell [TryCatchFinally try' [(err, catch')] Nothing]
+  write $ TryCatchFinally try' [(err, catch')] Nothing
 
 tryCatchFinally :: M r () -> (Expr n -> M r ()) -> M r () -> M r ()
 tryCatchFinally try catch finally = do
@@ -83,41 +101,41 @@ tryCatchFinally try catch finally = do
   err <- next
   catch' <- mkCode $ catch (EName err)
   finally' <- mkCode finally
-  tell [TryCatchFinally try' [(err, catch')] (Just finally')]
+  write $ TryCatchFinally try' [(err, catch')] (Just finally')
 
 throw :: Expr a -> M r ()
-throw e = tell [Throw e]
+throw e = write $ Throw e
 
 -- * Loops
 
 for :: Expr r -> M r a -> M r ()
-for cond code = tell . (:[]) . f =<< mkCode code
+for cond code = write . f =<< mkCode code
    where f = For Empty cond Empty
 
 forIn :: Expr p -> (Expr n -> M r ()) -> M r ()
 forIn expr mkBlock = do
    name <- next
    block <- mkCode $ mkBlock (EName name)
-   tell [ForIn name expr block]
+   write $ ForIn name expr block
 
 forAwait :: Expr p -> (Expr n -> M r ()) -> M r ()
 forAwait expr mkBlock = do
    name <- next
    block <- mkCode $ mkBlock (EName name)
-   tell [ForAwait name expr block]
+   write $ ForAwait name expr block
 
 while :: Expr r -> M r a -> M r ()
-while cond code = tell . (:[]) . f =<< mkCode code
+while cond code = write . f =<< mkCode code
    where f = While cond
 
-break = tell [Break Nothing]
-continue = tell [Continue Nothing]
+break = write $ Break Nothing
+continue = write $ Continue Nothing
 
 -- *
 
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
-lhs .= rhs = tell [BareExpr $ lhs =: rhs]
+lhs .= rhs = write $ BareExpr $ lhs =: rhs
 
 type Promise = Expr
 

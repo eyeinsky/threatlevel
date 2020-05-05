@@ -1,14 +1,17 @@
-module JS.DSL.Identifiers where
+module JS.DSL.Identifiers (identifiers) where
 
 import X.Prelude
+import Data.Text
 import Identifiers (identifiersFilter)
 
+identifiers :: [Text]
 identifiers = identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)
 
 -- * Reserved by ECMA
 
 -- | Source: https://mathiasbynens.be/notes/reserved-keywords
 
+ecma1 :: [Text]
 ecma1 = [ "do", "if", "in", "for", "new", "try", "var", "case", "else", "enum",
    "null", "this", "true", "void", "with", "break", "catch", "class", "const",
    "false", "super", "throw", "while", "delete", "export", "import", "return",
@@ -16,6 +19,7 @@ ecma1 = [ "do", "if", "in", "for", "new", "try", "var", "case", "else", "enum",
    "function"
    ]
 
+ecma2 :: [Text]
 ecma2 = ["do", "if", "in", "for", "int", "new", "try", "var", "byte", "case",
    "char", "else", "enum", "goto", "long", "null", "this", "true", "void", "with",
    "break", "catch", "class", "const", "false", "final", "float", "short",
@@ -26,6 +30,7 @@ ecma2 = ["do", "if", "in", "for", "int", "new", "try", "var", "byte", "case",
    "implements", "instanceof", "synchronized"
    ]
 
+ecma5 :: [Text]
 ecma5 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "enum", "eval", "null", "this", "true", "void", "with", "break", "catch",
    "class", "const", "false", "super", "throw", "while", "yield", "delete",
@@ -35,6 +40,7 @@ ecma5 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "NaN", "Infinity", "undefined"
    ]
 
+ecma6 :: [Text]
 ecma6 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "enum", "eval", "null", "this", "true", "void", "with", "await", "break",
    "catch", "class", "const", "false", "super", "throw", "while", "yield",

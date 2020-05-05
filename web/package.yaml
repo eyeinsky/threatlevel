@@ -74,7 +74,7 @@ library:
   - XML
   - XML.Core
 
-  # JavaScript syntax and meta
+  # JavaScript syntax, DSL and meta
   - JS.Syntax
   - JS.DSL
   - JS.Derive
