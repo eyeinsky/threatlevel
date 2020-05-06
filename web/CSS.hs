@@ -2,6 +2,7 @@ module CSS
   ( module CSS.Internal
   , module CSS.Shorthands, prop
   , module DOM.Core
+  , CSSM
   , resetCSS
   , setBoxSizing
   , centerContent
