@@ -21,6 +21,7 @@ import Data.Functor as Export
 import Data.Monoid as Export hiding (First(..), Last(..))
 import Data.Semigroup as Export
 
+import Control.Applicative as Export ((<|>))
 import Control.Monad.IO.Class as Export
 import Control.Monad.Identity as Export hiding (fail)
 import Control.Monad.Reader as Export hiding (fail)
