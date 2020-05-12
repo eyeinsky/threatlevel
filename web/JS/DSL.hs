@@ -131,11 +131,16 @@ while cond code = write . f =<< mkCode code
 break = write $ Break Nothing
 continue = write $ Continue Nothing
 
--- *
+-- * Assignment operator
 
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
 lhs .= rhs = write $ BareExpr $ lhs =: rhs
+
+infixr 0 .=$
+(.=$) = (.=)
+
+--
 
 type Promise = Expr
 
