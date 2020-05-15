@@ -155,6 +155,7 @@ type Promise = Expr
 
 await :: Expr a -> JS.M r (Expr a)
 await = let_ . JS.Syntax.Await
+{-# DEPRECATED await "Use const $ Await instead." #-}
 
 -- | Make a promise out of a function through async
 promise :: Function f => f -> JS.M r (Promise b)

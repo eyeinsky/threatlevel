@@ -114,8 +114,8 @@ addAll' urls = newf $ \event -> do
   consoleLog ["install handler"]
   f <- async $ do
     consoleLog ["install handler: add all: ", lit urls]
-    cache <- await $ open "cache" caches
-    await $ addAll urls cache
+    cache <- const $ Await $ open "cache" caches
+    bare $ Await $ addAll urls cache
   bare $ waitUntil (call0 f) event
 
 -- *** Fetch
@@ -162,8 +162,8 @@ generate gen = do
       code = do
         req <- const $ request event
         p <- promise $ do
-          cache <- await $ open "cache" caches
-          resp <- await $ match req cache
+          cache <- const $ Await $ open "cache" caches
+          resp <- const $ Await $ match req cache
           consoleLog ["fetch: cache only:", url req]
           retrn resp
         bare $ respondWith p event
@@ -174,8 +174,8 @@ generate gen = do
       code = do
         req <- const $ request event
         p <- promise $ do
-          cache :: Expr Cache <- await $ open "cache" caches
-          resp :: Expr Response <- await $ match req cache
+          cache :: Expr Cache <- const $ Await $ open "cache" caches
+          resp :: Expr Response <- const $ Await $ match req cache
           ifelse (Cast resp) (
             do consoleLog ["fetch: cache hit:", url req]
                retrn resp
@@ -192,9 +192,9 @@ generate gen = do
     defaultFetch event = consoleLog ["fetch: url(", url $ request event, ")", "no conditions"]
 
 fetchAndCache req cache = do
-  resp :: Expr Response <- await $ fetch (Cast req) []
+  resp :: Expr Response <- const $ Await $ fetch (Cast req) []
   putCache <- async $ do -- created to see that it happens async
-    await $ put req (clone resp) cache
+    bare $ Await $ put req (clone resp) cache
   bare $ call0 putCache
   return resp
 
@@ -206,15 +206,15 @@ pwaDiagnostics = do
       mklink <- newf $ \url -> do
         retrn $ "<a href='" + url + "'>" + url + "</a>"
       withCache <- async $ \cacheName -> do
-        cache <- await $ open cacheName caches
-        requests <- await $ keys cache
+        cache <- const $ Await $ open cacheName caches
+        requests <- const $ Await $ keys cache
         g <- newf $ \req -> retrn $ url req
         urls <- const $ call1 (requests !. "map") g
         let links = call1 (urls !. "map") mklink
         retrn $ cacheName + ":<br/>- " + (JS.join "<br/>- " links)
       main <- async $ do
-        keys <- await $ keys caches
-        str <- await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
+        keys <- const $ Await $ keys caches
+        str <- const $ Await $ call1 (ex "Promise" !. "all") $ call1 (keys !. "map") withCache
 
         bare $ DOM.documentWrite str
       bare $ DOM.addEventListener (Cast DOM.window) DOM.Load (Cast main)
