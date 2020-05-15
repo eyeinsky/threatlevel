@@ -8,11 +8,11 @@ module JS.DSL
   -- * JS.Syntax
   , JS.Syntax.Conf
   , Statement(BareExpr, TryCatchFinally)
-  , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await)
+  , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await, Assign)
   , Attr(..)
   , Literal(..)
   , Code
-  , call, call0, call1, (!.), (.!), (=:), ex
+  , call, call0, call1, (!.), (.!), ex
   ) where
 
 import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
@@ -133,12 +133,21 @@ continue = write $ Continue Nothing
 
 -- * Assignment operator
 
+-- | Shorthands for assignment statement
 infixr 4 .=
 (.=) :: Expr a -> Expr b -> M r ()
-lhs .= rhs = write $ BareExpr $ lhs =: rhs
+lhs .= rhs = write $ BareExpr $ lhs `Assign` rhs
 
+-- | @infixr 0@ shorthand for assignment statement -- for combining
+-- with the dollar operator (@$@).
 infixr 0 .=$
 (.=$) = (.=)
+
+-- | Compound assignments in statement form
+a .+= b = a .= (a + b)
+a .-= b = a .= (a - b)
+a .*= b = a .= (a * b)
+a ./= b = a .= (a / b)
 
 --
 
@@ -298,11 +307,6 @@ instance Num (Expr a) where
 instance Fractional (Expr a) where
    fromRational s = lit s
    e1 / e2 = Op $ OpBinary Div e1 e2
-
-a .+= b = a .= (a + b)
-a .-= b = a .= (a - b)
-a .*= b = a .= (a * b)
-a ./= b = a .= (a / b)
 
 pr :: M r a -> IO ()
 pr = TL.putStrLn . render (Indent 2) . snd . fst . run def

@@ -130,10 +130,6 @@ ex txt = EName $ Name txt
 
 (.!) expr key  = Arr expr key
 
-infixr 4 =:
-(=:) :: Expr a -> Expr b -> Expr b
-(=:) a b = Assign a b
-
 call :: Expr a -> [Expr b] -> Expr c
 call  f as = FuncCall f as
 
