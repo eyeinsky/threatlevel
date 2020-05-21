@@ -21,7 +21,7 @@ funcPrim
   -> Conf -> State -> a -> (Expr (Type a), State)
 funcPrim constr r s0 fexp = (constr Nothing args code, s1)
    where
-     ((args, code), s1) = runM r s0 (funcLit fexp)
+     ((args, code), s1) = run r s0 (funcLit fexp)
 
 -- | The 'Function' class turns function literals into typed
 -- functions.

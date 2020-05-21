@@ -102,7 +102,7 @@ instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
       state0 <- gets (^.jsState)
       conf <- asks (^.jsConf)
-      let ((result, code), state1) = JS.runM conf state0 jsm
+      let ((result, code), state1) = JS.run conf state0 jsm
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ state1)
       return result

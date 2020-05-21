@@ -43,8 +43,8 @@ instance Default Conf where
 
 type M r a = WriterT (Code r) (StateT State (ReaderT Conf Identity)) a
 
-runM :: Conf -> State -> M r a -> ((a, Code r), State)
-runM r s = id . rd . st . wr
+run :: Conf -> State -> M r a -> ((a, Code r), State)
+run r s = id . rd . st . wr
    where id = runIdentity
          st = flip runStateT s
          wr = runWriterT
@@ -82,4 +82,4 @@ mkCode mcode = do
     fromNext :: Conf -> State -> M r t -> (Code r, State)
     fromNext b s0 m = (w, s1)
       where
-        ((_, w), s1) = runM b s0 m
+        ((_, w), s1) = run b s0 m

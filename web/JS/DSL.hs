@@ -2,7 +2,7 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
-  , M, State(..), JS.Conf(..), runM
+  , M, State(..), JS.Conf(..), run
   , library, Function, mkCode, Final
   , HasConf(..)
   , HasRenderConf(..)
@@ -305,13 +305,13 @@ a .*= b = a .= (a * b)
 a ./= b = a .= (a / b)
 
 pr :: M r a -> IO ()
-pr = TL.putStrLn . render (Indent 2) . snd . fst . runM def def
+pr = TL.putStrLn . render (Indent 2) . snd . fst . run def def
 
 -- * Modules
 
 lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = let
-    codeText = render Minify . snd . fst . runM def def $ mcode -- fix: take config from somewhere
+    codeText = render Minify . snd . fst . run def def $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
   in do
@@ -324,7 +324,7 @@ lib mcode = let
 
 instance Render (M r a) where
   type Conf (M r a) = JS.Syntax.Conf
-  renderM = renderM . snd . fst . runM def def
+  renderM = renderM . snd . fst . run def def
 
 -- * Semigroup and monoid instances
 

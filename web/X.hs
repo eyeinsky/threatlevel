@@ -41,7 +41,7 @@ import DOM as Export hiding (
 
 import JS as Export hiding (
   -- todo: describe these
-  dir, for, runM, Conf, String, State
+  dir, for, run, Conf, String, State
   )
 
 import Web.Response as Export hiding (
@@ -302,7 +302,7 @@ evalJSM jsm = do
   let
     state = stWeb^.WM.jsState
     conf = conf' ^. WM.jsConf.JS.renderConf
-    ((_, code :: Code b), _) = JS.runM (JS.Conf True conf) state jsm
+    ((_, code :: Code b), _) = JS.run (JS.Conf True conf) state jsm
   return code
 
 exec'
