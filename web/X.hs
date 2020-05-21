@@ -127,8 +127,8 @@ onEvent eventType obj handler = do
 post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
 get url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
 
-postJs url = DOM.xhrJs "POST" (lit $ render' url)
-getJs url = DOM.xhrJs "GET" (lit $ render' url)
+postJs rc url = DOM.xhrJs rc "POST" (lit $ render' url)
+getJs rc url = DOM.xhrJs rc "GET" (lit $ render' url)
 
 
 type Opts a b = (IsString a, IsString b, ToExpr [(a, b)])
@@ -290,7 +290,7 @@ favicon url = HTML.link ! rel "icon" ! href url $ pure ()
 
 -- * Endpoint
 
-getRenderConf = WM.getConf <&> view (WM.jsConf. JS.renderConf)
+getRenderConf = WM.getConf <&> view WM.jsConf
 
 -- | Render JSM to Expr a within the current MonadWeb context.
 evalJSM
@@ -298,11 +298,7 @@ evalJSM
   => JS.M b a -> m (Code b)
 evalJSM jsm = do
   stWeb <- WM.getState
-  conf' <- WM.getConf
-  let
-    state = stWeb^.WM.jsState
-    conf = conf' ^. WM.jsConf.JS.renderConf
-    ((_, code :: Code b), _) = JS.run (JS.Conf True conf) state jsm
+  let ((_, code :: Code b), _) = JS.run (stWeb^.WM.jsState) jsm
   return code
 
 exec'

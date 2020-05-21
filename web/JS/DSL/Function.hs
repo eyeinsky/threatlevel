@@ -18,10 +18,10 @@ tcall f as = TypedFCall f as
 funcPrim
   :: Function a
   => (Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a))
-  -> Conf -> State -> a -> (Expr (Type a), State)
-funcPrim constr r s0 fexp = (constr Nothing args code, s1)
+  -> State -> a -> (Expr (Type a), State)
+funcPrim constr s0 fexp = (constr Nothing args code, s1)
    where
-     ((args, code), s1) = run r s0 (funcLit fexp)
+     ((args, code), s1) = run s0 (funcLit fexp)
 
 -- | The 'Function' class turns function literals into typed
 -- functions.

@@ -14,13 +14,6 @@ import qualified JS.Syntax
 type Idents = [TS.Text]
 
 declareFields [d|
-  data Conf = Conf
-    { confNamedVars :: Bool
-    , confRenderConf :: JS.Syntax.Conf
-    } deriving (Eq, Show, Read)
-  |]
-
-declareFields [d|
   data State = State
     { stateIdents :: Idents
     , stateNamedVars :: S.Set TS.Text
@@ -28,27 +21,16 @@ declareFields [d|
     }
   |]
 
-class HasConf s a | s -> a where
-  conf :: Lens' s a
-  {-# MINIMAL conf #-}
-
-instance HasConf Conf Conf where
-  conf = id
-
 instance Default State where
   def = State identifiers S.empty S.empty
 
-instance Default Conf where
-  def = Conf True (JS.Syntax.Indent 2)
+type M r a = WriterT (Code r) (StateT State Identity) a
 
-type M r a = WriterT (Code r) (StateT State (ReaderT Conf Identity)) a
-
-run :: Conf -> State -> M r a -> ((a, Code r), State)
-run r s = id . rd . st . wr
+run :: State -> M r a -> ((a, Code r), State)
+run s m = id . st . wr $ m
    where id = runIdentity
          st = flip runStateT s
          wr = runWriterT
-         rd = flip runReaderT r
 
 write :: Statement r -> M r ()
 write stm = tell [stm]
@@ -76,10 +58,10 @@ pushNamedExpr n _ = do
      overwriting any previously defined variables. -}
 mkCode :: M sub a -> M parent (Code sub)
 mkCode mcode = do
-  (w, s1) <- fromNext <$> ask <*> get <*> pure mcode
+  (w, s1) <- fromNext <$> get <*> pure mcode
   put s1 *> pure w
   where
-    fromNext :: Conf -> State -> M r t -> (Code r, State)
-    fromNext b s0 m = (w, s1)
+    fromNext :: State -> M r t -> (Code r, State)
+    fromNext s0 m = (w, s1)
       where
-        ((_, w), s1) = run b s0 m
+        ((_, w), s1) = run s0 m

@@ -2,12 +2,11 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL
   ( module JS.DSL
-  , M, State(..), JS.Conf(..), run
+  , M, State(..), run
   , library, Function, mkCode, Final
-  , HasConf(..)
-  , HasRenderConf(..)
 
   -- * JS.Syntax
+  , JS.Syntax.Conf
   , Statement(BareExpr, TryCatchFinally)
   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await)
   , Attr(..)
@@ -29,6 +28,7 @@ import qualified Data.Aeson as A
 import Data.Time
 
 import JS.Syntax hiding (Conf)
+import qualified JS.Syntax
 import JS.DSL.Function as JS
 import JS.DSL.MTL as JS
 import Render
@@ -52,7 +52,7 @@ let_ = newPrim Let
 const = newPrim Const
 
 new' :: TS.Text -> Expr a -> M r (Expr a)
-new' n e = bool ignore name =<< asks (^.namedVars)
+new' n e = name
    where
       name = bind Let e . Name =<< pushNamedExpr n e
       ignore = let_ e
@@ -178,12 +178,12 @@ func
   -> f
   -> M parent (Expr (Type f))
 func constr f = do
-  (a, s) <- funcPrim constr <$> ask <*> get <*> pure f
+  (a, s) <- funcPrim constr <$> get <*> pure f
   put s *> pure a
 
 -- | Create function, starting from empty state and reader
 funcPure :: Function f => f -> Expr (Type f)
-funcPure = funcPrim AnonFunc def def <&> fst
+funcPure = funcPrim AnonFunc def <&> fst
 
 a !/ b = call0 (a !. b)
 a !// b = call1 (a !. b)
@@ -305,13 +305,13 @@ a .*= b = a .= (a * b)
 a ./= b = a .= (a / b)
 
 pr :: M r a -> IO ()
-pr = TL.putStrLn . render (Indent 2) . snd . fst . run def def
+pr = TL.putStrLn . render (Indent 2) . snd . fst . run def
 
 -- * Modules
 
 lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = let
-    codeText = render Minify . snd . fst . run def def $ mcode -- fix: take config from somewhere
+    codeText = render Minify . snd . fst . run def $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
   in do
@@ -324,7 +324,7 @@ lib mcode = let
 
 instance Render (M r a) where
   type Conf (M r a) = JS.Syntax.Conf
-  renderM = renderM . snd . fst . run def def
+  renderM = renderM . snd . fst . run def
 
 -- * Semigroup and monoid instances
 

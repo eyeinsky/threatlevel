@@ -88,7 +88,7 @@ handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
     collapse code doc
       = doc
       & add (HTML.style $ HTML.raw $ render () $ code ^. W.cssCode)
-      & add (HTML.script $ HTML.raw $ render (mc^.W.jsConf.JS.renderConf) $ code ^. W.jsCode)
+      & add (HTML.script $ HTML.raw $ render (mc^.W.jsConf) $ code ^. W.jsCode)
       where add w = HTML.head' %~ (>> w)
 
 -- * To handler
@@ -135,8 +135,11 @@ api
 api m = next >>= flip pin m
 
 xhrPost' m = do
+  c <- lift W.getConf
+  let rc = c^.W.jsConf
   url :: URL <- api m
-  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.lit $ render' url) data_ []
+  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ ->
+    xhrPost rc (JS.lit $ render' url) data_ []
 
 -- | Add segment with api endpoint and return its full url
 pin

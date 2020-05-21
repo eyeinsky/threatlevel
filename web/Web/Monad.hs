@@ -30,7 +30,7 @@ declareFields [d|
 declareFields [d|
   data Conf = Conf
     { confJsConf :: JS.Conf
-    }
+    } deriving (Eq, Show, Read)
   |]
 
 instance Default Conf where
@@ -101,8 +101,7 @@ cssId' = cssF (Id . Static . TL.toStrict)
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
       state0 <- gets (^.jsState)
-      conf <- asks (^.jsConf)
-      let ((result, code), state1) = JS.run conf state0 jsm
+      let ((result, code), state1) = JS.run state0 jsm
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ state1)
       return result

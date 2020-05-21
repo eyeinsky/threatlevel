@@ -81,6 +81,8 @@ verifyToken id callback = do
     let mbtokeninfo = r ^? Wreq.responseBody . Aeson._JSON :: Maybe Tokeninfo
     callback $ mbtokeninfo
 
+  c <- lift X.getConf
+  let rc = c^.X.jsConf
   doSignIn <- lift $ js $ do
 
     doGoogleSignIn <- let_ Undefined
@@ -97,7 +99,7 @@ verifyToken id callback = do
           user <- await $ call1 (googleAuth !. "signIn") prompt
           token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
-          DOM.xhrJs "POST" (lit $ renderURL url) ("id_token=" + token) []
+          DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
         doGoogleSignIn .= doLogin'
         consoleLog ["google ready"]
 

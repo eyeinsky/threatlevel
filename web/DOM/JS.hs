@@ -207,9 +207,8 @@ xhrRaw meth uri data_ callback = do
   bare (call (xhr !. "open") [Cast meth, uri, lit True])
   bare $ call1 (xhr !. "send") data_
 
-xhrJs :: Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
-xhrJs meth uri data_ args = do
-  rc :: JS.Syntax.Conf <- ask <&> (^.renderConf)
+xhrJs :: JS.Syntax.Conf -> Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
+xhrJs rc meth uri data_ args = do
   wrap <- newf $ \(resp :: Expr ()) -> do
     let funcText = responseText resp
         argsText = lit $ runReader (JS.Syntax.unargs args) rc
@@ -218,8 +217,8 @@ xhrJs meth uri data_ args = do
 
 responseText resp = resp !. "target" !. "responseText"
 
-xhrGet uri args = xhrJs "GET" uri Undefined args
-xhrPost uri data_ args = xhrJs "POST" uri data_ args
+xhrGet rc uri args = xhrJs rc "GET" uri Undefined args
+xhrPost rc uri data_ args = xhrJs rc "POST" uri data_ args
 
 -- ** DOM/Event
 
