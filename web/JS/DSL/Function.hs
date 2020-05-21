@@ -4,7 +4,7 @@ import Prelude
 import Data.Functor
 
 import JS.Syntax hiding (Conf)
-import JS.DSL.Monad
+import JS.DSL.MTL
 
 
 -- *** Typed

@@ -30,7 +30,7 @@ import Data.Time
 
 import JS.Syntax hiding (Conf)
 import JS.DSL.Function as JS
-import JS.DSL.Monad as JS
+import JS.DSL.MTL as JS
 import Render
 import JS.Syntax
 

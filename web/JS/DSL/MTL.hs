@@ -1,4 +1,4 @@
-module JS.DSL.Monad where
+module JS.DSL.MTL where
 
 import X.Prelude hiding (Empty, State, Const)
 import qualified Data.Text as TS
@@ -12,7 +12,6 @@ import qualified JS.Syntax
 -- * Monad
 
 type Idents = [TS.Text]
-type W r = Code r
 
 declareFields [d|
   data Conf = Conf
@@ -42,9 +41,9 @@ instance Default State where
 instance Default Conf where
   def = Conf True (JS.Syntax.Indent 2)
 
-type M r = WriterT (W r) (StateT State (ReaderT Conf Identity))
+type M r a = WriterT (Code r) (StateT State (ReaderT Conf Identity)) a
 
-runM :: Conf -> State -> M r a -> ((a, W r), State)
+runM :: Conf -> State -> M r a -> ((a, Code r), State)
 runM r s = id . rd . st . wr
    where id = runIdentity
          st = flip runStateT s
@@ -69,17 +68,18 @@ pushNamedExpr n _ = do
    modify (namedVars %~ S.insert n)
    return n
 
-{- | Evaluate JSM code to Code aka W r aka [Statement]
+{- | Evaluate JSM code to @Code r@
+
      It doesn't actually write anything, just runs
      a JSM code into its code value starting from the
      next available name (Int) -- therefore not
      overwriting any previously defined variables. -}
-mkCode :: M sub a -> M parent (W sub)
+mkCode :: M sub a -> M parent (Code sub)
 mkCode mcode = do
   (w, s1) <- fromNext <$> ask <*> get <*> pure mcode
   put s1 *> pure w
   where
-    fromNext :: Conf -> State -> M r t -> (W r, State)
+    fromNext :: Conf -> State -> M r t -> (Code r, State)
     fromNext b s0 m = (w, s1)
       where
         ((_, w), s1) = runM b s0 m
