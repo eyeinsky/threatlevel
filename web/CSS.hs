@@ -1,5 +1,5 @@
 module CSS
-  ( module CSS.Internal
+  ( module CSS.Syntax
   , module CSS.Shorthands, prop
   , module DOM.Core
   , CSSM
@@ -16,7 +16,7 @@ import X.Prelude
 
 import Web.Browser
 
-import CSS.Internal hiding
+import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
 

@@ -93,7 +93,7 @@ import X.Prelude as P
 import JS hiding (String)
 
 import CSS.Monad (CSSM)
-import qualified CSS.Internal as CSS
+import qualified CSS.Syntax as CSS
 import qualified URL
 import qualified HTML
 import qualified JS.Event

@@ -6,8 +6,8 @@ import Control.Monad.RWS
 import Identifiers as Idents
 
 import X.Prelude hiding (State)
-import CSS.Internal
 
+import CSS.Syntax
 
 -- * DSL setup
 

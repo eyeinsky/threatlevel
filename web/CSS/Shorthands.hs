@@ -2,7 +2,7 @@
 module CSS.Shorthands where
 
 import X.Prelude
-import CSS.Internal
+import CSS.Syntax
 import CSS.Monad
 
 import qualified Data.Text.Lazy as TL

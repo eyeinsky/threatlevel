@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE UndecidableInstances #-}
-module CSS.Internal where
+module CSS.Syntax where
 
 import X.Prelude
 import Data.Text.Format
