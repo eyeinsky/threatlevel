@@ -458,11 +458,11 @@ siteMain
   => WM.Conf
   -> WM.State
   -> URL
-  -> Warp.Port
+  -> Warp.Settings
   -> Maybe Warp.TLSSettings
   -> T r
   -> IO ()
-siteMain mc ms url port maybeTls site = do
+siteMain mc ms url settings maybeTls site = do
   handler <- WE.toHandler mc ms url def site
   let handler' req respond = do
         r <- handler req
@@ -471,7 +471,6 @@ siteMain mc ms url port maybeTls site = do
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'
   where
-    settings = Warp.setPort port Warp.defaultSettings
     err = error "path not found"
 
 hotHttp
@@ -479,12 +478,12 @@ hotHttp
   => k
   -> WM.Conf -> WM.State
   -> URL.URL
-  -> Warp.Port
+  -> Warp.Settings
   -> WE.T r
   -> (IO (), IO (), IO ())
-hotHttp name mc ms url port site = (hot, stop, main)
+hotHttp name mc ms url settings site = (hot, stop, main)
   where
-    main = siteMain mc ms url port Nothing site
+    main = siteMain mc ms url settings Nothing site
     (hot, stop) = mkHot name main
 
 hotHttps
@@ -492,13 +491,13 @@ hotHttps
   => k
   -> WM.Conf -> WM.State
   -> URL.URL
-  -> Warp.Port
+  -> Warp.Settings
   -> Warp.TLSSettings
   -> WE.T r
   -> (IO (), IO (), IO ())
-hotHttps name mc ms url port tls site = (hot, stop, main)
+hotHttps name mc ms url settings tls site = (hot, stop, main)
   where
-    main = siteMain mc ms url port (Just tls) site
+    main = siteMain mc ms url settings (Just tls) site
     (hot, stop) = mkHot name main
 
 redirectToHttps :: URL -> IO ()
