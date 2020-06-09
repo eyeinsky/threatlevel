@@ -101,6 +101,7 @@ import qualified DOM
 import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
+import HTTP.Common (toPayload)
 
 -- * Prelude
 
@@ -466,12 +467,14 @@ siteMain mc ms url settings maybeTls site = do
   handler <- WE.toHandler mc ms url def site
   let handler' req respond = do
         r <- handler req
-        r & fromMaybe err ^ HR.toRaw ^ respond
+        r & fromMaybe (err req) ^ HR.toRaw ^ respond
   case maybeTls of
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'
   where
-    err = error "path not found"
+    err req = error
+      $ "Path not found: " <> show (Wai.pathInfo req)
+      <> ", URL: " <> TL.unpack (toPayload url)
 
 hotHttp
   :: (WE.Confy r, Default r, Ord k)
