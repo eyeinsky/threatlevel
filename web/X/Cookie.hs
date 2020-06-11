@@ -4,8 +4,7 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import X.Prelude
 import Data.Time
-import URL (Path)
-import URL.ToPayload ()
+import URL (Path, render')
 import HTTP.Common (ToPayload(..))
 import qualified HTTP.Header as H
 import Web.Response
@@ -45,7 +44,7 @@ instance ToPayload Field where
       where fmt = "%a, %d %b %Y %X GMT"
     MaxAge n -> "Max-Age=" <> TL.pack (show n)
     Domain ts -> "Domain=" <> TL.fromStrict ts
-    Path p -> "Path=" <> toPayload p
+    Path p -> "Path=" <> render' p
     Secure -> "Secure"
     HttpOnly -> "HttpOnly"
     SameSiteStrict -> "SameSite=Strict"

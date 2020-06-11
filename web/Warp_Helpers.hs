@@ -19,7 +19,7 @@ import Network.Wai.Handler.Warp hiding (getPort)
 import qualified Network.Wai.Handler.WarpTLS as TLS
 import Network.HTTP.Types
 
-import URL.ToPayload as URL
+import URL
 
 import Data.Hashable (Hashable)
 
@@ -70,7 +70,7 @@ initSite :: (Authority, IO Handler) -> IO (B.ByteString, Handler)
 initSite (a, b) = (toHost a,) <$> b
 
 toHost :: Authority -> B.ByteString
-toHost authority = BL.toStrict . TLE.encodeUtf8 $ withoutSchema baseUrl
+toHost authority = BL.toStrict . TLE.encodeUtf8 $ flip runReader () $ withoutSchema baseUrl
    where
      baseUrl = BaseURL (Proto "http") (view host authority) (view port authority)
 

@@ -61,7 +61,6 @@ library:
   - HTTP.Response
   - HTTP.Response.InlineFile
   - HTTP
-  - URL.ToPayload
   - URL.TH
   - Warp_Helpers
   - CSS

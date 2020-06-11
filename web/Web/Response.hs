@@ -19,18 +19,17 @@ import qualified JS
 import qualified JS.Syntax
 import qualified HTML
 import Render
-import HTTP.Common (ToPayload(..))
-import URL.ToPayload as URL
+import URL
 
 -- * Url path
 
 renderURL :: URL -> TL.Text
-renderURL url = toPayload url
+renderURL url = render' url
 
 toTextList :: URL -> [Segment]
 toTextList url = domain : url^.URL.segments
    where
-     domain = TL.toStrict $ toPayload (url^.proto) <> "://" <> toPayload (url^.authority)
+     domain = TL.toStrict $ render' (url^.proto) <> "://" <> render' (url^.authority)
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse

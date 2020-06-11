@@ -101,7 +101,6 @@ import qualified DOM
 import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
-import HTTP.Common (toPayload)
 
 -- * Prelude
 
@@ -474,7 +473,7 @@ siteMain mc ms url settings maybeTls site = do
   where
     err req = error
       $ "Path not found: " <> show (Wai.pathInfo req)
-      <> ", URL: " <> TL.unpack (toPayload url)
+      <> ", URL: " <> TL.unpack (URL.render' url)
 
 hotHttp
   :: (WE.Confy r, Default r, Ord k)
