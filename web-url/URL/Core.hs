@@ -62,7 +62,8 @@ instance Semigroup Params where
 instance Monoid Params where
   mempty = Params mempty
 
-data Fragment = Fragment T
+newtype Fragment = Fragment T
+  deriving newtype (Semigroup, Monoid)
 
 declareFields [d|
   data Authority = Authority
