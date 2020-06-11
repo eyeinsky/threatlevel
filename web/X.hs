@@ -125,11 +125,11 @@ onEvent eventType obj handler = do
   return $ Cast handler'
 
 
-post url dt cb = DOM.xhrRaw "POST" (lit $ WR.renderURL url) dt cb
-get url dt cb = DOM.xhrRaw "GET" (lit $ WR.renderURL url) dt cb
+post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
+get url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
 
-postJs url = DOM.xhrJs "POST" (lit $ WR.renderURL url)
-getJs url = DOM.xhrJs "GET" (lit $ WR.renderURL url)
+postJs url = DOM.xhrJs "POST" (lit $ render' url)
+getJs url = DOM.xhrJs "GET" (lit $ render' url)
 
 
 type Opts a b = (IsString a, IsString b, ToExpr [(a, b)])
@@ -158,7 +158,7 @@ jsonPayload data_ =
 -- * HTML
 
 href :: URL.URL -> Attribute
-href url = HTML.href (Static $ TL.toStrict $ WR.renderURL url)
+href url = HTML.href (Static $ TL.toStrict $ render' url)
 
 for :: Id -> Attribute
 for id = HTML.for (unId id)
@@ -278,7 +278,7 @@ includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
 -- | Helper to turn attribute into URL
 urlAttr :: URL.URL -> DOM.Value
-urlAttr url = Static $ TL.toStrict $ WE.renderURL url
+urlAttr url = Static $ TL.toStrict $ render' url
 
 src :: URL.URL -> Attribute
 src url = HTML.src (urlAttr url)

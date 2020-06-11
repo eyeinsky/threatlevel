@@ -10,13 +10,17 @@ dependencies:
   - base
   - lens
   - text
+  - mtl
   - attoparsec
+  - http-types
+  - render
 
 library:
   exposed-modules:
     - URL
     - URL.Core
     - URL.Parse
+    - URL.Render
 
 default-extensions:
   - Arrows

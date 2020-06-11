@@ -12,7 +12,7 @@ import qualified Data.Text.Encoding as TS
 import qualified Data.Text as T
 import Data.Text.Format
 
-import URL hiding (T)
+import URL hiding (T, mkAuth, urlEncode', withoutSchema)
 import HTTP.Common hiding (un)
 import Network.HTTP.Types
 

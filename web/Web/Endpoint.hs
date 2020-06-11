@@ -1,7 +1,4 @@
-module Web.Endpoint
-  ( module Web.Endpoint
-  , module Web.Response
-  ) where
+module Web.Endpoint where
 
 
 import X.Prelude hiding (Reader, Writer, State)
@@ -20,7 +17,6 @@ import qualified JS
 import DOM
 
 import qualified Web.Response as Re
-import Web.Response (renderURL)
 import qualified Network.Wai as Wai
 import qualified Trie as Tr
 
@@ -138,7 +134,7 @@ api m = next >>= flip pin m
 
 xhrPost' m = do
   url :: URL <- api m
-  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.lit $ renderURL $ url) data_ []
+  lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ -> xhrPost (JS.lit $ render' url) data_ []
 
 -- | Add segment with api endpoint and return its full url
 pin
