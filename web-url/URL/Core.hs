@@ -113,6 +113,9 @@ instance HasPort URL Port where
 instance HasSegments URL [T] where
   segments = path . segments
 
+instance HasSegments [Segment] [T] where
+  segments = id
+
 base :: Lens' URL BaseURL
 base f url = fmap to (f from)
   where

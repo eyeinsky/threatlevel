@@ -52,9 +52,11 @@ type Built r = Tr.Trie Segment (EHandler r, W.State, W.Writer)
 
 build
   :: W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
-build mc ms domain r m = Tr.fromList <$> list
+build mc ms rootUrl r m = Tr.fromList <$> list
   where
-    list = eval mc ms domain r m <&> fmap (_1 %~ tail . Re.toTextList)
+    rootPath = rootUrl ^. URL.segments
+    list = eval mc ms rootUrl r m
+      <&> fmap (_1 %~ drop (length rootPath) . view URL.segments)
 
     eval :: W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
     eval mc js_css_st0 url (r :: r) (m :: T r) = do
@@ -101,8 +103,8 @@ toHandler
   :: forall r. Confy r
   => W.Conf -> W.State -> URL -> r -> T r
   -> IO (Wai.Request -> IO (Maybe Re.Response))
-toHandler mc ms domain conf0 site = do
-  app <- build mc ms domain conf0 site
+toHandler mc ms rootUrl conf0 site = do
+  app <- build mc ms rootUrl conf0 site
   return $ \req -> let
     path = Wai.pathInfo req :: [Segment]
     res :: Maybe (EHandler r, W.State, W.Writer)

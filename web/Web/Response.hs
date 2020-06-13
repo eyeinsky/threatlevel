@@ -26,11 +26,6 @@ import URL
 renderURL :: URL -> TL.Text
 renderURL url = render' url
 
-toTextList :: URL -> [Segment]
-toTextList url = domain : url^.URL.segments
-   where
-     domain = TL.toStrict $ render' (url^.proto) <> "://" <> render' (url^.authority)
-
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
   JS :: JS.Syntax.Conf -> JS.Expr a -> AnyResponse
