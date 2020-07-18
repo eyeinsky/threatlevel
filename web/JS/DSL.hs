@@ -51,10 +51,7 @@ let_ = newPrim Let
 const = newPrim Const
 
 new' :: TS.Text -> Expr a -> M r (Expr a)
-new' n e = name
-   where
-      name = bind Let e . Name =<< pushNamedExpr n e
-      ignore = let_ e
+new' n e = bind Let e =<< pushName n
 
 bare :: Expr a -> M r ()
 bare e  = write $ BareExpr e

@@ -3,6 +3,7 @@ module JS.DSL.MTL where
 import X.Prelude hiding (Empty, State, Const)
 import qualified Data.Text as TS
 import qualified Data.Set as S
+import qualified Data.HashMap.Strict as HS
 
 import qualified Identifiers as IS
 import JS.DSL.Identifiers
@@ -12,16 +13,15 @@ import JS.Syntax hiding (Conf)
 
 type Idents = [TS.Text]
 
-declareFields [d|
-  data State = State
-    { stateIdents :: Idents
-    , stateNamedVars :: S.Set TS.Text
-    , stateLibrary :: S.Set Int
-    }
-  |]
+data State = State
+  { stateFreshIdentifiers :: Idents
+  , stateInUseIdentifiers :: HS.HashMap TS.Text Idents
+  , stateLibrary :: S.Set Int
+  }
+makeFields ''State
 
 instance Default State where
-  def = State identifiers S.empty S.empty
+  def = State identifiers mempty S.empty
 
 type M r a = WriterT (Code r) (StateT State Identity) a
 
@@ -38,16 +38,22 @@ write stm = tell [stm]
 
 next :: M r Name
 next = do
-  name :: TS.Text <- IS.next idents
-  set :: S.Set TS.Text <- gets (^.namedVars)
-  if S.member name set
+  name :: TS.Text <- IS.next freshIdentifiers
+  names <- gets (view inUseIdentifiers)
+  if HS.member name names
     then next
     else return $ Name name
 
-pushNamedExpr :: TS.Text -> Expr a -> M r TS.Text
-pushNamedExpr n _ = do
-   modify (namedVars %~ S.insert n)
-   return n
+pushName :: TS.Text -> M r Name
+pushName name = do
+  names <- gets (view inUseIdentifiers)
+  case HS.lookup name names of
+    Just (s : uffixes) -> do
+      modify (inUseIdentifiers %~ HS.insert name uffixes)
+      return $ Name $ name <> "_" <> s
+    _ -> do
+      modify (inUseIdentifiers %~ HS.insert name IS.identifierSource)
+      return $ Name name
 
 {- | Evaluate JSM code to @Code r@
 

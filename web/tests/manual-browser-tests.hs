@@ -65,6 +65,11 @@ site = T $ mdo
       button ! testAsyncIter $ "test button"
       button ! stop $ "stop"
 
+  _ <- pin "suffix-repeated-names" $ return $ \_ -> do
+    js $ replicateM_ 10 $ new' "test" Undefined
+    return $ htmlDoc ""
+      "Check page source: all js variables with name \"test\" should be made unique unique with a prefix."
+
   return $ \_ -> do
 
     testSection <- styled section $ do
@@ -127,7 +132,7 @@ site = T $ mdo
     test3container <- cssId $ pure ()
     test3element <- cssId $ pure ()
     test3target <- cssId $ pure ()
-    jsAttrValue <- js $ new value
+    jsAttrValue <- js $ const value
     let
       test3html = div
         ! Custom key (Dynamic jsAttrValue)
