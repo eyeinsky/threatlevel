@@ -1,6 +1,7 @@
 module Main where
 
 import qualified Data.Text as TS
+import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
 import qualified Rapid
 
@@ -23,16 +24,17 @@ instance Default RunConf where
 main :: IO ()
 main = do
   let
+    settings = Warp.setPort 8087 Warp.defaultSettings
     tls = Just $ Warp.tlsSettings
       "tmp/tests.fw.yay.pem"
       "tmp/tests.fw.yay-key.pem"
-  siteMain def def [url|https://tests.fw.yay:8087|] 8087 tls (site)
+  siteMain def def [url|https://tests.fw.yay:8087|] settings tls (site)
 
 site :: T RunConf
 site = T $ mdo
   liftIO $ putStrLn "Site init"
 
-  pin "js-try-catch" $ return $ \_ -> do
+  _ <- pin "js-try-catch" $ return $ \_ -> do
 
     js $ do
       log "tryCatch"
@@ -46,13 +48,13 @@ site = T $ mdo
 
     return $ htmlDoc "" ""
 
-  pin "async-iterator" $ return $ \_ -> do
+  _ <- pin "async-iterator" $ return $ \_ -> do
 
     testAsyncIter <- cssId $ pure ()
     stop <- cssId $ pure ()
-    js $ onEvent Load window $ do
+    _ <- js $ onEvent Load window $ do
       iter <- iterEvent Click (findBy testAsyncIter)
-      onEvent Click (findBy stop) $ do
+      _ <- onEvent Click (findBy stop) $ do
         bare $ iter !/ "return"
         log "stop"
       forAwait iter $ \ev -> do
@@ -73,7 +75,7 @@ site = T $ mdo
 
     -- * Test 1
 
-    jsCircle <- newId
+    jsCircle <- cssId $ pure ()
     let circle = embed $ SVG.svg
           ! SVG.width "100"
           ! SVG.height "100"
@@ -101,11 +103,11 @@ site = T $ mdo
 
     -- * Test 2
 
-    test2target <- newId
-    test2buttonHtml <- newId
-    test2buttonJs <- newId
+    test2target <- cssId $ pure ()
+    test2buttonHtml <- cssId $ pure ()
+    test2buttonJs <- cssId $ pure ()
     click <- js $ newf $ log "click"
-    let test2button = button ! on Click click $ "click me"
+    let test2button = button ! On Click click $ "click me"
     js $ do
       bare . addEventListener (Cast window) Load =<<$ newf $ do
         fragment <- createHtmls $ test2button ! test2buttonJs
@@ -122,9 +124,9 @@ site = T $ mdo
     let
       key = "dynamicKey" :: TS.Text
       value = "dynamically assigned value"
-    test3container <- newId
-    test3element <- newId
-    test3target <- newId
+    test3container <- cssId $ pure ()
+    test3element <- cssId $ pure ()
+    test3target <- cssId $ pure ()
     jsAttrValue <- js $ new value
     let
       test3html = div
