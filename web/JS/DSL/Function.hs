@@ -19,9 +19,9 @@ funcPrim
   :: Function a
   => (Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a))
   -> State -> a -> (Expr (Type a), State)
-funcPrim constr s0 fexp = (constr Nothing args code, s1)
+funcPrim constr (State fresh used lib) fexp = (constr Nothing args code, s1)
    where
-     ((args, code), s1) = run s0 (funcLit fexp)
+     ((args, code), s1) = run fresh used lib (funcLit fexp)
 
 -- | The 'Function' class turns function literals into typed
 -- functions.

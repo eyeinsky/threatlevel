@@ -101,7 +101,9 @@ cssId' = cssF (Id . Static . TL.toStrict)
 instance (Monad m) => MonadWeb (WebT m) where
    js jsm = WebT $ do
       state0 <- gets (^.jsState)
-      let ((result, code), state1) = JS.run state0 jsm
+      let
+        JS.State fresh used lib = state0
+        ((result, code), state1) = JS.run fresh used lib jsm
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ state1)
       return result

@@ -12,11 +12,14 @@ import JS.Syntax hiding (Conf)
 -- * Monad
 
 type Idents = [TS.Text]
+type Fresh = Idents
+type Used = HS.HashMap TS.Text Idents
+type Lib = S.Set Int
 
 data State = State
-  { stateFreshIdentifiers :: Idents
-  , stateInUseIdentifiers :: HS.HashMap TS.Text Idents
-  , stateLibrary :: S.Set Int
+  { stateFreshIdentifiers :: Fresh
+  , stateInUseIdentifiers :: Used
+  , stateLibrary :: Lib
   }
 makeFields ''State
 
@@ -25,10 +28,10 @@ instance Default State where
 
 type M r = WriterT (Code r) (StateT State Identity)
 
-run :: State -> M r a -> ((a, Code r), State)
-run s m = id . st . wr $ m
+run :: Fresh -> Used -> Lib -> M r a -> ((a, Code r), State)
+run fresh used lib m = id . st . wr $ m
    where id = runIdentity
-         st = flip runStateT s
+         st = flip runStateT (State fresh used lib)
          wr = runWriterT
 
 write :: Statement r -> M r ()
@@ -67,6 +70,6 @@ mkCode mcode = do
   put s1 *> pure w
   where
     fromNext :: State -> M r t -> (Code r, State)
-    fromNext s0 m = (w, s1)
+    fromNext (State fresh used lib) m = (w, s1)
       where
-        ((_, w), s1) = run s0 m
+        ((_, w), s1) = run fresh used lib m

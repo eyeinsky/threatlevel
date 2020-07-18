@@ -298,7 +298,9 @@ evalJSM
   => JS.M b a -> m (Code b)
 evalJSM jsm = do
   stWeb <- WM.getState
-  let ((_, code :: Code b), _) = JS.run (stWeb^.WM.jsState) jsm
+  let
+    JS.State fresh used lib = stWeb^.WM.jsState
+    ((_, code :: Code b), _) = JS.run fresh used lib jsm
   return code
 
 exec'

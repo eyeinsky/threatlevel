@@ -327,13 +327,16 @@ instance Fractional (Expr a) where
    e1 / e2 = Op $ OpBinary Div e1 e2
 
 pr :: M r a -> IO ()
-pr = TL.putStrLn . render (Indent 2) . snd . fst . run def
+pr = TL.putStrLn . render (Indent 2) . snd . fst . run fresh used lib
+  where
+    State fresh used lib = def
 
 -- * Modules
 
 lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = let
-    codeText = render Minify . snd . fst . run def $ mcode -- fix: take config from somewhere
+    State fresh used lib = def
+    codeText = render Minify . snd . fst . run fresh used lib $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
   in do
@@ -346,7 +349,9 @@ lib mcode = let
 
 instance Render (M r a) where
   type Conf (M r a) = JS.Syntax.Conf
-  renderM = renderM . snd . fst . run def
+  renderM = renderM . snd . fst . run fresh used lib
+    where
+      State fresh used lib = def
 
 -- * Semigroup and monoid instances
 
