@@ -52,6 +52,9 @@ dependencies:
 - data-default
 - multiline
 
+- tasty
+- tasty-hunit
+
 library:
   source-dirs:
   - .

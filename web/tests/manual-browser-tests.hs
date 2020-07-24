@@ -1,15 +1,48 @@
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Main where
 
 import qualified Data.Text as TS
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
 import qualified Rapid
+import qualified Data.Aeson as A
+import qualified Data.Aeson.DeriveNoPrefix as A
 
 import X.Prelude
 import JS
+import JS.TH
+import JS.Roundtrip
 import URL.TH (url)
 import X
 import qualified SVG
+
+import Module1
+
+-- * Helpers
+
+encodeText :: A.ToJSON a => a -> TL.Text
+encodeText = TL.decodeUtf8 . A.encode
+
+-- * Data types
+
+data SingleDC = SingleDC
+  { singleDCInt :: Int
+  , singleDCString :: String
+  } deriving (Eq, Show, Data, Generic)
+
+makeFields ''SingleDC
+deriveToExpr ''SingleDC
+A.deriveJsonNoTypeNamePrefix ''SingleDC
+
+data MultiDC
+  = First Int  String
+  | Second Double String
+
+makeClassyPrisms ''MultiDC
+
 
 declareFields [d|
   data RunConf = RunConf
@@ -26,15 +59,66 @@ main = do
   let
     settings = Warp.setPort 8087 Warp.defaultSettings
     tls = Just $ Warp.tlsSettings
-      "tmp/tests.fw.yay.pem"
-      "tmp/tests.fw.yay-key.pem"
+      "tmp/all-certs.pem"
+      "tmp/all-certs-key.pem"
   siteMain def def [url|https://tests.fw.yay:8087|] settings tls (site)
+
 
 site :: T RunConf
 site = T $ mdo
   liftIO $ putStrLn "Site init"
 
-  _ <- pin "js-try-catch" $ return $ \_ -> do
+  roundtrip <- pin "roundtrip" $ return $ \_ -> do
+    f <- js $ newf $ \(event :: Expr MouseEvent) -> log event
+    c <- css $ pure ()
+    dest <- cssId $ pure ()
+    code' <- styleds code $ do
+      padding $ rem 0.2 <> rem 0.3
+      borderRadius $ rem 0.2
+      backgroundColor "black"
+      color "white"
+    addLi <- js $ newf $ \(label' :: Expr String) (what :: Expr String) -> do
+      fragment <- createHtmls $ tr $ do
+        td $ toHtml label'
+        td $ code' $ toHtml what
+      bare $ findBy dest !// "append" $ fragment
+    js $ onEvent Load window $ do
+
+      let
+        lodash = ex "_"
+
+        singleDCInt = 123
+        singleDCString = "456"
+        singleDC = SingleDC {singleDCInt, singleDCString} :: SingleDC
+        lit_singleDC = lit singleDC
+        encode_singleDC = fromJSON $ lit $ encodeText singleDC
+
+        singleDC' = obj SingleDC (lit singleDCInt) (lit singleDCString) -- <= :: Expr SingleDC
+
+      -- * Single constructor record => lens
+
+      bare $ call addLi ["lit $ show singleDC", lit $ show singleDC]
+      bare $ call addLi ["lit singleDC", stringify lit_singleDC]
+      bare $ call addLi ["lit $ A.toJSON singleDC", stringify encode_singleDC]
+      bare $ call addLi ["_.isEqual(lit, A.toJSON)", call (lodash !. "isEqual") [lit_singleDC, encode_singleDC]]
+      bare $ call addLi ["lit $ singleDC^.int", stringify $ lit $ singleDC^.int]
+      bare $ call addLi ["lit $ singleDC^.string", stringify $ lit $ singleDC^.string]
+      bare $ call addLi ["singleDC'", stringify singleDC']
+      bare $ call addLi ["singleDC'^.int", stringify $ singleDC'^.int]
+      bare $ call addLi ["singleDC'^.string", stringify $ singleDC'^.string]
+      bare $ call addLi ["int eq", stringify $ lit (singleDC^.int) .=== singleDC'^.int]
+      bare $ call addLi ["string eq", stringify $ lit (singleDC^.string) .=== singleDC'^.string]
+
+      -- * Multi-constructor => prisms
+
+
+
+
+    return $ htmlDoc (includeJs [url|https://cdn.jsdelivr.net/npm/lodash@4.17.19/lodash.min.js|]) $ body $ do
+      h1 "Roundtrippin'" ! On Click f ! c
+      table "" ! dest
+
+  jsTryCatch <- pin "js-try-catch" $ return $ \_ -> do
 
     js $ do
       log "tryCatch"
@@ -48,7 +132,7 @@ site = T $ mdo
 
     return $ htmlDoc "" ""
 
-  _ <- pin "async-iterator" $ return $ \_ -> do
+  asyncIterator <- pin "async-iterator" $ return $ \_ -> do
 
     testAsyncIter <- cssId $ pure ()
     stop <- cssId $ pure ()
@@ -65,10 +149,32 @@ site = T $ mdo
       button ! testAsyncIter $ "test button"
       button ! stop $ "stop"
 
-  _ <- pin "suffix-repeated-names" $ return $ \_ -> do
+  suffixRepeatedNames <- pin "suffix-repeated-names" $ return $ \_ -> do
     js $ replicateM_ 10 $ new' "test" Undefined
     return $ htmlDoc ""
       "Check page source: all js variables with name \"test\" should be made unique unique with a prefix."
+
+  _ <- pin "JS.TH" $ return $ \_ -> do
+
+    dest <- cssId $ pure ()
+
+    let singleDC = SingleDC 123 "abc"
+        singleDC' = lit singleDC :: Expr SingleDC
+
+    f <- js $ newf $ \(str :: Expr String) -> do
+      log str
+      h <- createHtmls $ li $ toHtml str
+      log h
+      bare $ findBy dest !// "append" $ h
+
+    _ <- js $ onEvent Load window $ do
+
+      bare $ call1 f $ stringify singleDC'
+      log "done"
+
+    return $ htmlDoc "" $ do
+      div "Result"
+      ul ! dest $ ""
 
   return $ \_ -> do
 
@@ -156,6 +262,11 @@ site = T $ mdo
 
     return $ htmlDoc "" $ do
       h1 "Tests"
+      ul $ do
+        li $ a ! href jsTryCatch $ "jsTryCatch"
+        li $ a ! href suffixRepeatedNames $ "suffixRepeatedNames"
+        li $ a ! href asyncIterator $ "asyncIterator"
+        li $ a ! href roundtrip $ "roundtrip"
       p "There should be no errors on console."
       test1
       test2
