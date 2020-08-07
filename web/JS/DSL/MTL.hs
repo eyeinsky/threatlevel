@@ -23,7 +23,7 @@ makeFields ''State
 instance Default State where
   def = State identifiers mempty S.empty
 
-type M r a = WriterT (Code r) (StateT State Identity) a
+type M r = WriterT (Code r) (StateT State Identity)
 
 run :: State -> M r a -> ((a, Code r), State)
 run s m = id . st . wr $ m

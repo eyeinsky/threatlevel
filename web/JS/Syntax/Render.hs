@@ -94,6 +94,21 @@ instance Render (Statement a) where
           ]
 
     Throw e -> pure "throw " <+> renderM e
+
+    Switch e cases def -> let
+        mkCase (match, code) = let
+          str = indented code :: Reader Conf TL.Text
+          in pure "case " <+> renderM match <+> pure ":" <+> str
+
+        pre = pure "switch" <+> (par <$> renderM e)
+
+        body :: Reader Conf Text
+        body = withReader (inc 2) $ let
+          cases' = map mkCase cases :: [Reader Conf Text]
+          def' = maybe (pure "") (\def -> pure "default:" <+> indented def) def
+          in mseq $ nl : cases' <> [def']
+      in pre <+> (curly <$> body)
+
     where
       define kw name = pure kw <+> renderM name
       var = define "var "
@@ -208,17 +223,16 @@ instance Render Literal where
 
 -- | Put printed code in curly braces, code in braces is indented.
 curlyCode :: Code a -> Reader (Render.Conf (Code a)) TL.Text
-curlyCode code = do
-  conf <- ask
-  inner <- case conf of
-    Indent n -> do
-      stms :: [Text] <- withReader (inc 2) $ uncode code
-      return $ "\n" <> mconcat (map (<> "\n") stms) <> spaces n
-      where
-        inc m (Indent n) = Indent (m + n)
-        inc _ c = c
-    Minify -> uncode code <&> mconcat
-  return $ "{" <> inner <> "}"
+curlyCode code = Render.curly <$> indented code
+
+-- | Render & indent code
+indented :: Code a -> Reader (Render.Conf (Code a)) TL.Text
+indented code = ask >>= \conf -> case conf of
+  Indent n -> do
+    stms :: [Text] <- withReader (inc 2) $ uncode code
+    return $ "\n" <> mconcat (map (<> "\n") stms) <> spaces n
+    where
+  Minify -> uncode code <&> mconcat
 
 uncode
  :: (Render (Code a), Render.Conf (Code a) ~ Conf)
@@ -229,8 +243,21 @@ uncode code = do
     Indent n -> mapM renderM code <&> map (spaces n <>)
     Minify -> mapM renderM code
 
--- * Simple helpers
+-- | Newline
+nl :: Reader Conf Text
+nl = ask >>= \conf -> pure $ case conf of
+  Indent n -> "\n" <> spaces n
+  _ -> ""
 
+inc :: Int -> Conf -> Conf
+inc m conf = case conf of
+  Indent n -> Indent (m + n)
+  _ -> conf
+
+-- ** Non-monadic
+
+spaces :: Int -> TL.Text
 spaces n = TL.replicate (fromIntegral n) " "
 
+inf :: Text -> Text -> Text -> Text
 inf i a b = a <> i <> b

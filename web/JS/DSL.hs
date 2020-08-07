@@ -102,6 +102,27 @@ tryCatchFinally try catch finally = do
 throw :: Expr a -> M r ()
 throw e = write $ Throw e
 
+-- * Swtich
+
+-- m = match type
+-- r = code block return type
+type Case m r = Either (Code r) (Expr m, Code r)
+type SwitchBodyM m r = WriterT [Case m r] (M r)
+
+switch :: forall m r a. Expr m -> SwitchBodyM m r a -> M r ()
+switch e m = do
+  li :: [Case m r] <- execWriterT m
+  let (def, cases') = partitionEithers li
+  write $ Switch e cases' (case def of def' : _ -> Just def'; _ -> Nothing)
+
+case_ :: Expr m -> M r a -> SwitchBodyM m r ()
+case_ match code = do
+  code' <- lift $ mkCode (code >> break)
+  tell $ pure $ Right (match, code')
+
+default_ :: M r a -> SwitchBodyM m r ()
+default_ code = lift (mkCode code) >>= Left ^ pure ^ tell
+
 -- * Loops
 
 for :: Expr r -> M r a -> M r ()

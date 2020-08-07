@@ -32,6 +32,8 @@ data Statement a where
    Let      :: Name -> Expr a -> Statement b
    Const    :: Name -> Expr a -> Statement b
 
+   Switch   :: Expr a -> ([(Expr a, Code r)]) -> Maybe (Code r) -> Statement r
+
 data Expr a where
    Assign    :: Expr a -> Expr b    -> Expr b
    Cast      :: Expr a              -> Expr b
