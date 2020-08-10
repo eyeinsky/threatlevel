@@ -66,7 +66,7 @@ instance Render (Statement a) where
       ]
 
     Continue maybeLabel -> withLabel "continue" maybeLabel
-    Break maybeLabel -> withLabel "breac" maybeLabel
+    Break maybeLabel -> withLabel "break" maybeLabel
 
     IfElse cond true mbElse -> mseq
       [ pure "if"
