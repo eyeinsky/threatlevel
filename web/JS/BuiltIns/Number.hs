@@ -6,6 +6,8 @@ parseFloat a = call1 (ex "parseFloat") a
 
 nearestInt n = call1 (math "round") n
 
+parseInt a = call1 (ex "parseInt") a
+
 min a b = ternary (a .< b) a b
 
 max a b = ternary (a .> b) a b
