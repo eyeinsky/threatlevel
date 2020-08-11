@@ -57,7 +57,7 @@ constructors dec = case dec of
   NewtypeD _ name _ _ dataCon _ -> Just (name, [dataCon])
   _ -> Nothing
 
--- | Con -> ("Constr", ["ConstrField1", "ConstrField2"])
+-- | Con -> ("Constr", ["constrField1", "constrField2"])
 fieldNames :: Con -> (String, [(String, Type)])
 fieldNames dataCon = case dataCon of
   RecC name varBangTypes -> (nameBase name, nameType varBangTypes)

@@ -7,51 +7,43 @@ module JS.Roundtrip
 
 import qualified Prelude
 import Data.Char
+import Data.List
 
 import Data.Data
 import GHC.Generics
 
 import X.Prelude
 import JS hiding (String, length)
+import JS.TH
 
 -- * Generic data type handling in front-end
 
 obj :: forall a. (J a, GetConstr a) => a -> Result a
-obj c = case fieldNames of
-  _ : _ -> rf fieldNames (maybe mempty pure stub) c
+obj dc = case fieldNames of
+  -- | Multi data-constructor
+  _ : _ -> rf fieldNames (maybe mempty pure stub) dc
+
+  -- | Single data-constructor
   _ -> case totalFieldCount of
-    0 -> case constructorCount of
+    0 -> case length (dataTypeConstrs dataType) of
       0 -> error "error" -- Void
-      1 -> ea c
-      _ -> str c (tag c)
-    _ -> pf [] stub c
+      1 -> ea dc
+      _ -> str dc (tag dc)
+    _ -> pf [] stub dc
   where
-    fieldNames = dropTypeName name $ recordFields c :: [String]
+    (constr, totalFieldCount) = getConstr dc :: (Constr, Int)
+    dataType = constrType constr :: DataType
+
+    prefix = lowerFirst $ show constr
+    fieldNames = map (\field -> maybe field lowerFirst $ stripPrefix prefix field) $ recordFields dc :: [String]
+
     stub :: Maybe (String, Expr ())
     stub = if maxConstrIndex dataType > 1
-      then Just ("tag", lit $ tag c)
+      then Just ("tag", lit $ tag dc)
       else Nothing
 
-    dataType = constrType constr :: DataType
-    name = dataTypeName dataType
-
-    (constr, totalFieldCount) = getConstr c :: (Constr, Int)
-    constructorCount = X.Prelude.length (dataTypeConstrs dataType)
-
 countFields :: Data a => a -> Int
-countFields c = X.Prelude.length $ gmapQ (Prelude.const ()) (c) -- $
-
-dropTypeName :: String -> [String] -> [String]
-dropTypeName name fields = map go fields
-  where
-    lowerFirst (s : tring) = toLower s : tring
-    lowerFirst _ = []
-    name' = lowerFirst name
-    length' = length name'
-    go field
-      | name' `isPrefixOf` field = lowerFirst $ drop length' field
-      | otherwise = field
-
+countFields a = length $ gmapQ (Prelude.const ()) a
 
 
 type family Result a :: *
