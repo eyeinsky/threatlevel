@@ -113,20 +113,30 @@ data Pseudo = Pseudo TL.Text deriving (Eq)
 instance Render Pseudo where renderM (Pseudo a) = pure $ ":" <> a
 instance Render TagName where renderM (TagName a) = renderM a
 instance Render Id where renderM (Id a) = ("#" <>) <$> renderM a
-instance Render Class  where renderM (Class  a) = ("." <>) <$> renderM a
+instance Render Class where renderM (Class  a) = ("." <>) <$> renderM a
 
-declareFields [d|
-  -- | Element, class, id or pseudo
-  data SimpleSelector = SimpleSelector
-    { simpleSelectorTag :: Maybe TagName
-    , simpleSelectorMaybeId :: Maybe Id
-    , simpleSelectorClasses :: [Class]
-    , simpleSelectorPseudos :: [Pseudo]
-    }
-  |]
+data AttributeSelector
+  = Has
+  | Equals
+  | WhiteSpaceContains
+  | EqualsOrDashPrefix
+  | Starts
+  | Ends
+  | Contains
+  deriving (Eq, Show)
+
+-- | Element, class, id or pseudo
+data SimpleSelector = SimpleSelector
+  { simpleSelectorTag :: Maybe TagName
+  , simpleSelectorMaybeId :: Maybe Id
+  , simpleSelectorClasses :: [Class]
+  , simpleSelectorPseudos :: [Pseudo]
+  , simpleSelectorAttributeSelectors :: [AttributeSelector]
+  }
+makeFields ''SimpleSelector
 
 instance Render SimpleSelector where
-   renderM (SimpleSelector mt mi cs ps)
+   renderM (SimpleSelector mt mi cs ps as)
      = g mt <+> g mi <+> (TL.concat <$> (f cs <+> f ps))
       where f = mapM renderM
             g = maybe (pure "") renderM
@@ -244,15 +254,15 @@ class SimpleSelectorFrom a where
 instance SimpleSelectorFrom SimpleSelector where
   ssFrom = id
 instance SimpleSelectorFrom TagName where
-  ssFrom a = SimpleSelector (Just a) Nothing [] []
+  ssFrom a = SimpleSelector (Just a) Nothing [] [] []
 instance SimpleSelectorFrom [Class] where
-  ssFrom a = SimpleSelector Nothing Nothing a []
+  ssFrom a = SimpleSelector Nothing Nothing a [] []
 instance SimpleSelectorFrom Class where
-  ssFrom a = SimpleSelector Nothing Nothing [a] []
+  ssFrom a = SimpleSelector Nothing Nothing [a] [] []
 instance SimpleSelectorFrom Id where
-  ssFrom a = SimpleSelector Nothing (Just a) [] []
+  ssFrom a = SimpleSelector Nothing (Just a) [] [] []
 instance SimpleSelectorFrom Pseudo where
-  ssFrom a = SimpleSelector Nothing Nothing [] [a]
+  ssFrom a = SimpleSelector Nothing Nothing [] [a] []
 
 
 instance IsString Class where
@@ -268,10 +278,10 @@ instance IsString SimpleSelector where
     ':' : rest -> fromPseudo rest
     _ -> fromTag s
     where
-      fromId s = SimpleSelector Nothing (Just $ Id $ fromString s) [] []
-      fromClass s = SimpleSelector Nothing Nothing [Class $ fromString s] []
-      fromPseudo s = SimpleSelector Nothing Nothing [] [Pseudo $ TL.pack s]
-      fromTag s = SimpleSelector (Just $ fromString s) Nothing [] []
+      fromId s = SimpleSelector Nothing (Just $ Id $ fromString s) [] [] []
+      fromClass s = SimpleSelector Nothing Nothing [Class $ fromString s] [] []
+      fromPseudo s = SimpleSelector Nothing Nothing [] [Pseudo $ TL.pack s] []
+      fromTag s = SimpleSelector (Just $ fromString s) Nothing [] [] []
 
 instance IsString TagName where
   fromString = TagName . fromString
