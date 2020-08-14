@@ -6,7 +6,7 @@ module X
 
 import HTML as Export hiding (
   -- redefined here
-  href, src, for, favicon, html, action, param,
+  href, src, for, favicon, html, action, param, style,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -416,11 +416,12 @@ fontSrc url mbFmt
   where
     f fmt = Word $ "format(\"" <> fmt <> "\")"
 
-styleAttr :: HTML.Value -> Attribute
-styleAttr = Custom "style"
-
 decls :: DeclM a -> Attribute
-decls = renderDecls ^ TL.toStrict ^ Static ^ styleAttr
+decls = decls
+{-# DEPRECATED decls "Use `style` instead." #-}
+
+style :: DeclM a -> Attribute
+style decls = Custom "style" (Static $ TL.toStrict $ renderDecls decls)
 
 -- * Html + CSS + MonadWeb
 
