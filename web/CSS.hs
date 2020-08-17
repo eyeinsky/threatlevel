@@ -1,16 +1,16 @@
 module CSS
-  ( module CSS.Syntax
-  , module CSS.Shorthands, prop
+  ( module CSS
+  , module CSS.Syntax
+  , prop
   , module DOM.Core
-  , CSSM
-  , resetCSS
-  , setBoxSizing
-  , centerContent
+  , type CSSM
+
   , keyframes, keyframes', keyframe, browser, selector
   , media, supports
-  , DeclM, renderDecls
-  , flexbox
+  , DeclM
   ) where
+
+import qualified Data.Text.Lazy as TL
 
 import X.Prelude
 
@@ -21,10 +21,41 @@ import CSS.Syntax hiding
   )
 
 import CSS.Monad
-import CSS.Shorthands
+import CSS.TH
 import DOM.Core hiding (Value) -- don't export attribute value, but css value
 
+
 import Render
+
+
+-- | TH-generate all properties with @prop@
+concat <$> mapM shorthand list
+
+alpha a = rgba 0 0 0 a
+
+hover = pseudo "hover"
+before = pseudo "before"
+after = pseudo "after"
+focus = pseudo "focus"
+active = pseudo "active"
+visited = pseudo "visited"
+
+nthChild :: Int -> CSSM () -> CSSM ()
+nthChild n = pseudo str
+  where
+    n' = TL.pack (show n)
+    str = "nth-child(" <> n' <> ")"
+
+descendant = combinator Descendant
+child = combinator Child
+sibling = combinator Sibling
+generalSibling = combinator GeneralSibling
+
+anyTag :: Selector
+anyTag = selFrom $ TagName "*"
+
+anyChild :: CSSM () -> CSSM ()
+anyChild = child ("*" :: TagName)
 
 renderDecls :: DeclM a -> Text
 renderDecls dm = render () $ view decls $ execDeclM dm
