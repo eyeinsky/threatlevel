@@ -7,7 +7,6 @@ import qualified Data.Set as S
 import qualified Identifiers as IS
 import JS.DSL.Identifiers
 import JS.Syntax hiding (Conf)
-import qualified JS.Syntax
 
 -- * Monad
 

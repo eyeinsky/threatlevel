@@ -32,7 +32,6 @@ import qualified JS.Syntax
 import JS.DSL.Function as JS
 import JS.DSL.MTL as JS
 import Render
-import JS.Syntax
 
 -- * Variable declarations
 

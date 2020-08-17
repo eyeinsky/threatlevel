@@ -7,7 +7,7 @@ import X.Prelude hiding (True, False, Empty, unwords, unlines, replicate, Const)
 
 import Render hiding (Conf)
 import qualified Render
-import JS.Syntax.Types hiding ((=:))
+import JS.Syntax.Types
 
 -- * Print AST to JavaScript
 
