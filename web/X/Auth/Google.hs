@@ -68,7 +68,7 @@ instance Aeson.ToJSON Tokeninfo where
 
 googleSignout = do
   auth2 <- const $ call0 (ex "gapi.auth2.getAuthInstance");
-  await $ call0 (auth2 !. "signOut")
+  const $ Await $ call0 (auth2 !. "signOut")
 
 verifyToken id callback = do
   url <- api $ return $ \req -> do
@@ -94,9 +94,9 @@ verifyToken id callback = do
         let params = lit [("client_id" :: Text, lit id )]
             prompt = lit $ [("prompt" :: Text, lit "select_account")]
         consoleLog ["auth2 load" ]
-        googleAuth <- await $ call1 (auth2 !. "init") params
+        googleAuth <- const $ Await $ call1 (auth2 !. "init") params
         doLogin' <- async $ do
-          user <- await $ call1 (googleAuth !. "signIn") prompt
+          user <- const $ Await $ call1 (googleAuth !. "signIn") prompt
           token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
           DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
