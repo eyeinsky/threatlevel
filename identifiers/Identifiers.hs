@@ -4,6 +4,7 @@ module Identifiers
    , identifierSource
    , identifiersFilter
    , next
+   , Infinite, toInfinite
    ) where
 
 import Prelude
@@ -72,3 +73,12 @@ identifiersFilter li = filterFrom (lengthAlphaSort reserved) $ map T.reverse $ s
           EQ -> compare a b
           ord -> ord
     filterFrom _ ys = ys
+
+-- * Infinite
+
+data Infinite a = Infinite a (Infinite a)
+
+toInfinite :: [T.Text] -> Infinite T.Text
+toInfinite xs' = case xs' of
+  (x : xs) -> Infinite x (toInfinite xs)
+  _ -> error "this should never happen"
