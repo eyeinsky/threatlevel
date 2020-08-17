@@ -116,6 +116,7 @@ library:
   - X.Prelude
   - X.Cookie
   - X.DOM
+  - X.Template
   - X.Auth.Google
   - X.Google.Maps
   - X.Google.Spreadsheet
