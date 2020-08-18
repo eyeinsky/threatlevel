@@ -275,6 +275,9 @@ includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
 includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
+includeJs' :: TS.Text -> Html
+includeJs' url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
+
 -- | Helper to turn attribute into URL
 urlAttr :: URL.URL -> DOM.Value
 urlAttr url = Static $ TL.toStrict $ render' url
