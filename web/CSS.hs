@@ -81,7 +81,7 @@ centerContent = do
   justifyContent "center"
   alignItems "center"
 
-flexbox :: Value -> CSSM ()
+flexbox :: (HasDecls w [Declaration], MonadWriter w m) => Value -> m ()
 flexbox how = do
   display "flex"
   flexFlow how
