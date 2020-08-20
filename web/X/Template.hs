@@ -43,10 +43,15 @@ mergeMounts li = js $ newf $ callMounts li
 -- | Create mock create, update, get, html' and ssr functions. Since
 -- $template$'s $html$ varies in type then this is returned as plain
 -- value.
-mock :: MonadWeb m => TS.Text -> m (Expr r1, Expr r2, Expr r3, Html, p -> Html)
+mock
+  :: forall m a x1 x2. MonadWeb m
+  => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
 mock (title :: TS.Text) = do
   let title' = lit title :: Expr String
-  create <- js $ newf $ log $ "mock: create " <> title'
+  create <- js $ newf $ \(o :: Expr p) -> do
+    log $ "mock: create " <> title'
+    fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
+    retrn fragment
   update <- js $ newf $ log $ "mock: update " <> title'
   get <- js $ newf $ log $ "mock: get " <> title'
   let htmlMock = div $ "mock: html' " <> toHtml title
