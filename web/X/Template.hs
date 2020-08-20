@@ -16,7 +16,7 @@ idsElems n = do
       forM (zip ids elems) $ \(id, el) -> el .= findBy id
     return (ids, elems, mount)
 
-data Template a f = Template
+data Template a f p = Template
   { templateIds :: [Id]
   , templateMount :: Expr ()
   , templateCreate :: Expr (a -> DocumentFragment)
@@ -27,9 +27,9 @@ data Template a f = Template
   }
 makeFields ''Template
 
-class GetTemplate a where
-  type Html' a :: *
-  getTemplate :: MonadWeb m => m (Template a (Html' a))
+class GetTemplate a p where
+  type Html' a p :: *
+  getTemplate :: MonadWeb m => m (Template a (Html' a p) p)
 
 -- * Helpers
 
