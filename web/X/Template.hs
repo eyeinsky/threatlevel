@@ -57,3 +57,8 @@ mock (title :: TS.Text) = do
   let htmlMock = div $ "mock: html' " <> toHtml title
       ssr _ = htmlMock
   return (create, update, get, htmlMock, ssr)
+
+mock2
+  :: forall m a x1 x2. MonadWeb m
+  => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
+mock2 str = return (Undefined, Undefined, Undefined, toHtml str, \_ -> toHtml str)
