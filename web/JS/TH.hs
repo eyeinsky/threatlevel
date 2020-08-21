@@ -20,7 +20,7 @@ deriveToExpr name = do
   case dcs of
     _ : _ : _
       -- | @data T = A | B ...@
-      | Just xs <- fieldlessDCs dcs -> [d|
+      | Just _ <- fieldlessDCs dcs -> [d|
           instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where
             lit v = lit $([e|show v|])
           |]

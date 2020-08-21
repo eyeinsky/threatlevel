@@ -136,7 +136,7 @@ data SimpleSelector = SimpleSelector
 makeFields ''SimpleSelector
 
 instance Render SimpleSelector where
-   renderM (SimpleSelector mt mi cs ps as)
+   renderM (SimpleSelector mt mi cs ps _)
      = g mt <+> g mi <+> (TL.concat <$> (f cs <+> f ps))
       where f = mapM renderM
             g = maybe (pure "") renderM

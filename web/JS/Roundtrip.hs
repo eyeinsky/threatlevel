@@ -6,7 +6,6 @@ module JS.Roundtrip
   ) where
 
 import qualified Prelude
-import Data.Char
 import Data.List
 
 import Data.Data

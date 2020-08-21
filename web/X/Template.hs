@@ -48,7 +48,7 @@ mock
   => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
 mock (title :: TS.Text) = do
   let title' = lit title :: Expr String
-  create <- js $ newf $ \(o :: Expr p) -> do
+  create <- js $ newf $ \(_ :: Expr p) -> do
     log $ "mock: create " <> title'
     fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
     retrn fragment
