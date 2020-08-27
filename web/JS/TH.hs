@@ -1,78 +1,142 @@
+{- |
+  TH-generate @ToExpr@ and @HasField@ instances data types.
+-}
 module JS.TH where
 
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 import Data.Char
 import Data.List
 
-import X.Prelude
-
-import JS.Syntax as J hiding (getName, Name)
-import JS.DSL as J hiding (func)
-import JS.BuiltIns as J
+import X.Prelude hiding (Empty)
+import JS
 
 
--- * Data type to lens-like object
+data DataDecl
+  -- | No data constructors: @data Void@
+  = Empty
 
--- | Make @ToExpr@ instances for data type
+  | RegularData Name [(Name, Con)]
+
+  -- | @data T = A | B ...@
+  | Enum Name [Con]
+
+  -- | @data R = R { a :: Int, b :: String, d :: Double } @
+  | SingleRecord Name Name [(Name, Type)]
+
+  -- | Mixed record and non-record data constructors
+  -- @data D = A { a :: Int} | B String Double | C@
+  | MultiMixed
+
+  -- | Data family instance: @data instance Family Int = FamilyInt Something@
+  | DataFamilyInstance Type Name [(Name, Type)]
+
 deriveToExpr :: Name -> Q [Dec]
 deriveToExpr name = do
-  Just (typeName, dcs :: [Con]) <- typeAndDCs name
-  case dcs of
-    _ : _ : _
-      -- | @data T = A | B ...@
-      | Just _ <- fieldlessDCs dcs -> [d|
-          instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where
-            lit v = lit (show v)
-          |]
-
-      | otherwise -> fail "Multi-constructor data types not implemented"
-
-    dc : [] -> doDC typeName dc
-    _ -> fail "Type has no data constructors"
-
-
-doDC :: Name -> Con -> Q [Dec]
-doDC typeName dataCon = do
-  let namesTypes = uncurry lensFields . fieldNames $ dataCon :: [(String, Type)]
-      names = map fst namesTypes :: [String]
-
-      toTup :: String -> ExpQ
-      toTup name = [e| ($(stringE name), lit (v ^. $(varE $ mkName name)) ) |]
-
-      toExpr :: DecsQ
-      toExpr = [d|
-        instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where
-          lit v = lit $(case names of
-            [] -> [e|show v|]
-            _ -> listE $ map toTup names :: ExpQ)
-        |]
-
-      hasName :: (String, Type) -> DecsQ
-      hasName (name, type_) = let
-          cls = mkName $ "Has" <> (name & ix 0 %~ toUpper)
-          src = [t| Expr $(conT typeName) |] :: TypeQ
-          dest = [t| Expr $(pure type_) |] :: TypeQ
-        in do
-        (d : _) <- [d| $(varP $ mkName name) = \f v -> fmap (\newVal -> J.setAttr name newVal v) (f $ v !. name) |] :: DecsQ
-        pure <$> instanceD (pure []) (appT (appT (conT cls) src) dest) [pure d]
-
-  let lenses = map hasName namesTypes
-  X.Prelude.concat <$> sequence (toExpr : lenses)
+  dataDecl <- name2dataDecl name
+  case dataDecl of
+    Enum typeName cons -> [d| instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where lit v = lit (show v) |]
+    SingleRecord typeName conName fieldNamesTypes -> singleRecordConstructor (conT typeName) conName fieldNamesTypes
+    DataFamilyInstance type_ conName fieldNamesTypes -> singleRecordConstructor (pure type_) conName fieldNamesTypes
+    MultiMixed -> fail "Multi-mixed data types not implemented"
+    Empty -> fail "Type has no data constructors"
 
 -- | Reify name to a type and data constructor pairs
-typeAndDCs :: Name -> Q (Maybe (Name, [Con]))
-typeAndDCs name = reify name >>= \info -> case info of
-  TyConI dec -> pure $ constructors dec
-  DataConI _ _ parentName -> typeAndDCs parentName
-  _ -> do
-    pure $ Nothing
+name2dataDecl :: Name -> Q DataDecl
+name2dataDecl name = reify name >>= \info -> case info of
+  TyConI dec -> constructors dec
+  DataConI conName _ parentName -> do
+    parentInfo <- reify parentName
+    case parentInfo of
+      FamilyI (DataFamilyD _ _ _) (visibleInstances :: [Dec]) -> do
+        let
+          singleConInstances = filter isSingleDICon visibleInstances
+          maybeDec :: Maybe Dec
+          maybeDec = find ((nameBase conName ==) . nameBase . dcName . getCon) singleConInstances
+        case maybeDec of
+          -- https://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH.html#v:DataInstD
+          -- DataInstD Cxt Name [Type] (Maybe Kind) [Con] [DerivClause]
+          Just (DataInstD _ typeFirst (types :: [Type]) _MaybeKind [con] _DerivClause_s) -> do
+            let (_ {-conName-}, fieldNamesTypes) = record con
+            let appliedTyped = foldl AppT (ConT typeFirst) types :: Type
+            return $ DataFamilyInstance appliedTyped conName fieldNamesTypes
+          _ -> fail "here here here"
+    where
+      getCon (DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s) = con
+      isSingleDICon a = case a of
+        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> True
+        _ -> False
 
--- | Extract data constructors from type declaration.
-constructors :: Dec -> Maybe (Name, [Con])
-constructors dec = case dec of
-  DataD    _ name _ _ dataCons _ -> Just (name, dataCons)
-  NewtypeD _ name _ _ dataCon _ -> Just (name, [dataCon])
-  _ -> Nothing
+  _ -> fail "name2dataDecl: Not implemented"
+  where
+
+  vbt2vt :: VarBangType -> (Name, Type)
+  vbt2vt vbt = (vbt^._1, vbt^._3)
+
+  record :: Con -> (Name, [(Name, Type)])
+  record (RecC conName vbts) = (conName, map vbt2vt vbts)
+
+  -- | Extract type name and data constructors with names
+  constructors :: Dec -> Q DataDecl
+  constructors dec = case dec of
+    DataD    _ typeName _ _ [RecC conName vbts] _ ->
+      return $ SingleRecord typeName conName $ map vbt2vt vbts
+    DataD    _ typeName _ _ [RecGadtC (conName : _) vbts _] _ ->
+      return $ SingleRecord typeName conName $ map vbt2vt vbts
+
+    DataD    _ typeName _ _ dataCons _
+      | Just _ <- fieldlessDCs dataCons -> return $ Enum typeName dataCons
+      | otherwise -> return Empty
+
+    NewtypeD _ name _ _ dataCon _ -> do
+      return Empty
+    DataInstD _ _ _ _ dataCons _ -> do
+      return Empty
+    _ -> do
+      return Empty
+
+-- * Splice generators
+
+singleRecordConstructor :: TypeQ -> Name -> [(Name, Type)] -> Q [Dec]
+singleRecordConstructor type_ conName fieldNamesTypes = do
+  let namesTypes = lensFields (nameBase conName) $ map (_1 %~ nameBase) fieldNamesTypes :: [(String, Type)]
+  hasFields :: [[Dec]] <- mapM (mkHasField type_) namesTypes
+  toExpr :: [Dec] <- mkToExpr type_ namesTypes
+  return $ X.Prelude.concat $ toExpr : hasFields
+
+mkToExpr :: TypeQ -> [(String, Type)] -> Q [Dec]
+mkToExpr mainType namesTypes = case namesTypes of
+  nameType : rest -> [d|
+    instance {-# OVERLAPPING #-} ToExpr $(mainType) where
+      lit v = lit $(listE $ toTup nameType : map toTup rest :: ExpQ)
+    |]
+  _ -> fail "mkToExpr: "
+  where
+  toTup :: (String, Type) -> ExpQ
+  toTup (name, type_) = [e| ($(stringE name), lit (v ^. $(varE $ mkName name) :: $(pure type_)) ) |]
+
+
+-- | Make HasField instance
+mkHasField :: TypeQ -> (String, Type) -> DecsQ
+mkHasField mainType (name, type_) = let
+    cls = mkName $ "Has" <> (name & ix 0 %~ toUpper)
+    src = [t| Expr $(mainType) |] :: TypeQ
+    dest = [t| Expr $(pure type_) |] :: TypeQ
+  in do
+  (d : _) <- [d| $(varP $ mkName name) = \f v -> fmap (\newVal -> setAttr name newVal v) (f $ v !. name) |] :: DecsQ
+  pure <$> instanceD (pure []) (appT (appT (conT cls) src) dest) [pure d]
+
+-- * Helpers
+
+dcName :: Con -> Name
+dcName dc = case dc of
+  NormalC name _ -> name
+  RecC name _ -> name
+  InfixC _ name _ -> name
+  ForallC _ _ con -> dcName con
+  GadtC [name] _ _ -> name
+  RecGadtC [name] _ _ -> name
+
 
 -- | Con -> ("Constr", ["constrField1", "constrField2"])
 fieldNames :: Con -> (String, [(String, Type)])
@@ -127,3 +191,27 @@ lowerFirst :: String -> String
 lowerFirst str = case str of
   s : tr -> toLower s : tr
   _ -> str
+
+ -- * Helpers
+
+-- | Replacement for lens' @makeFields@ which for data family
+-- instances uses the data constructor as the removable prefix to
+-- create field names.
+makeFields2 :: Name -> DecsQ
+makeFields2 name = do
+  info <- reify name
+  case info of
+    DataConI conName _ parentName -> do
+      parentInfo <- reify parentName
+      case parentInfo of
+        FamilyI (DataFamilyD _ _ _) (visibleInstances :: [Dec]) -> do
+          let
+            newFieldNamer _ = oldFieldNamer conName
+            newRules = camelCaseFields & lensField .~ newFieldNamer
+          makeLensesWith newRules name
+        _ -> default_
+    _ -> default_
+  where
+    default_ = makeLenses name
+    oldFieldNamer :: FieldNamer -- i.e  Name -> [Name] -> Name -> [DefName]
+    oldFieldNamer = camelCaseFields^.lensField
