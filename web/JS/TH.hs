@@ -22,7 +22,7 @@ deriveToExpr name = do
       -- | @data T = A | B ...@
       | Just _ <- fieldlessDCs dcs -> [d|
           instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where
-            lit v = lit $([e|show v|])
+            lit v = lit (show v)
           |]
 
       | otherwise -> fail "Multi-constructor data types not implemented"
