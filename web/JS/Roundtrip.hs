@@ -12,7 +12,7 @@ import Data.Data
 import GHC.Generics
 
 import X.Prelude
-import JS hiding (String, length)
+import JS hiding (String)
 import JS.TH
 
 -- * Generic data type handling in front-end
