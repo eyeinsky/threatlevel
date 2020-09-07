@@ -154,10 +154,43 @@ jsonPayload data_ =
       [(lit "Content-Type", "application/json")])
   ]
 
--- * HTML
+-- * HTML + URL
+
+favicon :: URL.URL -> Html
+favicon url = HTML.link ! rel "icon" ! href url
+
+faviconSvg :: URL -> Html
+faviconSvg url = link ! rel "icon" ! href url ! Custom "sizes" "any" ! type_ "image/svg+xml"
 
 href :: URL.URL -> Attribute
 href url = HTML.href (Static $ TL.toStrict $ render' url)
+
+stylesheet :: URL.URL -> Html
+stylesheet url = link ! rel "stylesheet" ! type_ "text/css" ! href url
+
+stylesheet' :: TS.Text -> Html
+stylesheet' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
+
+includeCss = stylesheet :: URL.URL -> Html
+{-# DEPRECATED includeCss "Use `stylesheet` instead." #-}
+includeCss' = stylesheet' :: TS.Text -> Html
+{-# DEPRECATED includeCss' "Use `stylesheet'` instead." #-}
+
+includeJs :: URL.URL -> Html
+includeJs url = script ! src url $ "" ! Custom "defer" "true"
+
+includeJs' :: TS.Text -> Html
+includeJs' url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
+
+-- | Helper to turn attribute into URL
+urlAttr :: URL.URL -> DOM.Value
+urlAttr url = Static $ TL.toStrict $ render' url
+
+src :: URL.URL -> Attribute
+src url = HTML.src (urlAttr url)
+
+action :: URL.URL -> Attribute
+action url = HTML.action (urlAttr url)
 
 for :: Id -> Attribute
 for id = HTML.for (unId id)
@@ -263,33 +296,6 @@ html = to toHtml
 
 param' k = params . URL.un <>~ [(k, Nothing)]
 param k v = params . URL.un <>~ [(k, Just v)]
-
--- * URL + HTML
-
-includeCss' :: TS.Text -> Html
-includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
-
-includeCss :: URL.URL -> Html
-includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url
-
-includeJs :: URL.URL -> Html
-includeJs url = script ! src url $ "" ! Custom "defer" "true"
-
-includeJs' :: TS.Text -> Html
-includeJs' url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
-
--- | Helper to turn attribute into URL
-urlAttr :: URL.URL -> DOM.Value
-urlAttr url = Static $ TL.toStrict $ render' url
-
-src :: URL.URL -> Attribute
-src url = HTML.src (urlAttr url)
-
-action :: URL.URL -> Attribute
-action url = HTML.action (urlAttr url)
-
-favicon :: URL.URL -> Html
-favicon url = HTML.link ! rel "icon" ! href url
 
 -- * Endpoint
 
