@@ -8,6 +8,8 @@ module CSS
   , keyframes, keyframes', keyframe, browser, selector
   , media, supports
   , DeclM
+
+  , module SVG.CSS
   ) where
 
 import qualified Data.Text.Lazy as TL
@@ -23,6 +25,8 @@ import CSS.Syntax hiding
 import CSS.Monad
 import CSS.TH
 import DOM.Core hiding (Value) -- don't export attribute value, but css value
+
+import SVG.CSS
 
 import Render
 
