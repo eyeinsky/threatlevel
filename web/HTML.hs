@@ -13,7 +13,7 @@ import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core hiding (Document, Class, Id)
-import HTML.Core hiding (map, embed, input, Class, Id)
+import HTML.Core hiding (map, embed, input, link, Class, Id)
 import qualified HTML.Core as Core
 
 declareFields [d|
@@ -39,6 +39,9 @@ input = Core.input $ pure ()
 checkbox :: Html
 checkbox = input ! type_ "checkbox"
 
+link :: Html
+link = Core.link (pure ())
+
 placeholder :: Value -> Attribute
 placeholder = Custom "placeholder"
 
@@ -55,7 +58,6 @@ emptyFavicon :: Html
 emptyFavicon = link
   ! rel "icon"
   ! href "data:;base64,iVBORw0KGgo="
-  $ pure ()
 
 required :: Attribute
 required = Boolean "required" True
@@ -79,7 +81,6 @@ favicon adr = link
   ! rel "shortcut icon"
   ! type_ "image/x-icon"
   ! href adr
-  $ pure ()
 
 property :: Value -> Value -> Html
 property name value = meta

@@ -267,10 +267,10 @@ param k v = params . URL.un <>~ [(k, Just v)]
 -- * URL + HTML
 
 includeCss' :: TS.Text -> Html
-includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url) $ pure ()
+includeCss' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
 
 includeCss :: URL.URL -> Html
-includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url $ pure ()
+includeCss url = link ! rel "stylesheet" ! type_ "text/css" ! href url
 
 includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
@@ -289,7 +289,7 @@ action :: URL.URL -> Attribute
 action url = HTML.action (urlAttr url)
 
 favicon :: URL.URL -> Html
-favicon url = HTML.link ! rel "icon" ! href url $ pure ()
+favicon url = HTML.link ! rel "icon" ! href url
 
 -- * Endpoint
 
