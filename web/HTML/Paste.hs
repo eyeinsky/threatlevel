@@ -2,6 +2,7 @@ module HTML.Paste where
 
 import X.Prelude
 
+tags :: [String]
 tags = map extract . filter' . lines $ paste
   where
     extract = takeWhile (neq '>') . tail

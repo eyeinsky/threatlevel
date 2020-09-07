@@ -24,12 +24,11 @@ import CSS.Monad
 import CSS.TH
 import DOM.Core hiding (Value) -- don't export attribute value, but css value
 
-
 import Render
 
 
 -- | TH-generate all properties with @prop@
-concat <$> mapM shorthand list
+concat <$> mapM declareCssProperty allProperties
 
 alpha a = rgba 0 0 0 a
 
