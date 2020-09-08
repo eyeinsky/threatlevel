@@ -19,7 +19,7 @@ import HTML as Export hiding (
   )
 import CSS as Export hiding (
   -- generic
-  filter, all, transform,
+  filter, all,
   -- defined both in HTML and DOM.Core
   Document
   )
