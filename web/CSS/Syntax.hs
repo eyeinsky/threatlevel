@@ -111,9 +111,6 @@ instance Render Comment where
 
 data Pseudo = Pseudo TL.Text deriving (Eq)
 instance Render Pseudo where renderM (Pseudo a) = pure $ ":" <> a
-instance Render TagName where renderM (TagName a) = renderM a
-instance Render Id where renderM (Id a) = ("#" <>) <$> renderM a
-instance Render Class where renderM (Class  a) = ("." <>) <$> renderM a
 
 data AttributeSelector
   = Has
@@ -240,6 +237,10 @@ deriving instance Show Comment
 deriving instance Show Pseudo
 
 -- * Convenience
+
+instance Render TagName where renderM (TagName a) = renderM a
+instance Render Id where renderM (Id a) = ("#" <>) <$> renderM a
+instance Render Class where renderM (Class  a) = ("." <>) <$> renderM a
 
 -- | Conversion from something to Selector
 class SelectorFrom a where selFrom :: a -> Selector
