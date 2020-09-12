@@ -17,11 +17,18 @@ import HTML as Export hiding (
   -- conflict with DOM.Core
   Id, Class
   )
-import CSS as Export hiding (
+
+import CSS as Export hiding
   -- generic
-  filter, all,
+  ( filter, all, not
+  -- defined in HTML
+  , disabled, readOnly, required, default_, scope, link, dir
+  -- defined in JS
+  , empty
+  -- defined in URL
+  , host
   -- defined both in HTML and DOM.Core
-  Document
+  , Document
   )
 import Web.Monad as Export
 import JS.Event as Export

@@ -12,9 +12,7 @@ module CSS
   , module SVG.CSS
   ) where
 
-import qualified Data.Text.Lazy as TL
-
-import X.Prelude
+import X.Prelude as P
 
 import Web.Browser
 
@@ -34,20 +32,16 @@ import Render
 -- | TH-generate all properties with @prop@
 concat <$> mapM declareCssProperty allProperties
 
+-- | TH-generate all pseudo-classes
+$(
+  let leaveOut = (`elem` ["left", "right"]) -- ^ These are also CSS properties
+      predicate = not . either leaveOut leaveOut
+  in concat <$> mapM declarePseudoClass (P.filter predicate pseudoClasses)
+ )
+-- | TH-generate all pseoudo-elements
+concat <$> mapM declarePseudoElement pseudoElements
+
 alpha a = rgba 0 0 0 a
-
-hover = pseudo "hover"
-before = pseudo "before"
-after = pseudo "after"
-focus = pseudo "focus"
-active = pseudo "active"
-visited = pseudo "visited"
-
-nthChild :: Int -> CSSM () -> CSSM ()
-nthChild n = pseudo str
-  where
-    n' = TL.pack (show n)
-    str = "nth-child(" <> n' <> ")"
 
 descendant = combinator Descendant
 child = combinator Child

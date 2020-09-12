@@ -1,5 +1,6 @@
 module CSS.Monad where
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Control.Monad.RWS
 
@@ -85,14 +86,39 @@ apply f s = go s
       Simple ss -> Simple (f ss)
       Combined op s ss -> Combined op s (f ss)
 
-pseudo :: TL.Text -> CSSM () -> CSSM ()
-pseudo t m = do
+-- * Pseudo-class and -element
+
+pseudoClassPlain :: TS.Text -> CSSM () -> CSSM ()
+pseudoClassPlain name = pseudo' (pseudoPlain PseudoClass name)
+
+pseudoClassArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
+pseudoClassArgumented name arg = pseudo' (pseudoArgd PseudoClass name arg)
+
+pseudoElementPlain :: TS.Text -> CSSM () -> CSSM ()
+pseudoElementPlain name = pseudo' (pseudoPlain PseudoElement name)
+
+pseudoElementArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
+pseudoElementArgumented name arg = pseudo' (pseudoArgd PseudoElement name arg)
+
+pseudo' :: (SimpleSelector -> SimpleSelector) -> CSSM () -> CSSM ()
+pseudo' f m = do
   conf <- ask
-  let hoovered = apply (pseudo' t) (conf^.selector)
-  tellRules' (Conf hoovered) m
-  where
-    pseudo' :: TL.Text -> SimpleSelector -> SimpleSelector
-    pseudo' t s = s & pseudos %~ (Pseudo t:)
+  let hoovered = apply f (conf^.selector)
+  tellRules' (Conf hoovered) m :: CSSM ()
+
+pseudo :: TS.Text -> CSSM () -> CSSM ()
+pseudo = pseudoClassPlain
+{-# DEPRECATED pseudo "Use the TH-generated classes instead." #-}
+
+pseudoPlain
+  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text
+  -> SimpleSelector -> SimpleSelector
+pseudoPlain dc t s = s & pseudos %~ (dc t Nothing:)
+
+pseudoArgd
+  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text -> TS.Text
+  -> SimpleSelector -> SimpleSelector
+pseudoArgd dc t a s = s & pseudos %~ (dc t (Just a):)
 
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM () -> CSSM ()
 combinator c d m = let

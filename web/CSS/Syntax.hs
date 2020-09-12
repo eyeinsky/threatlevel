@@ -7,6 +7,7 @@ import X.Prelude
 import Data.Text.Format
 
 import Numeric (showHex)
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Data.Word
 import qualified Data.DList as D
@@ -109,8 +110,22 @@ instance Render Comment where
 
 -- ** Selector
 
-data Pseudo = Pseudo TL.Text deriving (Eq)
-instance Render Pseudo where renderM (Pseudo a) = pure $ ":" <> a
+-- *** Pseudo-classes and -elements
+
+data Pseudo
+  = PseudoClass TS.Text (Maybe TS.Text)
+  | PseudoElement TS.Text (Maybe TS.Text)
+  deriving (Eq)
+
+instance Render Pseudo where
+  renderM p = pure $ case p of
+    PseudoClass a arg -> f ":" a arg
+    PseudoElement a arg -> f "::" a arg
+    where
+      f prefix a arg = prefix <> TL.fromStrict a <> maybe "" mkArg arg
+      mkArg a = "(" <> TL.fromStrict a <> ")"
+
+-- *** Attirbute selector
 
 data AttributeSelector
   = Has
@@ -121,6 +136,8 @@ data AttributeSelector
   | Ends
   | Contains
   deriving (Eq, Show)
+
+-- *** Simple selector
 
 -- | Element, class, id or pseudo
 data SimpleSelector = SimpleSelector
@@ -145,7 +162,7 @@ instance Render Declaration where
 instance Render [Declaration] where
    renderM ds = TL.concat . map (<> ";") <$> mapM renderM ds
 
--- ** Selector
+-- *** Selector
 
 data Selector where
   Simple :: SimpleSelector -> Selector
@@ -276,12 +293,12 @@ instance IsString SimpleSelector where
   fromString s = case s of
     '#' : rest -> fromId rest
     '.' : rest -> fromClass rest
-    ':' : rest -> fromPseudo rest
+    ':' : rest -> fromPseudoClass rest
     _ -> fromTag s
     where
       fromId s = SimpleSelector Nothing (Just $ Id $ fromString s) [] [] []
       fromClass s = SimpleSelector Nothing Nothing [Class $ fromString s] [] []
-      fromPseudo s = SimpleSelector Nothing Nothing [] [Pseudo $ TL.pack s] []
+      fromPseudoClass s = SimpleSelector Nothing Nothing [] [PseudoClass (TS.pack s) Nothing] []
       fromTag s = SimpleSelector (Just $ fromString s) Nothing [] [] []
 
 instance IsString TagName where
