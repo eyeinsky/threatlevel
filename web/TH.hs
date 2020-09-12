@@ -5,7 +5,8 @@ import Language.Haskell.TH
 
 import X.Prelude
 
-reserved_ t = if t `elem` ["class", "type", "in"]
+reserved_ :: (Eq a, IsString a, Semigroup a) => a -> a
+reserved_ t = if t `elem` ["class", "type", "in", "default", "where"]
   then t <> "_"
   else t
 
