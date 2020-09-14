@@ -82,3 +82,6 @@ flexbox :: (HasDecls w [Declaration], MonadWriter w m) => Value -> m ()
 flexbox how = do
   display "flex"
   flexFlow how
+
+important :: Value
+important = "!important"
