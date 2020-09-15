@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPO_PATH="$(dirname $0)/.."
+REPO_PATH="$(cd $(dirname $0)/.. && pwd)"
 
 LOCAL_DEPS=$(cat <<END
 - identifiers
@@ -15,36 +15,41 @@ local_deps() {
     echo "$LOCAL_DEPS" | yq -r '.[]'
 }
 
-set -e
-
 # library
 
 echo_() {
     echo fw: $@
 }
 
-add-default-nixs() {
-    local MSG='add default.nix'
+in_deps_do() {
+    local DO_WHAT=$@
     for PKG_PATH in $(local_deps) web; do
-        local P=$REPO_PATH/$PKG_PATH
-        if [ -d "$P" ]; then
-            (cd $P && hpack && cabal2nix . > default.nix)
-            echo_ $MSG: $PKG_PATH
-        else
-            echo_ $MSG: MISSING: $P
-            exit 1
-        fi
+        echo "In '$PKG_PATH' run '$DO_WHAT':"
+        (
+            cd $PKG_PATH
+            eval $DO_WHAT
+        )
     done
 }
 
+prepare() {
+    in_deps_do "cabal2nix . > default.nix"
+    (
+        cd web
+        cabal2nix --shell . > shell.nix
+        patch shell.nix local-deps.patch
+    )
+}
+
 repl() {
-    CMD="${@:-cabal new-repl}"
-    add-default-nixs
+    prepare
     cd web
-    cabal2nix --shell . > shell.nix
-    patch shell.nix local-deps.patch
+    CMD="${@:-cabal repl}"
     nix-shell --command "$CMD"
 }
 
+
+
+set -e
 cd $REPO_PATH
 $@
