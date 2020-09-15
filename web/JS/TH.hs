@@ -3,13 +3,16 @@
 -}
 module JS.TH where
 
-import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
+import Prelude as P
 import Data.Char
 import Data.List
+import Control.Lens hiding (Empty)
+import Data.Maybe
 
-import X.Prelude hiding (Empty)
-import JS
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
+
+import JS.DSL
 
 
 data DataDecl
@@ -102,7 +105,7 @@ singleRecordConstructor type_ conName fieldNamesTypes = do
   let namesTypes = lensFields (nameBase conName) $ map (_1 %~ nameBase) fieldNamesTypes :: [(String, Type)]
   hasFields :: [[Dec]] <- mapM (mkHasField type_) namesTypes
   toExpr :: [Dec] <- mkToExpr type_ namesTypes
-  return $ X.Prelude.concat $ toExpr : hasFields
+  return $ P.concat $ toExpr : hasFields
 
 mkToExpr :: TypeQ -> [(String, Type)] -> Q [Dec]
 mkToExpr mainType namesTypes = case namesTypes of
