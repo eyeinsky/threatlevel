@@ -146,29 +146,6 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
 instance MonadFail m => MonadFail (WebT m) where
   fail _ = undefined
 
-
--- *** Other is MonadWeb if base is MonadWeb
-
-instance (MonadWeb m, Monoid w) => MonadWeb (WriterT w m) where
-  js = lift . js
-  css = lift . css
-  cssRule a b = lift $ cssRule a b
-  cssId = lift . cssId
-  nextId = lift $ nextId
-  getState = lift getState
-  getConf = lift getConf
-  writeRules a b = lift $ writeRules a b
-
-instance (MonadWeb m) => MonadWeb (StateT s m) where
-  js = lift . js
-  css = lift . css
-  cssRule a b = lift $ cssRule a b
-  cssId = lift . cssId
-  nextId = lift $ nextId
-  getState = lift getState
-  getConf = lift getConf
-  writeRules a b = lift $ writeRules a b
-
 -- ** Helpers
 
 newId :: MonadWeb m => m Id
