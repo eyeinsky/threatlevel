@@ -40,14 +40,18 @@ default-extensions:
 - TypeOperators
 - TypeSynonymInstances
 - InstanceSigs
+- RankNTypes
+
 dependencies:
 - base
 - text
+- mtl
+- lens
+
 library:
   exposed-modules:
   - Identifiers
-  dependencies:
-  - lens
+
 benchmarks:
   identifier-source:
     main: identifier-source.hs

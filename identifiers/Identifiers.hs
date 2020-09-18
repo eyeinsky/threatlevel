@@ -4,13 +4,15 @@ module Identifiers
    , identifierSource
    , identifiersFilter
    , next
-   , Infinite, toInfinite
+   , Infinite(..), toInfinite
+   , Increment(..)
    ) where
 
 import Prelude
 import Data.Function (on)
 import Data.Ord (Ordering(..))
 import Data.List (sort, sortBy, nub, groupBy)
+import Control.Monad.State
 
 import qualified Data.Text as T
 
@@ -18,7 +20,8 @@ import Control.Lens
 
 -- * State helper
 
-next lens = head <$> (lens <<%= tail)
+next :: (MonadState s m, Increment a) => Lens' s a -> m (Element a)
+next lens = head' <$> (lens <<%= tail')
 
 -- * T.Text
 
@@ -76,9 +79,31 @@ identifiersFilter li = filterFrom (lengthAlphaSort reserved) $ map T.reverse $ s
 
 -- * Infinite
 
-data Infinite a = Infinite a (Infinite a)
+data Infinite a = Infinite a (Infinite a) deriving Functor
 
-toInfinite :: [T.Text] -> Infinite T.Text
+toInfinite :: [a] -> Infinite a
 toInfinite xs' = case xs' of
   (x : xs) -> Infinite x (toInfinite xs)
   _ -> error "this should never happen"
+
+-- * Increment
+
+class Increment a where
+  type Element a
+  increment :: a -> (Element a, a)
+
+instance Increment [a] where
+  type Element [a] = a
+  increment xs = case xs of
+    x : xs -> (x, xs)
+    _ -> error "Identifiers: Increment [a]: Increment for lists is partial, use Infinite instead"
+
+instance Increment (Infinite a) where
+  type Element (Infinite a) = a
+  increment (Infinite x xs) = (x, xs)
+
+head' :: Increment a => a -> Element a
+head' a = x where (x, xs) = increment a
+
+tail' :: Increment a => a -> a
+tail' a = xs where (x, xs) = increment a
