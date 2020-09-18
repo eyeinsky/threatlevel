@@ -6,6 +6,8 @@ import qualified Data.Text.Lazy as TL
 
 import X.Prelude as P hiding (State, Writer)
 
+import Identifiers as Idents
+
 import qualified CSS as CSS
 import qualified CSS.Monad as CSSM
 import qualified JS
@@ -37,7 +39,9 @@ instance Default Conf where
   def = Conf def
 
 instance Default State where
-  def = State def def
+  def = State def cssState
+    where
+      CSSM.AnimationIdentifiers cssState = def :: CSSM.AnimationIdentifiers
 
 instance Semigroup Writer where
   Writer js css <> Writer js' css' = Writer (js <> js') (css <> css')
@@ -83,13 +87,11 @@ class Monad m => MonadWeb m where
      :: ([CSS.Declaration] -> [CSS.Rule]) -> CSSM.DM a -> m ()
 
 cssF mk m = WebT $ do
-  state0 <- gets (^.cssState)
+  Infinite ident state1 <- gets (^.cssState)
   let
-    (ident : rest) = state0^.CSSM.idents
-    state1 = state0 & CSSM.idents .~ rest
     name = mk ident
     conf' = CSSM.Conf (CSS.selFrom name)
-    (rules, state2) = CSSM.runCSSM conf' state1 m
+    (rules, CSSM.AnimationIdentifiers state2) = CSSM.runCSSM conf' (CSSM.AnimationIdentifiers state1) m
   modify (cssState .~ state2)
   tell (mempty & cssCode .~ rules)
   return name
@@ -111,7 +113,7 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssRule sl m = WebT $ do
       tell $ mempty & cssCode .~ CSSM.run sl m
    cssId = cssF (Id . Static . TL.toStrict)
-   nextId = WebT $ P.head <$> gets (^.cssState.CSSM.idents)
+   nextId = WebT $ next cssState
    getState = WebT get
    getConf = WebT ask
 

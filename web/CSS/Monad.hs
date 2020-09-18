@@ -18,20 +18,16 @@ declareFields [d|
     }
   |]
 
-declareFields [d|
-  data State = State
-    { stateIdents :: [TL.Text]
-    , stateAnimationIdents :: [TL.Text]
-    }
-  |]
-
-instance Default State where
-  def = State idents' animationIdents'
+newtype AnimationIdentifiers
+  = AnimationIdentifiers (Infinite TL.Text)
+  deriving newtype (Increment)
+instance Default AnimationIdentifiers where
+  def = AnimationIdentifiers $ fmap TL.fromStrict $ toInfinite $ Idents.identifiersFilter forbidden
     where
-      idents' = map TL.fromStrict Idents.identifierSource
-      animationIdents' = Idents.identifiersFilter forbidden <&> TL.fromStrict
       forbidden = ["none", "unset", "initial", "inherit"]
       -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
+
+type State = Infinite TL.Text
 
 declareFields [d|
   data CSSW = CSSW
@@ -50,11 +46,11 @@ instance HasDecls [Declaration] [Declaration] where
 
 type DM = Writer [Declaration]
 
-type CSSM = RWST Conf CSSW State Identity
+type CSSM = RWST Conf CSSW AnimationIdentifiers Identity
 type M = CSSM
 
 -- | Full runner for nested CSS
-runCSSM :: Conf -> State -> CSSM () -> ([Rule], State)
+runCSSM :: Conf -> AnimationIdentifiers -> CSSM () -> ([Rule], AnimationIdentifiers)
 runCSSM r s m = (r' : cssw^.rules, state)
   where
     (_, state, cssw) = runRWS m r s
@@ -164,7 +160,7 @@ keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
 keyframes :: KM () -> CSSM Value
 keyframes km = do
-  name <- Idents.next animationIdents
+  name <- state increment
   keyframes' name km
 
 keyframes' :: TL.Text -> KM () -> CSSM Value
