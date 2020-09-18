@@ -90,8 +90,7 @@ cssF mk m = WebT $ do
   Infinite ident state1 <- gets (^.cssState)
   let
     name = mk ident
-    conf' = CSSM.Conf (CSS.selFrom name)
-    (rules, CSSM.AnimationIdentifiers state2) = CSSM.runCSSM conf' (CSSM.AnimationIdentifiers state1) m
+    (rules, CSSM.AnimationIdentifiers state2) = CSSM.runCSSM (CSS.selFrom name) (CSSM.AnimationIdentifiers state1) m
   modify (cssState .~ state2)
   tell (mempty & cssCode .~ rules)
   return name

@@ -12,12 +12,6 @@ import CSS.Syntax
 
 -- * DSL setup
 
-declareFields [d|
-  data Conf = Conf
-    { confSelector :: Selector
-    }
-  |]
-
 newtype AnimationIdentifiers
   = AnimationIdentifiers (Infinite TL.Text)
   deriving newtype (Increment)
@@ -27,6 +21,7 @@ instance Default AnimationIdentifiers where
       forbidden = ["none", "unset", "initial", "inherit"]
       -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
 
+type Conf = Selector
 type State = Infinite TL.Text
 
 declareFields [d|
@@ -51,15 +46,15 @@ type M = CSSM
 
 -- | Full runner for nested CSS
 runCSSM :: Conf -> AnimationIdentifiers -> CSSM () -> ([Rule], AnimationIdentifiers)
-runCSSM r s m = (r' : cssw^.rules, state)
+runCSSM r s m = (rule : cssw^.rules, state)
   where
     (_, state, cssw) = runRWS m r s
-    r' = mkRule (r^.selector) (cssw^.decls)
+    rule = mkRule r (cssw^.decls)
 
 -- * For export
 
 run :: SelectorFrom a => a -> CSSM () -> [Rule]
-run s m = runCSSM (Conf (selFrom s)) def m & fst
+run s m = runCSSM (selFrom s) def m & fst
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
@@ -103,9 +98,8 @@ pseudoElementArgumented name arg = pseudo' (pseudoArgd PseudoElement name arg)
 
 pseudo' :: (SimpleSelector -> SimpleSelector) -> CSSM () -> CSSM ()
 pseudo' f m = do
-  conf <- ask
-  let hoovered = apply f (conf^.selector)
-  tellRules' (Conf hoovered) m :: CSSM ()
+  selector <- ask
+  tellRules' (apply f selector) m :: CSSM ()
 
 pseudo :: TS.Text -> CSSM () -> CSSM ()
 pseudo = pseudoClassPlain
@@ -122,12 +116,11 @@ pseudoArgd
 pseudoArgd dc t a s = s & pseudos %~ (dc t (Just a):)
 
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM () -> CSSM ()
-combinator c d m = let
+combinator op d m = let
   ss = ssFrom d
   in do
-  conf <- ask
-  let r = Conf (Combined c (conf^.selector) ss)
-  tellRules' r m
+  currentSelector <- ask
+  tellRules' (Combined op currentSelector ss) m
 
 -- | Tell rules and thread state
 tellRules' :: Conf -> CSSM () -> CSSM ()

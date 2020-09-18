@@ -5,7 +5,7 @@ module CSS
   , module DOM.Core
   , type CSSM
 
-  , keyframes, keyframes', keyframe, browser, selector
+  , keyframes, keyframes', keyframe, browser
   , media, supports
   , DeclM
 
