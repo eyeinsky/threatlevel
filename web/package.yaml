@@ -143,6 +143,7 @@ default-extensions:
 - DeriveDataTypeable
 - DeriveFunctor
 - DeriveGeneric
+- DerivingStrategies
 - EmptyDataDecls
 - ExtendedDefaultRules
 - FlexibleContexts

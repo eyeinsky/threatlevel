@@ -5,7 +5,7 @@ module CSS
   , module DOM.Core
   , type CSSM
 
-  , keyframes, keyframes', keyframe, browser
+  , keyframes', keyframe, browser
   , media, supports
   , DeclM
 
@@ -60,14 +60,14 @@ renderDecls dm = render () $ view decls $ execDeclM dm
 -- * Useful styles
 
 resetCSS :: [Rule]
-resetCSS = run (TagName "body") no <> run (TagName "div") no
+resetCSS = rulesFor (TagName "body") no <> rulesFor (TagName "div") no
    where
       no = do
         prop "padding" $ px 0
         prop "margin" $ px 0
 
 setBoxSizing :: [Rule]
-setBoxSizing = run (TagName "html") (boxSizing "border-box") <> run anyTag inherit
+setBoxSizing = rulesFor (TagName "html") (boxSizing "border-box") <> rulesFor anyTag inherit
   where
     inherit = boxSizing "inherit"
 

@@ -12,15 +12,6 @@ import CSS.Syntax
 
 -- * DSL setup
 
-newtype AnimationIdentifiers
-  = AnimationIdentifiers (Infinite TL.Text)
-  deriving newtype (Increment)
-instance Default AnimationIdentifiers where
-  def = AnimationIdentifiers $ fmap TL.fromStrict $ toInfinite $ Idents.identifiersFilter forbidden
-    where
-      forbidden = ["none", "unset", "initial", "inherit"]
-      -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
-
 type Conf = Selector
 type State = Infinite TL.Text
 
@@ -41,20 +32,20 @@ instance HasDecls [Declaration] [Declaration] where
 
 type DM = Writer [Declaration]
 
-type CSSM = RWST Conf CSSW AnimationIdentifiers Identity
+type CSSM = ReaderT Conf (WriterT CSSW Identity)
 type M = CSSM
 
 -- | Full runner for nested CSS
-runCSSM :: Conf -> AnimationIdentifiers -> CSSM () -> ([Rule], AnimationIdentifiers)
-runCSSM r s m = (rule : cssw^.rules, state)
+runCSSM :: Conf -> CSSM () -> [Rule]
+runCSSM r m = (rule : cssw^.rules)
   where
-    (_, state, cssw) = runRWS m r s
+    ((), cssw) = runWriter $ runReaderT m r
     rule = mkRule r (cssw^.decls)
 
--- * For export
+rulesFor :: SelectorFrom s => s -> CSSM () -> [Rule]
+rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 
-run :: SelectorFrom a => a -> CSSM () -> [Rule]
-run s m = runCSSM (selFrom s) def m & fst
+-- * For export
 
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
@@ -124,11 +115,7 @@ combinator op d m = let
 
 -- | Tell rules and thread state
 tellRules' :: Conf -> CSSM () -> CSSM ()
-tellRules' r m = do
-  state0 <- get
-  let (rules, state1) = runCSSM r state0 m
-  put state1
-  tellRules rules
+tellRules' r m = tellRules $ runCSSM r m
 
 -- * Keyframe monad
 
@@ -146,30 +133,23 @@ type DeclM = Writer DeclW
 execDeclM :: DeclM a ->  DeclW
 execDeclM dm = execWriter dm
 
+-- * Keyframes
+
 type KM = Writer [KeyframeBlock]
 
 keyframe :: Double -> DeclM () -> KM ()
 keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
-keyframes :: KM () -> CSSM Value
-keyframes km = do
-  name <- state increment
-  keyframes' name km
-
-keyframes' :: TL.Text -> KM () -> CSSM Value
-keyframes' name km = do
-  tellRule $ Keyframes name $ execWriter km
-  return $ Word name
+keyframes' :: TL.Text -> KM () -> (Value, Rule)
+keyframes' name km = (Word name, keyframesRule)
+  where keyframesRule = Keyframes name $ execWriter km
 
 -- * At-rules
 
 atRule :: TL.Text -> TL.Text -> CSSM () -> CSSM ()
 atRule name e dm = do
   conf <- ask
-  state0 <- get
-  let (rules, state1) = runCSSM conf state0 dm
-  tellRule $ AtRule name e rules
-  put state1
+  tellRule $ AtRule name e $ runCSSM conf dm
 
 media :: TL.Text -> CSSM () -> CSSM ()
 media = atRule "media"

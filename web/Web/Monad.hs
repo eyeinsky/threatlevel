@@ -15,10 +15,20 @@ import DOM
 
 -- ** WebT
 
+newtype AnimationIdentifiers
+  = AnimationIdentifiers (Infinite TL.Text)
+  deriving newtype (Increment)
+instance Default AnimationIdentifiers where
+  def = AnimationIdentifiers $ fmap TL.fromStrict $ toInfinite $ Idents.identifiersFilter forbidden
+    where
+      forbidden = ["none", "unset", "initial", "inherit"]
+      -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
+
 declareFields [d|
   data State = State
     { stateJsState :: JS.State
     , stateCssState :: CSSM.State
+    , stateAnimationIdentifiers :: AnimationIdentifiers
     }
   |]
 
@@ -39,9 +49,7 @@ instance Default Conf where
   def = Conf def
 
 instance Default State where
-  def = State def cssState
-    where
-      CSSM.AnimationIdentifiers cssState = def :: CSSM.AnimationIdentifiers
+  def = State def (toInfinite $ map TL.fromStrict identifierSource) def
 
 instance Semigroup Writer where
   Writer js css <> Writer js' css' = Writer (js <> js') (css <> css')
@@ -87,12 +95,8 @@ class Monad m => MonadWeb m where
      :: ([CSS.Declaration] -> [CSS.Rule]) -> CSSM.DM a -> m ()
 
 cssF mk m = WebT $ do
-  Infinite ident state1 <- gets (^.cssState)
-  let
-    name = mk ident
-    (rules, CSSM.AnimationIdentifiers state2) = CSSM.runCSSM (CSS.selFrom name) (CSSM.AnimationIdentifiers state1) m
-  modify (cssState .~ state2)
-  tell (mempty & cssCode .~ rules)
+  name <- mk <$> next cssState
+  tell (mempty & cssCode .~ CSSM.rulesFor name m)
   return name
 
 css' = cssF (Class . Static . TL.toStrict)
@@ -110,7 +114,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       return result
    css = css'
    cssRule sl m = WebT $ do
-      tell $ mempty & cssCode .~ CSSM.run sl m
+      tell $ mempty & cssCode .~ CSSM.rulesFor sl m
    cssId = cssF (Id . Static . TL.toStrict)
    nextId = WebT $ next cssState
    getState = WebT get
@@ -120,6 +124,14 @@ instance (Monad m) => MonadWeb (WebT m) where
      let ds = execWriter dm :: [CSS.Declaration]
      tell $ mempty & cssCode .~ g ds
 
+keyframes :: Monad m => CSSM.KM () -> WebT m CSS.Value
+keyframes km = WebT $ do
+  name <- next animationIdentifiers
+  let (name', rule) = CSSM.keyframes' name km
+  tell $ mempty & cssCode .~ pure rule
+  return name'
+
+fontFace :: MonadWeb m => CSSM.DM a -> m ()
 fontFace = writeRules (\ds -> [CSS.FontFace ds])
 
 -- ** Instances
