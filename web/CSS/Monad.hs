@@ -73,9 +73,14 @@ prop
   => TL.Text -> Value -> m ()
 prop k v = tellDecls $ pure $ mkDeclaration k v
 
+
+tellRules :: [Rule] -> CSSM ()
 tellRules rs = tell $ mempty & rules .~ rs
+
+tellRule :: Rule -> CSSM ()
 tellRule =  tellRules . pure
 
+tellDecls :: (HasDecls w [Declaration], MonadWriter w m) => [Declaration] -> m ()
 tellDecls ds = tell $ mempty & decls .~ ds
 
 apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
@@ -129,6 +134,7 @@ combinator c d m = let
   tellRules' r m
 
 -- | Tell rules and thread state
+tellRules' :: Conf -> CSSM () -> CSSM ()
 tellRules' r m = do
   state0 <- get
   let (rules, state1) = runCSSM r state0 m
