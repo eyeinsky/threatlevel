@@ -38,10 +38,11 @@ deriveToExpr :: Name -> Q [Dec]
 deriveToExpr name = do
   dataDecl <- name2dataDecl name
   case dataDecl of
-    Enum typeName cons -> [d| instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where lit v = lit (show v) |]
+    Enum typeName _ -> [d| instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where lit v = lit (show v) |]
     SingleRecord typeName conName fieldNamesTypes -> singleRecordConstructor (conT typeName) conName fieldNamesTypes
     DataFamilyInstance type_ conName fieldNamesTypes -> singleRecordConstructor (pure type_) conName fieldNamesTypes
     MultiMixed -> fail "Multi-mixed data types not implemented"
+    RegularData _ _ -> fail "RegularData not implemented"
     Empty -> fail "Type has no data constructors"
 
 -- | Reify name to a type and data constructor pairs
@@ -64,8 +65,11 @@ name2dataDecl name = reify name >>= \info -> case info of
             let appliedTyped = foldl AppT (ConT typeFirst) types :: Type
             return $ DataFamilyInstance appliedTyped conName fieldNamesTypes
           _ -> fail "here here here"
+      _ -> fail "name2dataDecl unhandled case"
     where
-      getCon (DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s) = con
+      getCon a = case a of
+        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> con
+        _ -> error "getCon"
       isSingleDICon a = case a of
         DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> True
         _ -> False
@@ -77,7 +81,9 @@ name2dataDecl name = reify name >>= \info -> case info of
   vbt2vt vbt = (vbt^._1, vbt^._3)
 
   record :: Con -> (Name, [(Name, Type)])
-  record (RecC conName vbts) = (conName, map vbt2vt vbts)
+  record dc = case dc of
+    RecC conName vbts -> (conName, map vbt2vt vbts)
+    _ -> error "record"
 
   -- | Extract type name and data constructors with names
   constructors :: Dec -> Q DataDecl
@@ -91,9 +97,9 @@ name2dataDecl name = reify name >>= \info -> case info of
       | Just _ <- fieldlessDCs dataCons -> return $ Enum typeName dataCons
       | otherwise -> return Empty
 
-    NewtypeD _ name _ _ dataCon _ -> do
+    NewtypeD _ _ _ _ _ _ -> do
       return Empty
-    DataInstD _ _ _ _ dataCons _ -> do
+    DataInstD _ _ _ _ _ _ -> do
       return Empty
     _ -> do
       return Empty
@@ -139,6 +145,7 @@ dcName dc = case dc of
   ForallC _ _ con -> dcName con
   GadtC [name] _ _ -> name
   RecGadtC [name] _ _ -> name
+  _ -> error "dcName"
 
 
 -- | Con -> ("Constr", ["constrField1", "constrField2"])
@@ -207,7 +214,7 @@ makeFields2 name = do
     DataConI conName _ parentName -> do
       parentInfo <- reify parentName
       case parentInfo of
-        FamilyI (DataFamilyD _ _ _) (visibleInstances :: [Dec]) -> do
+        FamilyI (DataFamilyD _ _ _) (_ :: [Dec]) -> do
           let
             newFieldNamer _ = oldFieldNamer conName
             newRules = camelCaseFields & lensField .~ newFieldNamer
