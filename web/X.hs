@@ -109,8 +109,6 @@ import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
 
--- * Prelude
-
 -- * DOM.Event
 
 -- | Create inline on-event attribute
@@ -120,7 +118,7 @@ on event handler = On event handler
     -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
     -- ^ todo: find a generic way to get the name, even for literal
     -- expressions.
-{-# DEPRECATED on "Use `On` instead." #-}
+{-# DEPRECATED on "Use `On` instead, or better yet add it with addEventListener." #-}
 
 onEvent
   :: (JS.Event.Event e, Function h) => e -> Expr a -> h
@@ -128,6 +126,16 @@ onEvent
 onEvent eventType obj handler = do
   handler' <- async handler
   bare $ addEventListener (Cast obj) eventType handler'
+  return $ Cast handler'
+
+-- | Attach an event handler on document load
+attachOnLoad
+  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
+  -> M r (Expr b) -- (Expr (JS.Type h))
+attachOnLoad type_ element handler = do
+  handler' <- async handler
+  lit <- func AnonFunc $ bare $ addEventListener (Cast element) type_ handler'
+  bare $ addEventListener (Cast window) Load lit
   return $ Cast handler'
 
 
