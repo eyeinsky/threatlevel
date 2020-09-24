@@ -6,9 +6,9 @@ import X.Prelude
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
-import qualified JS
+import JS
 import Render
-import JS.Syntax
+import JS.Syntax (Conf(..))
 
 data TagName = TagName { unTagName :: Value }
 data Id      = Id { unId :: Value }

@@ -13,7 +13,7 @@ import HTML as Export hiding (
   header,
   raw,
   -- used in JS.DSL
-  var,
+  var, method,
   -- conflict with DOM.Core
   Id, Class
   )
@@ -142,7 +142,7 @@ attachOnLoad type_ element handler = do
 
 
 post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
-get url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
+get_ url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
 
 postJs rc url = DOM.xhrJs rc "POST" (lit $ render' url)
 getJs rc url = DOM.xhrJs rc "GET" (lit $ render' url)

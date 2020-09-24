@@ -19,6 +19,8 @@ data Conf
 instance Default Conf where
   def = Indent 2
 
+type RenderJS a = (Render a, Render.Conf a ~ Conf)
+
 instance Render (Code a) where
   type Conf (Code a) = Conf
   renderM li = do
@@ -109,6 +111,14 @@ instance Render (Statement a) where
           in mseq $ nl : cases' <> [def']
       in pre <+> (curly <$> body)
 
+    Class name maybeExtends bodyParts -> mseq
+      [ pure "class "
+      , renderM name
+      , maybe (pure "") (\name -> pure " extends " <+> renderM name) maybeExtends
+      , pure " "
+      , Render.curly <$> indented bodyParts
+      ]
+
     where
       define kw name = pure kw <+> renderM name
       var = define "var "
@@ -145,7 +155,38 @@ instance Render (Expr a) where
     Await e -> pure "await " <+> renderM e
 
     New e -> pure "new " <+> renderM e
+
     -- TypedFDef _ _ -> todo
+
+instance Render ClassBodyPart where
+  type Conf ClassBodyPart = Conf
+  renderM = \case
+    ClassBodyMethod methodType body ->
+      renderM methodType <+> pure " " <+> curlyCode body
+    ClassBodyField fieldType value ->
+      renderM fieldType <+> pure " " <+> renderM value
+
+instance Render ClassBodyMethodType where
+  type Conf ClassBodyMethodType = Conf
+  renderM mt = case mt of
+    Constructor args -> pure "constructor" <+> unargs args
+    InstanceMethod name args -> renderM name <+> unargs args
+    StaticMethod name args -> prefix "static" name <+> unargs args
+    Getter name -> prefix "get" name <+> pure "()"
+    StaticGetter name -> prefix "static get" name <+> pure "()"
+    Setter name arg -> prefix "set" name <+> (par <$> renderM arg)
+
+instance Render ClassBodyFieldType where
+  type Conf ClassBodyFieldType = Conf
+  renderM = \case
+    Instance name -> renderM name
+    Static name -> prefix "static" name
+    Private name -> pure "#" <+> renderM name
+
+prefix :: Text -> Name -> ReaderT (Render.Conf Name) Identity Text
+prefix word a = pure word <+> pure " " <+> renderM a
+
+postfix what a = a <&> (<> what)
 
 function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
 function kw mbName as code = mseq
@@ -222,26 +263,22 @@ instance Render Literal where
 -- * Helpers
 
 -- | Put printed code in curly braces, code in braces is indented.
-curlyCode :: Code a -> Reader (Render.Conf (Code a)) TL.Text
+curlyCode :: RenderJS a => [a] -> Reader (Render.Conf a) TL.Text
 curlyCode code = Render.curly <$> indented code
 
 -- | Render & indent code
-indented :: Code a -> Reader (Render.Conf (Code a)) TL.Text
-indented code = ask >>= \conf -> case conf of
+indented :: RenderJS a => [a] -> Reader Conf TL.Text
+indented code = ask >>= \case
   Indent n -> do
     stms :: [Text] <- withReader (inc 2) $ uncode code
     return $ "\n" <> mconcat (map (<> "\n") stms) <> spaces n
     where
   Minify -> uncode code <&> mconcat
 
-uncode
- :: (Render (Code a), Render.Conf (Code a) ~ Conf)
- => Code a -> Reader (Render.Conf (Code a)) [Text]
-uncode code = do
-  conf <- ask
-  case conf of
-    Indent n -> mapM renderM code <&> map (spaces n <>)
-    Minify -> mapM renderM code
+uncode :: RenderJS a => [a] -> Reader (Render.Conf a) [Text]
+uncode code = ask >>= \case
+  Indent n -> mapM renderM code <&> map (spaces n <>)
+  Minify -> mapM renderM code
 
 -- | Newline
 nl :: Reader Conf Text

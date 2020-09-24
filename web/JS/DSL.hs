@@ -3,7 +3,7 @@
 module JS.DSL
   ( module JS.DSL
   , M, State(..), run
-  , library, Function, mkCode, Final
+  , library, Function, funcPure, func, mkCode, Final
 
   -- * JS.Syntax
   , JS.Syntax.Conf
@@ -27,7 +27,7 @@ import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Aeson as A
 import Data.Time
 
-import JS.Syntax hiding (Conf)
+import JS.Syntax hiding (Conf, Static)
 import qualified JS.Syntax
 import JS.DSL.Function as JS
 import JS.DSL.MTL as JS
@@ -123,6 +123,50 @@ case_ match code = do
 default_ :: M r a -> SwitchBodyM m r ()
 default_ code = lift (mkCode code) >>= Left ^ pure ^ tell
 
+-- * Class
+
+type ClassBodyM = forall r. WriterT [ClassBodyPart] (M r) ()
+
+-- ** Class declaration
+
+class_ :: Name -> ClassBodyM -> M r (Expr b)
+class_ name bodyParts = do
+  bodyParts' <- execWriterT bodyParts
+  write $ Class name Nothing bodyParts'
+  return $ EName name
+
+newClass :: ClassBodyM -> M r (Expr b)
+newClass bodyParts = do
+  name <- next
+  class_ name bodyParts
+
+extends :: Name -> ClassBodyM -> M r (Expr b)
+extends what bodyParts = do
+  bodyParts' <- execWriterT bodyParts
+  name <- next
+  write $ Class name (Just what) bodyParts'
+  return $ EName name
+
+-- ** Method and field helpers
+
+constructor :: Function fexp => fexp -> ClassBodyM
+constructor fexp = do
+  (formalArgs, functionBody) <- lift $ bla fexp
+  tell [ClassBodyMethod (Constructor formalArgs) functionBody]
+
+methodMaker :: Function fexp => (Name -> [Name] -> ClassBodyMethodType) -> Name -> fexp -> ClassBodyM
+methodMaker mm name fexp = do
+  (formalArgs, functionBody) <- lift $ bla fexp
+  tell [ClassBodyMethod (mm name formalArgs) functionBody]
+  return ()
+
+method, staticMethod, get, staticGet, set  :: Function fexp => Name -> fexp -> ClassBodyM
+method = methodMaker InstanceMethod
+staticMethod = methodMaker StaticMethod
+get = methodMaker (\a _ -> Getter a)
+staticGet = methodMaker (\a _ -> StaticGetter a)
+set = methodMaker (\a [b] -> Setter a b)
+
 -- * Loops
 
 for :: Expr r -> M r a -> M r ()
@@ -197,20 +241,6 @@ newf' n = new' n <=< func AnonFunc
 -- fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
 fn f = newf f <&> convert []
 fn' n f = newf' n f <&> convert []
-
--- | Create function, getting state and reader from enclosing monad.
-func
-  :: Function f
-  => (Maybe Name -> [Name] -> Code (Final f) -> Expr (Type f))
-  -> f
-  -> M parent (Expr (Type f))
-func constr f = do
-  (a, s) <- funcPrim constr <$> get <*> pure f
-  put s *> pure a
-
--- | Create function, starting from empty state and reader
-funcPure :: Function f => f -> Expr (Type f)
-funcPure = funcPrim AnonFunc def <&> fst
 
 a !/ b = call0 (a !. b)
 a !// b = call1 (a !. b)

@@ -32,7 +32,7 @@ import Control.Monad.Fail as Export
 
 
 import Control.Arrow as Export (first, second, (***))
-import Control.Lens as Export hiding ((.=), (.>), transform)
+import Control.Lens as Export hiding ((.=), (.>), transform, Setter, Getter)
 
 import GHC.Generics as Export (Generic)
 import Debug.Trace as Export

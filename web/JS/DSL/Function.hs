@@ -2,6 +2,8 @@ module JS.DSL.Function where
 
 import Prelude
 import Data.Functor
+import Data.Default
+import Control.Monad.State hiding (State)
 
 import JS.Syntax hiding (Conf)
 import JS.DSL.MTL
@@ -14,17 +16,9 @@ tcall f as = TypedFCall f as
 
 -- * Typed functions
 
--- | Create function from a literal: provide JSM state and reader
-funcPrim
-  :: Function a
-  => (Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a))
-  -> State -> a -> (Expr (Type a), State)
-funcPrim constr (State fresh used lib) fexp = (constr Nothing args code, s1)
-   where
-     ((args, code), s1) = run fresh used lib (funcLit fexp)
-
--- | The 'Function' class turns function literals into typed
--- functions.
+-- | @funcLit@ takes a literal haskell function, feeds it new names
+-- used in the function body, and returns the generated names -- to be
+-- used in AST of function definition.
 class Function a where
    type Type a
    type Final a
@@ -56,3 +50,33 @@ instance Back (Expr b) => Back (Expr (a -> b)) where
   convert args f arg = convert (Cast arg : args) (Cast f :: Expr b)
 instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
   convert args f = call f $ reverse args
+
+-- * Helpers on top of @Function@ class
+
+-- | Shorthand for clearer type signature. One of @AnonFunc@,
+-- @Generator@, @Async@
+type FuncConstr a = Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a)
+
+-- | Create function from a literal: provide JSM state and reader
+funcPrim :: Function a => FuncConstr a -> State -> a -> (Expr (Type a), State)
+funcPrim constr (State fresh used lib) fexp = (constr Nothing args code, s1)
+   where
+     ((args, code), s1) = run fresh used lib (funcLit fexp)
+
+-- | Create function, starting from empty state and reader
+funcPure :: Function f => f -> Expr (Type f)
+funcPure = funcPrim AnonFunc def <&> fst
+
+-- | Create function, getting state and reader from enclosing monad.
+func :: Function f => FuncConstr f -> f -> M parent (Expr (Type f))
+func constr f = do
+  (a, s) <- funcPrim constr <$> get <*> pure f
+  put s *> pure a
+
+-- | Return formal arguments and
+bla :: Function f => f -> M parent ([Name], Code (Final f))
+bla fexp = do
+  State fresh used lib <- get
+  let ((args, code), newState) = run fresh used lib (funcLit fexp)
+  put newState
+  return (args, code)

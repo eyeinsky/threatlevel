@@ -34,6 +34,8 @@ data Statement a where
 
    Switch   :: Expr a -> ([(Expr a, Code r)]) -> Maybe (Code r) -> Statement r
 
+   Class :: Name -> Maybe Name -> [ClassBodyPart] -> Statement r
+
 data Expr a where
    Assign    :: Expr a -> Expr b    -> Expr b
    Cast      :: Expr a              -> Expr b
@@ -50,12 +52,16 @@ data Expr a where
 
    -- untyped
    FuncCall  :: Expr a -> [Expr b]  -> Expr c -- func(*expr)
-   -- typed
+
+   -- | @function maybeName(name) {code}@
    AnonFunc :: Maybe Name -> [Name] -> Code b -> Expr c
+
+   -- | @function *maybeName(name) {code}@
    Generator :: Maybe Name -> [Name] -> Code b -> Expr c
+
+   -- | @async function maybeName(names) {code}@
    Async :: Maybe Name -> [Name] -> Code b -> Expr c
 
-   -- ^ function maybeName(exprs) {code}
    -- TypedFDef  :: Args a => a -> Code b -> Expr c
    TypedFCall :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
 
@@ -69,13 +75,36 @@ data Expr a where
 
    New       :: Expr a -> Expr b
 
-data FormalArgs = FA [TL.Text]
+type FormalArgs = [Name]
 data Name = Name { getName :: TS.Text }
+
+data PossiblyComputedName
+  = Computed (Expr ())
+  | Regular Name
 
 instance IsString Name where
   fromString = Name . TS.pack
 
 data Attr = forall a. Attr (Expr a) Name
+
+-- * Class
+
+data ClassBodyPart
+  = forall a. ClassBodyMethod ClassBodyMethodType (Code a)
+  | forall a. ClassBodyField ClassBodyFieldType (Expr a)
+
+data ClassBodyMethodType
+  = Constructor FormalArgs
+  | InstanceMethod Name FormalArgs
+  | StaticMethod Name FormalArgs
+  | Getter Name -- ^ just name
+  | StaticGetter Name -- ^ just name but class-global
+  | Setter Name Name -- ^ name and single argument
+
+data ClassBodyFieldType
+  = Instance Name
+  | Static Name
+  | Private Name
 
 -- ** Operators
 
