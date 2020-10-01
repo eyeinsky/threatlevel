@@ -476,16 +476,16 @@ mkHot name what = let
   stop_ = rapid 1 (\r -> stop r name what)
   in (reload, stop_)
 
-siteMain
-  :: (WE.Confy r, Default r)
+type SiteType r a
+  = (WE.Confy r, Default r)
   => WM.Conf
   -> WM.State
   -> URL
   -> Warp.Settings
-  -> Maybe Warp.TLSSettings
   -> T r
-  -> IO ()
-siteMain mc ms siteRoot settings maybeTls site = do
+  -> a
+siteMain :: Maybe Warp.TLSSettings -> SiteType r (IO ())
+siteMain maybeTls mc ms siteRoot settings site = do
   handler <- WE.toHandler mc ms siteRoot def site
   let handler' req respond = do
         r <- handler req
@@ -498,32 +498,19 @@ siteMain mc ms siteRoot settings maybeTls site = do
       $ "Path not found: " <> show (Wai.pathInfo req)
       <> ", URL: " <> TL.unpack (render' siteRoot)
 
-hotHttp
-  :: (WE.Confy r, Default r, Ord k)
-  => k
-  -> WM.Conf -> WM.State
-  -> URL.URL
-  -> Warp.Settings
-  -> WE.T r
-  -> (IO (), IO (), IO ())
-hotHttp name mc ms siteRoot settings site = (hot, stop, main)
+type HotType k r a = (Ord k) => k -> SiteType r a
+
+mkHotPrim :: Maybe Warp.TLSSettings -> HotType k r (IO (), IO (), IO ())
+mkHotPrim maybeTls name mc ms siteRoot settings site = (hot, stop, main)
   where
-    main = siteMain mc ms siteRoot settings Nothing site
+    main = siteMain maybeTls mc ms siteRoot settings site
     (hot, stop) = mkHot name main
 
-hotHttps
-  :: (WE.Confy r, Default r, Ord k)
-  => k
-  -> WM.Conf -> WM.State
-  -> URL.URL
-  -> Warp.Settings
-  -> Warp.TLSSettings
-  -> WE.T r
-  -> (IO (), IO (), IO ())
-hotHttps name mc ms siteRoot settings tls site = (hot, stop, main)
-  where
-    main = siteMain mc ms siteRoot settings (Just tls) site
-    (hot, stop) = mkHot name main
+hotHttp :: HotType k r (IO (), IO (), IO ())
+hotHttp = mkHotPrim Nothing
+
+hotHttps :: Warp.TLSSettings -> HotType k r (IO (), IO (), IO ())
+hotHttps tls = mkHotPrim (Just tls)
 
 redirectToHttps :: URL -> IO ()
 redirectToHttps url =
