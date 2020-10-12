@@ -109,6 +109,9 @@ import qualified Web.Monad as WM
 import qualified Web.Response as WR
 import qualified Web.Endpoint as WE
 
+import qualified Network.WebSockets as WS
+import qualified Network.Wai.Handler.WebSockets as WS
+
 -- * DOM.Event
 
 -- | Create inline on-event attribute
@@ -484,12 +487,20 @@ type SiteType r a
   -> Warp.Settings
   -> T r
   -> a
+
 siteMain :: Maybe Warp.TLSSettings -> SiteType r (IO ())
 siteMain maybeTls mc ms siteRoot settings site = do
   handler <- WE.toHandler mc ms siteRoot def site
   let handler' req respond = do
-        r <- handler req
-        r & fromMaybe (err req) ^ HR.toRaw ^ respond
+        r :: Maybe WR.Response <- handler req
+        case r of
+          Just r' -> case r' of
+            r''@ (Response {}) -> respond $ HR.toRaw r''
+            WebSocket ws ->
+              WS.websocketsOr WS.defaultConnectionOptions ws
+                 (error "This should never happen")
+                 req respond
+          _ -> respond $ HR.toRaw $ htmlDoc "" "Page not found"
   case maybeTls of
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'

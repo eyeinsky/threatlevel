@@ -21,6 +21,8 @@ import qualified HTML
 import Render
 import URL
 
+import qualified Network.WebSockets as WS
+
 -- * Url path
 
 renderURL :: URL -> TL.Text
@@ -36,11 +38,13 @@ instance Show AnyResponse where
   show _ = "AnyResponse"
 
 declareFields [d|
-  data Response = Response
-    { responseCode :: WT.Status
-    , responseHeaders :: [Hdr.Header]
-    , responseBody :: AnyResponse
-    } deriving Show
+  data Response
+    = Response
+      { responseCode :: WT.Status
+      , responseHeaders :: [Hdr.Header]
+      , responseBody :: AnyResponse
+      }
+    | WebSocket WS.ServerApp
   |]
 
 instance ToRaw Response where

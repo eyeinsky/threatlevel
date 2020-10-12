@@ -51,9 +51,8 @@ dependencies:
 - mwc-random
 - data-default
 - multiline
-
-- tasty
-- tasty-hunit
+- websockets
+- wai-websockets
 
 library:
   source-dirs:
@@ -106,6 +105,7 @@ library:
   - DOM.JS
   - DOM
   - PWA
+  - WebSockets
 
   - JS
   - JS.Lib

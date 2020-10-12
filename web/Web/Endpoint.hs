@@ -1,9 +1,10 @@
 module Web.Endpoint where
 
 
-import X.Prelude hiding (Reader, Writer, State)
+import X.Prelude hiding (Reader, Writer, State, fail)
 
 import Control.Monad.State (get, put)
+import Control.Monad.Except
 
 import qualified URL
 import URL (URL, Segment)
@@ -24,6 +25,10 @@ import Text.Boomerang.Texts
 import Text.Boomerang hiding ((.~))
 import qualified Text.Boomerang.Texts as B
 
+import qualified Network.WebSockets as WS
+import qualified Network.Wai.Handler.WebSockets as WS
+
+-- * Inner
 
 type M m r = W.WebT (ReaderT r m)
 
@@ -32,26 +37,34 @@ runM mc r st m = m
   & W.runWebMT mc st
   & flip runReaderT r
 
-type State = [Segment]
+-- * Endpoint
+
+data State = State [Segment] (Maybe WS.ServerApp)
 type Writer r = [(Segment, T r)]
 
 (/) :: MonadWriter [(Segment, T r)] m => Segment -> T r -> m ()
 segment / endpoint = tell [(segment, endpoint)]
 
-type InT r = RWST URL (Writer r) State (M IO r) (EHandler r)
+type InT' r a = RWST URL (Writer r) State (M IO r) a
+type InT r = InT' r (EHandler r)
 data T r where T :: InT r -> T r
 
 runT :: URL -> T r -> M IO r (EHandler r, State, Writer r)
-runT url (T m) = runRWST m url identifierSource
+runT url (T m) = runRWST m url (State identifierSource Nothing)
+
+webSocket :: WS.ServerApp -> InT' r ()
+webSocket ws = do
+  modify (\(State i _) -> State i $ Just ws)
+
+type HandlerTuple r = (EHandler r, W.State, W.Writer, Maybe WS.ServerApp)
+type EHandler r = Wai.Request -> M IO r Re.Response
 
 -- * Build
 
-type EHandler r = Wai.Request -> M IO r Re.Response
-type HandlePoint r = (URL, (EHandler r, W.State, W.Writer))
-type Built r = Tr.Trie Segment (EHandler r, W.State, W.Writer)
+type HandlePoint r = (URL, HandlerTuple r)
+type Built r = Tr.Trie Segment (HandlerTuple r)
 
-build
-  :: W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
+build :: forall r. W.Conf -> W.State -> URL -> r -> T r -> IO (Built r)
 build mc ms rootUrl r m = Tr.fromList <$> list
   where
     rootPath = rootUrl ^. URL.segments
@@ -60,14 +73,16 @@ build mc ms rootUrl r m = Tr.fromList <$> list
 
     eval :: W.Conf -> W.State -> URL -> r -> T r -> IO [HandlePoint r]
     eval mc js_css_st0 url (r :: r) (m :: T r) = do
-      ((main, _ {-stUrls-}, subs), js_css_st1, js_css_w) <- runM mc r js_css_st0 (runT url m)
+      ((main, State _ ws, subs), js_css_st1, js_css_w) <- runM mc r js_css_st0 (runT url m)
       let
-        self = (url, (main, js_css_st1, js_css_w)) :: HandlePoint r
+        self = (url, (main, js_css_st1, js_css_w, ws)) :: HandlePoint r
 
         re :: (Segment, T r) -> IO [HandlePoint r]
         re (segm, sub) = eval mc js_css_st1 (url & URL.segments <>~ [segm]) r sub
 
-      result :: [HandlePoint r] <- mapM re subs <&> mconcat ^ (self :)
+      result :: [HandlePoint r] <- do
+        x <- mapM re (subs :: Writer r)
+        return $ self : mconcat x
       return result
 
 -- * Run
@@ -76,9 +91,9 @@ handle
   :: W.Conf
   -> r
   -> Wai.Request
-  -> (EHandler r, W.State, W.Writer)
+  -> HandlerTuple r
   -> IO Re.Response
-handle mc r req (i_io, js_css_st, js_css_wr) = merge <$> res
+handle mc r req (i_io, js_css_st, js_css_wr, _) = merge <$> res
   where
     res = runM mc r js_css_st (i_io req)
     merge (Re.Response s h (Re.HtmlDocument doc), _, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
@@ -106,12 +121,23 @@ toHandler
 toHandler mc ms rootUrl conf0 site = do
   app <- build mc ms rootUrl conf0 site
   return $ \req -> let
-    path = Wai.pathInfo req :: [Segment]
-    res :: Maybe (EHandler r, W.State, W.Writer)
-    (res, conf2) = case Tr.lookupPrefix path app of
-      Just (pathSuffix, maybeValue, _) -> (maybeValue, conf0 & dynPath .~ pathSuffix)
-      _ -> (Nothing, conf0)
-    in traverse (handle mc conf2 req) res
+    handler' :: Either String (HandlerTuple r, [Segment])
+    handler' = runExcept $ do
+      (pathSuffix, maybeHandler, _) <- let
+        path = Wai.pathInfo req :: [Segment]
+        in Tr.lookupPrefix path app
+           & maybe (fail "Path not found") pure
+      handler <- maybeHandler
+        & maybe (fail "No handler at path") pure
+      return (handler, pathSuffix)
+    in case handler' of
+      Right (handlerTuple@ (_, _, _, ws :: Maybe WS.ServerApp), suffix) ->
+        if WS.isWebSocketsReq req
+        then return $ Re.WebSocket <$> ws
+        else
+          let conf = conf0 & dynPath .~ suffix
+          in handle mc conf req handlerTuple <&> Just
+      Left _ -> pure Nothing
 
 -- * Dyn path
 
