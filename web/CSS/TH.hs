@@ -5,7 +5,6 @@ module CSS.TH
 
 import Prelude
 import Language.Haskell.TH
-import qualified Data.Text.Lazy as TL
 import Data.Text.Multiline
 import Data.Char
 import Data.List

@@ -71,7 +71,7 @@ name2dataDecl name = reify name >>= \info -> case info of
         DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> con
         _ -> error "getCon"
       isSingleDICon a = case a of
-        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> True
+        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [_] _DerivClause_s -> True
         _ -> False
 
   _ -> fail "name2dataDecl: Not implemented"

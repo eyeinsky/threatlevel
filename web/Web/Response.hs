@@ -1,5 +1,6 @@
 module Web.Response where
 
+import qualified Prelude as P
 import X.Prelude
 import Language.Haskell.TH
 import qualified Data.ByteString.Lazy as BL
@@ -48,17 +49,19 @@ declareFields [d|
   |]
 
 instance ToRaw Response where
-  toRaw (Response status origHeaders anyResponse)
-    = httpResponse status (origHeaders <> headers) bl
-    where
-      (headers, bl) = case anyResponse of
-        HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re LL.utf8)
-          where
-            html' = HTML.html (HTML.head h >> b)
-            tl = "<!DOCTYPE html>" <> render () html'
-        JS conf code -> ([Hdr.javascript], render conf code^.re LL.utf8)
-        JSON a -> ([Hdr.json], Aeson.encode a)
-        Raw b -> ([], b)
+  toRaw r = case r of
+    Response status origHeaders anyResponse -> httpResponse status (origHeaders <> headers) bl
+      where
+        (headers, bl) = case anyResponse of
+          HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re LL.utf8)
+            where
+              html' = HTML.html (HTML.head h >> b)
+              tl = "<!DOCTYPE html>" <> render () html'
+          JS conf code -> ([Hdr.javascript], render conf code^.re LL.utf8)
+          JSON a -> ([Hdr.json], Aeson.encode a)
+          Raw b -> ([], b)
+    WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
+    -- ^ fix: Figure out a better solution
 
 -- * Helpers
 

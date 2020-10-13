@@ -22,7 +22,7 @@ import CSS as Export hiding
   -- generic
   ( filter, all, not
   -- defined in HTML
-  , disabled, readOnly, required, default_, scope, link, dir
+  , disabled, readOnly, required, default_, scope, link
   -- defined in JS
   , empty
   -- defined in URL
@@ -500,14 +500,13 @@ siteMain maybeTls mc ms siteRoot settings site = do
               WS.websocketsOr WS.defaultConnectionOptions ws
                  (error "This should never happen")
                  req respond
-          _ -> respond $ HR.toRaw $ htmlDoc "" "Page not found"
+          _ -> do
+            print $ "Path not found: " <> show (Wai.pathInfo req)
+              <> ", URL: " <> TL.unpack (render' siteRoot)
+            respond $ HR.toRaw $ htmlDoc "" "Page not found"
   case maybeTls of
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'
-  where
-    err req = error
-      $ "Path not found: " <> show (Wai.pathInfo req)
-      <> ", URL: " <> TL.unpack (render' siteRoot)
 
 type HotType k r a = (Ord k) => k -> SiteType r a
 
