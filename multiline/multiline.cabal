@@ -1,0 +1,26 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           multiline
+version:        0.1.0.0
+category:       Text
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
+license:        GPL-2
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    CHANGELOG.md
+
+library
+  exposed-modules:
+      Data.Text.Multiline
+  other-modules:
+      Paths_multiline
+  build-depends:
+      base
+    , template-haskell
+  default-language: Haskell2010

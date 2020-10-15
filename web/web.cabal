@@ -1,0 +1,209 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           web
+version:        0.2.0.0
+category:       Language
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
+license:        GPL-2
+license-file:   LICENSE
+build-type:     Simple
+
+library
+  exposed-modules:
+      HTTP.Common
+      HTTP.Header
+      HTTP.Response
+      HTTP.Response.InlineFile
+      HTTP
+      URL.TH
+      Warp_Helpers
+      CSS
+      SVG
+      HTML
+      Web.CSS
+      Web.Endpoint
+      Web.Monad
+      Web.Response
+      XML
+      XML.Core
+      JS.Syntax
+      JS.DSL
+      JS.Derive
+      JS.Roundtrip
+      Sessions
+      JS.TH
+      JS.API
+      JW.T
+      JS.BuiltIns.JSON
+      JS.BuiltIns.Date
+      JS.BuiltIns.String
+      JS.BuiltIns.Number
+      JS.BuiltIns.Object
+      JS.BuiltIns
+      JS.Event
+      JS.Console
+      IndexedDB.IDB
+      Cookie
+      DOM.Core
+      DOM.Event
+      DOM.JS
+      DOM
+      PWA
+      WebSockets
+      JS
+      JS.Lib
+      JS.Lib.Sleep
+      JS.Lib.Async
+      X
+      X.Prelude
+      X.Cookie
+      X.DOM
+      X.Template
+      X.Auth.Google
+      X.Google.Maps
+      X.Google.Spreadsheet
+      X.Widgets
+      X.Widgets.Menu
+      X.Wai
+  other-modules:
+      CSP
+      CSS.Monad
+      CSS.Syntax
+      CSS.TH
+      HTML.Core
+      HTML.Paste
+      JS.BuiltIns.Array
+      JS.BuiltIns.Full
+      JS.BuiltIns.Promise
+      JS.DSL.Function
+      JS.DSL.Identifiers
+      JS.DSL.MTL
+      JS.Syntax.Render
+      JS.Syntax.Types
+      SVG.Attributes
+      SVG.CSS
+      SVG.Elements
+      SVG.TH
+      TH
+      Trie
+      WebStorage
+      XML.Render
+      Paths_web
+  hs-source-dirs:
+      ./.
+  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric DerivingStrategies EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RankNTypes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeInType TypeOperators TypeSynonymInstances UndecidableInstances
+  ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
+  build-depends:
+      aeson
+    , async
+    , base
+    , base64-bytestring
+    , blaze-builder
+    , boomerang
+    , bytestring
+    , case-insensitive
+    , containers
+    , cookie
+    , cryptonite
+    , data-default
+    , directory
+    , dlist
+    , file-embed
+    , hashable
+    , http-client
+    , http-types
+    , identifiers
+    , lens
+    , lens-aeson
+    , memory
+    , mime-types
+    , mtl
+    , multiline
+    , mwc-random
+    , network
+    , network-simple
+    , process
+    , rapid
+    , render
+    , tagged
+    , template-haskell
+    , text
+    , text-format
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra
+    , wai-websockets
+    , warp
+    , warp-tls
+    , web-browser
+    , web-url
+    , websockets
+    , wreq
+  default-language: Haskell2010
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: manual-browser-tests.hs
+  other-modules:
+      Paths_web
+  hs-source-dirs:
+      tests
+  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric DerivingStrategies EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RankNTypes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeInType TypeOperators TypeSynonymInstances UndecidableInstances
+  build-depends:
+      aeson
+    , async
+    , base
+    , base64-bytestring
+    , blaze-builder
+    , boomerang
+    , bytestring
+    , case-insensitive
+    , containers
+    , cookie
+    , cryptonite
+    , data-default
+    , directory
+    , dlist
+    , file-embed
+    , hashable
+    , http-client
+    , http-types
+    , identifiers
+    , lens
+    , lens-aeson
+    , memory
+    , mime-types
+    , mtl
+    , multiline
+    , mwc-random
+    , network
+    , network-simple
+    , process
+    , rapid
+    , render
+    , tagged
+    , template-haskell
+    , text
+    , text-format
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra
+    , wai-websockets
+    , warp
+    , warp-tls
+    , web-browser
+    , web-url
+    , websockets
+    , wreq
+  default-language: Haskell2010

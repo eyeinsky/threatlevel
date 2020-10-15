@@ -1,0 +1,48 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           identifiers
+version:        0.1.0.0
+category:       Web
+homepage:       https://github.com/githubuser/identifiers#readme
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+library
+  exposed-modules:
+      Identifiers
+  other-modules:
+      Paths_identifiers
+  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators TypeSynonymInstances InstanceSigs RankNTypes
+  build-depends:
+      base
+    , lens
+    , mtl
+    , text
+  default-language: Haskell2010
+
+benchmark identifier-source
+  type: exitcode-stdio-1.0
+  main-is: identifier-source.hs
+  other-modules:
+      Paths_identifiers
+  hs-source-dirs:
+      benchmarks
+  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators TypeSynonymInstances InstanceSigs RankNTypes
+  ghc-options: -w -O2 -threaded
+  build-depends:
+      base
+    , criterion
+    , identifiers
+    , lens
+    , mtl
+    , text
+  default-language: Haskell2010
