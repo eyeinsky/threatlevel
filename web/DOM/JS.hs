@@ -167,15 +167,6 @@ cursorPosition e = do
 
    -}
 
-
--- ** CSS
-
-cssAttr e k v = e !. "style" !. k .= v
-addClass cls el = bare $ call1 (el !. "classList" !. "add"   ) $ mkExpr cls
-remClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
-
-mkExpr = Cast . lit . static . unClass
-
 -- * From JS_API
 
 -- ** XMLHttpRequest (Ajax)

@@ -248,6 +248,19 @@ instance ToExpr SimpleSelector where
     <> (TL.concat $ map render' $ s^.P.classes)
     <> (TL.concat $ map render' $ s^.CSS.pseudos)
 
+addClass :: Class -> Expr a -> M r ()
+addClass cls el = bare $ call1 (el !. "classList" !. "add") $ mkExpr cls
+
+removeClass :: Class -> Expr a -> M r ()
+removeClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
+
+remClass :: Class -> Expr a -> M r ()
+remClass = removeClass
+{-# DEPRECATED remClass "Use `removeClass` instead." #-}
+
+mkExpr :: Class -> Expr a
+mkExpr = Cast . lit . static . unClass
+
 -- | In JS set element's inline style to @declarations@
 inlineStyle :: Expr tag -> DM () -> M r ()
 inlineStyle element declarations = do
