@@ -16,7 +16,7 @@ idsElems n = do
       forM (zip ids elems) $ \(id, el) -> el .= findBy id
     return (ids, elems, mount)
 
-data Template a f p = Template
+data Template a f p out = Template
   { templateIds :: [Id]
   , templateMount :: Expr ()
   , templateCreate :: Expr (a -> DocumentFragment)
@@ -24,12 +24,22 @@ data Template a f p = Template
   , templateSsr :: Maybe a -> Html
   , templateGet :: Expr a
   , templateHtml :: f
+
+  , templateOut :: out
   }
 makeFields ''Template
 
-class GetTemplate a p where
-  type Html' a p :: *
-  getTemplate :: MonadWeb m => m (Template a (Html' a p) p)
+class GetTemplate t ctx where
+  type Html' t ctx :: *
+
+  type In t ctx :: *
+  type In t ctx = ()
+
+  -- | Anything the template needs to pass to outer context.
+  type Out t ctx :: *
+  type Out t ctx = ()
+
+  getTemplate :: Monad m => In t ctx -> WebT m (Template t (Html' t ctx) ctx (Out t ctx))
 
 -- * Helpers
 
@@ -62,3 +72,19 @@ mock2
   :: forall m a x1 x2. MonadWeb m
   => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
 mock2 str = return (Undefined, Undefined, Undefined, toHtml str, \_ -> toHtml str)
+
+-- * Compatibility construcotrs
+
+type Template0 t ctx = Template t (Html' t ctx) ctx (Out t ctx)
+
+mkTemplate0
+  :: (Out t ctx ~ ())
+  => [Id] -> Expr () -> Expr (t -> DocumentFragment) -> Expr (t -> ())
+  -> (Maybe t -> Html) -> Expr t -> (Html' t ctx) -> Template0 t ctx
+mkTemplate0 ids mount create update ssr get html =
+  Template ids mount create update ssr get html ()
+
+getTemplate0
+  :: (GetTemplate t ctx, Monad m, In t ctx ~ ())
+  => WebT m (Template t (Html' t ctx) ctx (Out t ctx))
+getTemplate0 = getTemplate ()
