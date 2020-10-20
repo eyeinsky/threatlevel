@@ -52,8 +52,8 @@ rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
 
 prop
   :: (HasDecls w [Declaration], MonadWriter w m)
-  => TL.Text -> Value -> m ()
-prop k v = tellDecls $ pure $ mkDeclaration k v
+  => TS.Text -> Value -> m ()
+prop k v = tellDecls $ pure $ Declaration k v
 
 
 tellRules :: [Rule] -> CSSM ()

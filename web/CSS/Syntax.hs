@@ -21,9 +21,6 @@ import qualified Render as R
 
 -- ** Declaration
 
-data Property = Property TL.Text
-instance Render Property where renderM (Property a) = pure a
-
 data Value
    = Word TL.Text
    | String TL.Text
@@ -156,9 +153,9 @@ instance Render SimpleSelector where
             g = maybe (pure "") renderM
 
 
-data Declaration = Declaration Property Value
+data Declaration = Declaration TS.Text Value
 instance Render Declaration where
-   renderM (Declaration p v) = R.mseq [renderM p, pure ":", renderM v]
+   renderM (Declaration p v) = R.mseq [pure $ TL.fromStrict p, pure ":", renderM v]
 instance Render [Declaration] where
    renderM ds = TL.concat . map (<> ";") <$> mapM renderM ds
 
@@ -234,9 +231,6 @@ instance Render Prelude where
 mkRule :: Selector -> [Declaration] -> Rule
 mkRule s ds = Qualified (Selectors [s]) ds
 
-mkDeclaration :: TL.Text -> Value -> Declaration
-mkDeclaration p v = Declaration (Property p) v
-
 -- ** Instances
 
 deriving instance Show Rule
@@ -247,7 +241,6 @@ deriving instance Show Selector
 deriving instance Show SOp
 deriving instance Show SimpleSelector
 deriving instance Show Declaration
-deriving instance Show Property
 deriving instance Show Value
 deriving instance Show Comment
 
