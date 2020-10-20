@@ -189,7 +189,7 @@ instance Render BOp where
 
 instance Render Attr where
   type Conf Attr = Conf
-  renderM (Attr exp name) = sur "(" ")" <$> (inf "." <$> renderM exp <*> renderM name)
+  renderM (Attr exp name) = inf "." <$> renderM exp <*> renderM name
 
 instance Render Name where
   type Conf Name = Conf
