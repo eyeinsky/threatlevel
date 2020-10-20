@@ -61,7 +61,6 @@ import Web.Browser as Export
 
 import Web.CSS as Export
 
-
 import Warp_Helpers as Export (getRequestBody)
 
 import qualified Prelude
@@ -99,7 +98,7 @@ import qualified HTTP.Response as HR
 import X.Prelude as P
 import JS hiding (String)
 
-import CSS.Monad (CSSM)
+import CSS.Monad (CSSM, DM)
 import qualified CSS.Syntax as CSS
 import qualified URL
 import qualified HTML
@@ -248,6 +247,13 @@ instance ToExpr SimpleSelector where
     <> (maybe mempty render' $ s^.CSS.maybeId)
     <> (TL.concat $ map render' $ s^.P.classes)
     <> (TL.concat $ map render' $ s^.CSS.pseudos)
+
+-- | In JS set element's inline style to @declarations@
+inlineStyle :: Expr tag -> DM () -> M r ()
+inlineStyle element declarations = do
+  forM_ (execWriter declarations) $ \(Declaration k v) -> let
+    property = TL.toStrict $ kebab2camel $ TL.fromStrict k
+    in element !. "style" !. property .= lit (render' v)
 
 -- * HTTP.Response
 
