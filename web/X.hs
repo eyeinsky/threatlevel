@@ -34,7 +34,7 @@ import Web.Monad as Export
 import JS.Event as Export
 import DOM.Event as Export
 
-import URL as Export hiding (T, base)
+import URL as Export hiding (base)
 import Web.Endpoint as Export hiding (State, Writer, (/), M)
 
 import DOM as Export hiding (
@@ -228,6 +228,17 @@ format str = to (formatTime defaultTimeLocale str ^ TL.pack)
 htmlDate = format "%F".html
 htmlTime = format "%F %T".html
 
+-- * JS + HTML (= DOM)
+
+-- | Replace content of the @element@ with @fragment@. Done in such a
+-- way to be an expression.
+replaceContent :: Expr DocumentFragment -> Expr Tag -> Expr ()
+replaceContent fragment element = Par (Assign (element !. "innerHTML") "") .|| (element !// "append" $ fragment)
+
+-- | Get closest parent with data-* attribute. Partial
+closestData :: TS.Text -> Expr Tag -> Expr a
+closestData attr el = (el !// "closest" $ lit ("[data-" <> attr <> "]")) !. "dataset" !. attr
+
 -- * JS + URL
 
 instance ToExpr URL.URL where
@@ -267,6 +278,11 @@ inlineStyle element declarations = do
   forM_ (execWriter declarations) $ \(Declaration k v) -> let
     property = TL.toStrict $ kebab2camel $ TL.fromStrict k
     in element !. "style" !. property .= lit (render' v)
+
+-- * JS + HTML + URL
+
+jsHref :: Expr a -> Attribute
+jsHref url = HTML.href (Dynamic $ Cast url)
 
 -- * HTTP.Response
 
