@@ -29,7 +29,7 @@ protoP = Proto . TS.pack <$> (many1 chars <* string "://")
     chars = satisfy isAlphaNum <|> char '+' <|> char '-' <|> char '.'
     -- ^ todo: Use inClass for better speed?
 
-authenticationP :: Parser (Maybe (T, T))
+authenticationP :: Parser (Maybe (TS.Text, TS.Text))
 authenticationP = some <|> no
   where
     some = do

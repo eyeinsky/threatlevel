@@ -4,25 +4,23 @@ module URL.Core where
 import Prelude
 import Data.String
 import Data.Word (Word8, Word16)
-import qualified Data.Text as T
+import qualified Data.Text as TS
 import Data.Text.Lens
 import Control.Lens
 import GHC.Generics (Generic)
-
-type T = T.Text
 
 -- * Absolute
 
 declareFields [d|
   data Proto = Proto
-    { protoUn :: T }
+    { protoUn :: TS.Text }
   |]
 
 instance IsString Proto where
   fromString = view (packed.to Proto)
 
 data Host
-   = Domain T
+   = Domain TS.Text
    | IP4 Word8 Word8 Word8 Word8
 
 makePrisms ''Host
@@ -45,7 +43,7 @@ instance Read Port where
 
 deriving instance Generic Port
 
-type Segment = T
+type Segment = TS.Text
 declareFields [d|
   data Path = Path { pathSegments :: [Segment] }
   |]
@@ -55,19 +53,19 @@ instance Monoid Path where
   mempty = Path mempty
 
 declareFields [d|
-  data Params = Params { paramsUn :: [(T, Maybe T)] }
+  data Params = Params { paramsUn :: [(TS.Text, Maybe TS.Text)] }
   |]
 instance Semigroup Params where
   Params a <> Params b = Params (a <> b)
 instance Monoid Params where
   mempty = Params mempty
 
-newtype Fragment = Fragment T
+newtype Fragment = Fragment TS.Text
   deriving newtype (Semigroup, Monoid)
 
 declareFields [d|
   data Authority = Authority
-    { authorityAuthentication :: Maybe (T, T)
+    { authorityAuthentication :: Maybe (TS.Text, TS.Text)
     , authorityHost :: Host
     , authorityPort :: Port
     }
@@ -110,10 +108,10 @@ instance HasHost URL Host where
 instance HasPort URL Port where
   port = authority.port
 
-instance HasSegments URL [T] where
+instance HasSegments URL [TS.Text] where
   segments = path . segments
 
-instance HasSegments [Segment] [T] where
+instance HasSegments [Segment] [TS.Text] where
   segments = id
 
 base :: Lens' URL BaseURL
