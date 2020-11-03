@@ -3,7 +3,7 @@ module CSS
   , module CSS.Syntax
   , prop
   , module DOM.Core
-  , type CSSM
+  , type CSSM, type Declarations
 
   , keyframes', keyframe, browser
   , media, supports
@@ -78,10 +78,20 @@ centerContent = do
   justifyContent "center"
   alignItems "center"
 
-flexbox :: (HasDecls w [Declaration], MonadWriter w m) => Value -> m ()
+flexbox :: Value -> Declarations
 flexbox how = do
   display "flex"
   flexFlow how
 
 important :: Value
 important = "!important"
+
+square :: Value -> Declarations
+square n = do
+  width n
+  height n
+
+circle :: Value -> Declarations
+circle n = do
+  square n
+  borderRadius $ prc 50

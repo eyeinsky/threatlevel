@@ -35,6 +35,9 @@ type DM = Writer [Declaration]
 type CSSM = ReaderT Conf (WriterT CSSW Identity)
 type M = CSSM
 
+-- | Helper type alias
+type Declarations = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
+
 -- | Full runner for nested CSS
 runCSSM :: Conf -> CSSM () -> [Rule]
 runCSSM r m = (rule : cssw^.rules)
@@ -50,9 +53,7 @@ rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 rule :: SelectorFrom a => a -> DM () -> CSSM ()
 rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
 
-prop
-  :: (HasDecls w [Declaration], MonadWriter w m)
-  => TS.Text -> Value -> m ()
+prop :: TS.Text -> Value -> Declarations
 prop k v = tellDecls $ pure $ Declaration k v
 
 
@@ -62,7 +63,7 @@ tellRules rs = tell $ mempty & rules .~ rs
 tellRule :: Rule -> CSSM ()
 tellRule =  tellRules . pure
 
-tellDecls :: (HasDecls w [Declaration], MonadWriter w m) => [Declaration] -> m ()
+tellDecls :: [Declaration] -> Declarations
 tellDecls ds = tell $ mempty & decls .~ ds
 
 apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
