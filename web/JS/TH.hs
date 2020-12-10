@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- |
   TH-generate @ToExpr@ and @HasField@ instances data types.
 -}
@@ -58,12 +59,9 @@ name2dataDecl name = reify name >>= \info -> case info of
           maybeDec :: Maybe Dec
           maybeDec = find ((nameBase conName ==) . nameBase . dcName . getCon) singleConInstances
         case maybeDec of
-          -- https://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH.html#v:DataInstD
-          -- DataInstD Cxt Name [Type] (Maybe Kind) [Con] [DerivClause]
-          Just (DataInstD _ typeFirst (types :: [Type]) _MaybeKind [con] _DerivClause_s) -> do
-            let (_ {-conName-}, fieldNamesTypes) = record con
-            let appliedTyped = foldl AppT (ConT typeFirst) types :: Type
-            return $ DataFamilyInstance appliedTyped conName fieldNamesTypes
+          Just di@ (DataInstD _ _ _ _ [con] _) -> do
+            let (_ {- conName -- same as the one in scope -}, fieldNamesTypes) = record con
+            return $ DataFamilyInstance (mkAppliedTyped di) conName fieldNamesTypes
           _ -> fail "here here here"
       _ -> fail "name2dataDecl unhandled case"
     where
@@ -73,6 +71,22 @@ name2dataDecl name = reify name >>= \info -> case info of
       isSingleDICon a = case a of
         DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [_] _DerivClause_s -> True
         _ -> False
+#if MIN_VERSION_template_haskell(2,15,0)
+      mkAppliedTyped :: Dec -> Type
+      mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _MaybeKind [con] _DerivClause_s) = appliedTyped
+        where
+          tyVarBndrName :: TyVarBndr -> Name
+          tyVarBndrName tvb = case tvb of
+            PlainTV name -> name
+            KindedTV name _ -> name
+          appliedTyped = case typeFirst_ of
+            Just as -> foldl AppT type_ $ map (ConT . tyVarBndrName) as
+            _ -> type_
+#else
+      mkAppliedTyped :: Dec -> Type
+      mkAppliedTyped (DataInstD _ typeFirst (types :: [Type]) _ _ _) = appliedTyped
+        where appliedTyped = foldl AppT (ConT typeFirst) types :: Type
+#endif
 
   _ -> fail "name2dataDecl: Not implemented"
   where
