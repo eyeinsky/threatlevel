@@ -1,6 +1,5 @@
 module Web.Endpoint where
 
-
 import X.Prelude hiding (Reader, Writer, State, fail)
 
 import Control.Monad.Except
@@ -120,16 +119,15 @@ toHandler
 toHandler mc ms rootUrl conf0 site = do
   app <- build mc ms rootUrl conf0 site
   return $ \req -> let
-    handler' :: Either String (HandlerTuple r, [Segment])
-    handler' = runExcept $ do
+    handler' :: Except String (HandlerTuple r, [Segment])
+    handler' = do
       (pathSuffix, maybeHandler, _) <- let
         path = Wai.pathInfo req :: [Segment]
-        in Tr.lookupPrefix path app
-           & maybe (fail "Path not found") pure
+        in Tr.lookupPrefix path app & maybe (throwError "Path not found") pure
       handler <- maybeHandler
-        & maybe (fail "No handler at path") pure
+        & maybe (throwError "No handler at path") pure
       return (handler, pathSuffix)
-    in case handler' of
+    in case runExcept handler' of
       Right (handlerTuple@ (_, _, _, ws :: Maybe WS.ServerApp), suffix) ->
         if WS.isWebSocketsReq req
         then return $ Re.WebSocket <$> ws
