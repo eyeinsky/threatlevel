@@ -59,4 +59,4 @@ secureCookie k v expires = cookie k v & fields .~ Expires expires : secure
   where secure = [Secure, HttpOnly]
 
 setCookie :: Cookie -> Response -> Response
-setCookie c = headers <>~ [H.hdr H.SetCookie (toPayload c)]
+setCookie c = headers <>~ [H.header H.SetCookie (toPayload c)]

@@ -2,12 +2,14 @@ module HTTP.Response where
 
 import X.Prelude hiding (Any)
 
+import qualified Data.ByteString.Lazy as BL
 import qualified Blaze.ByteString.Builder as BBB
 
 -- Wai/Warp conversions
 import Network.Wai (responseBuilder)
 import qualified Network.Wai as Wai
-import qualified Network.Wai.Internal as WaiI
+import qualified Network.Wai.Internal as Wai
+import qualified Network.HTTP.Types as Wai
 
 import qualified HTTP.Header as H
 import qualified HTTP.Header as Hdr
@@ -22,19 +24,20 @@ class ToRaw a where
 instance ToRaw Raw where
   toRaw = id
 
--- httpResponse :: Int -> [Hdr.Header] -> BL.ByteString -> Wai.Response
+httpResponse :: Wai.Status -> [Hdr.Header] -> BL.ByteString -> Wai.Response
 httpResponse status headers body
   = responseBuilder status headers' (BBB.fromLazyByteString body)
   where
-    headers' = map Hdr.cc headers
+    headers' = map Hdr.toWai headers
 
 -- * Helpers
 
+waiAddHeaders :: Wai.ResponseHeaders -> Wai.Response -> Wai.Response
 waiAddHeaders hs r = case r of
-   WaiI.ResponseBuilder st hdrs builder -> WaiI.ResponseBuilder st (hs <> hdrs) builder
-   WaiI.ResponseFile st hdrs path mFilePart -> WaiI.ResponseFile st (hs <> hdrs) path mFilePart
-   WaiI.ResponseStream _ _ _ -> todo
-   WaiI.ResponseRaw _ _ -> todo
+   Wai.ResponseBuilder st hdrs builder -> Wai.ResponseBuilder st (hs <> hdrs) builder
+   Wai.ResponseFile st hdrs path mFilePart -> Wai.ResponseFile st (hs <> hdrs) path mFilePart
+   Wai.ResponseStream _ _ _ -> todo
+   Wai.ResponseRaw _ _ -> todo
 
 -- * Caching
 

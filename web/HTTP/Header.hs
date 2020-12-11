@@ -1,5 +1,13 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
-module HTTP.Header where
+module HTTP.Header
+  ( toWai
+  , header
+  , HeaderName(..), Header
+
+  -- * Helpers
+  , contentType, javascript, json, utf8text
+  ) where
+
 
 -- for conversion to Network.HTTP.Types.Header
 import qualified Network.HTTP.Types.Header as H
@@ -13,8 +21,8 @@ import HTTP.Common
 
 
 newtype Header = Header (HeaderName, T)
-hdr a b = Header (a, b)
 
+-- | Helper to create a Header
 header :: HeaderName -> T -> Header
 header h v = Header (h, v)
 
@@ -126,14 +134,12 @@ deriving instance Eq Header
 
 -- Conversion to http-types headers (for Wai/Warp)
 
-cc :: Header -> H.Header
-cc (Header (hn, t)) = (n,v)
-   where
-     n = CI.mk $ f $ find hn headerMap
-     v = f t
-     f = TE.encodeUtf8 . TL.toStrict
-
-
+toWai :: Header -> H.Header
+toWai (Header (hn, t)) = (n,v)
+  where
+    n = CI.mk $ f $ find hn headerMap
+    v = f t
+    f = TE.encodeUtf8 . TL.toStrict
 
 -- * Request header
 
@@ -189,9 +195,14 @@ instance ToPayload RequestHeader where
 
 -- * Shorthands
 
+contentType :: T -> Header
 contentType val = Header (ContentType, val)
-javascript = contentType "application/javascript; charset=utf-8"
-json = contentType "application/json; charset=UTF-8"
-utf8text what = contentType ("text/"<>what<>"; charset=UTF-8")
 
--- htmlUtf8 fn bool = (hContentType, Mime.defaultMimeLookup fn <> (bool ? "; charset=UTF-8" $ ""))
+javascript :: Header
+javascript = contentType "application/javascript; charset=utf-8"
+
+json :: Header
+json = contentType "application/json; charset=UTF-8"
+
+utf8text :: T -> Header
+utf8text what = contentType ("text/"<>what<>"; charset=UTF-8")

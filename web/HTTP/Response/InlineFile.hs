@@ -10,5 +10,5 @@ import Network.Mime as Mime
 import qualified HTTP.Header as Hdr
 
 mkInlineFile path = let
-      ct = [| Hdr.hdr Hdr.ContentType (TL.fromStrict $ TE.decodeUtf8 $ Mime.defaultMimeLookup $ T.pack path) |]
+      ct = [| Hdr.header Hdr.ContentType (TL.fromStrict $ TE.decodeUtf8 $ Mime.defaultMimeLookup $ T.pack path) |]
    in [| InlineFile $ct $(embedFile path) |]

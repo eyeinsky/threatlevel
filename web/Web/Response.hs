@@ -82,18 +82,18 @@ js conf code = resp200 $ JS conf code
 json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response
-error code message = rawText code [Hdr.hdr Hdr.ContentType "text/plain"] message
+error code message = rawText code [Hdr.header Hdr.ContentType "text/plain"] message
 
 redirect :: URL -> Response
 redirect url = redirectRaw $ renderURL url
 
 redirectRaw :: TL.Text -> Response
-redirectRaw url = rawText (toEnum 303) [Hdr.hdr Hdr.Location url] ""
+redirectRaw url = rawText (toEnum 303) [Hdr.header Hdr.Location url] ""
 
 redirect' code url = rawText (toEnum code) headers ""
-  where headers = [Hdr.hdr Hdr.Location $ renderURL url]
+  where headers = [Hdr.header Hdr.Location $ renderURL url]
 
-redirectRaw' code url = rawText (toEnum code) [Hdr.hdr Hdr.Location url] ""
+redirectRaw' code url = rawText (toEnum code) [Hdr.header Hdr.Location url] ""
 
 -- ** Raw
 
@@ -107,7 +107,7 @@ rawText :: WT.Status -> [Hdr.Header] -> Text -> Response
 rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
 
 raw :: Text -> Text -> Response
-raw headers text = Response (toEnum 200) [Hdr.hdr Hdr.ContentType headers] $ Raw (text^.re LL.utf8)
+raw headers text = Response (toEnum 200) [Hdr.header Hdr.ContentType headers] $ Raw (text^.re LL.utf8)
 
 -- ** File
 
