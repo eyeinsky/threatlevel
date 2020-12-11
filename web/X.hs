@@ -448,7 +448,7 @@ siteMain maybeTls mc ms siteRoot settings site = do
         r :: Maybe WR.Response <- handler req
         case r of
           Just r' -> case r' of
-            r''@ (Response {}) -> respond $ HR.toRaw r''
+            response@ (Response {}) -> respond $ HR.toRaw response
             WebSocket ws ->
               WS.websocketsOr WS.defaultConnectionOptions ws
                  (error "This should never happen")

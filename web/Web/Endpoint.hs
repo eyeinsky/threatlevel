@@ -148,12 +148,12 @@ renderDyn pp dt url = url & URL.segments <>~ fromJust (unparseTexts pp dt)
 
 -- * API
 
+type API m r = (MonadState State m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
+
 currentUrl :: MonadReader URL m => m URL
 currentUrl = ask
 
-api
-  :: (MonadState State m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
-  => InT r -> m URL
+api :: API m r => InT r -> m URL
 api m = next >>= flip pin m
 
 xhrPost' m = do
@@ -164,9 +164,7 @@ xhrPost' m = do
     xhrPost rc (JS.lit $ render' url) data_ []
 
 -- | Add segment with api endpoint and return its full url
-pin
-  :: (MonadWriter [(Segment, T r)] m, MonadReader URL m)
-  => Segment -> InT r -> m URL
+pin :: API m r => Segment -> InT r -> m URL
 pin name m = name / T m *> nextFullWith name
 
 page = api . return . (\response _ -> return response) . Re.page

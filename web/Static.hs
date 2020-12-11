@@ -79,9 +79,7 @@ sanitizePath parts = if any (== "..") parts
 staticDiskSubtree notFound path = staticDiskSubtree' P.id (\_ -> return notFound) path
 
 -- | Serve files from filesystem path using a content adressable hash
-assets
-  :: (MonadReader URL m, MonadIO m, MonadWriter [(Segment, T s)] m, Confy s)
-  => WR.Response -> String -> m URL
+assets :: (API m s, MonadIO m, Confy s) => WR.Response -> String -> m URL
 assets notFound path = do
   hashPin path $ staticDiskSubtree' headerMod (\_ -> return notFound) path
   where
