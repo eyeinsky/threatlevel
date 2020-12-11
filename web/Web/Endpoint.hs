@@ -152,7 +152,7 @@ currentUrl :: MonadReader URL m => m URL
 currentUrl = ask
 
 api
-  :: (MonadState [Segment] m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
+  :: (MonadState State m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
   => InT r -> m URL
 api m = next >>= flip pin m
 
@@ -171,8 +171,8 @@ pin name m = name / T m *> nextFullWith name
 
 page = api . return . (\response _ -> return response) . Re.page
 
-next :: MonadState [Segment] m => m Segment
-next = get >>= \(x : xs) -> put xs *> return x
+next :: MonadState State m => m Segment
+next = get >>= \(State (x : xs) ws) -> put (State xs ws) *> return x
 
 nextFullWith :: MonadReader URL m => Segment -> m URL
 nextFullWith top = ask <&> URL.segments <>~ [top]
