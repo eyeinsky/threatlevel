@@ -111,6 +111,7 @@ library:
   - JS.Lib.Sleep
   - JS.Lib.Async
 
+  - Static
   - X
   - X.Prelude
   - X.Cookie

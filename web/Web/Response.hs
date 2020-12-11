@@ -6,7 +6,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
 import qualified Network.HTTP.Types as WT
-import Data.FileEmbed
+import qualified Network.Wai as Wai
 import qualified Data.Aeson as Aeson
 import qualified Data.Text.Lazy.Lens as LL
 
@@ -42,6 +42,7 @@ declareFields [d|
       , responseBody :: AnyResponse
       }
     | WebSocket WS.ServerApp
+    | File WT.Status [Hdr.Header] FilePath (Maybe Wai.FilePart)
   |]
 
 instance ToRaw Response where
@@ -56,8 +57,11 @@ instance ToRaw Response where
           JS conf code -> ([Hdr.javascript], render conf code^.re LL.utf8)
           JSON a -> ([Hdr.json], Aeson.encode a)
           Raw b -> ([], b)
+
     WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
     -- ^ fix: Figure out a better solution
+
+    File status headers path maybePartInfo -> Wai.responseFile status (map Hdr.toWai headers) path maybePartInfo
 
 -- * Helpers
 
@@ -104,21 +108,3 @@ rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
 
 raw :: Text -> Text -> Response
 raw headers text = Response (toEnum 200) [Hdr.header Hdr.ContentType headers] $ Raw (text^.re LL.utf8)
-
--- ** File
-
-diskFile :: MonadIO m => FilePath -> m Response
-diskFile path = do
-  bytes <- liftIO $ BL.readFile path
-  let ct = path^.LS.packed.to Mime.defaultMimeLookup.LS.utf8.from strict :: TL.Text
-  return $ rawBl (toEnum 200) [Hdr.hdr Hdr.ContentType $ ct] bytes
-
--- | Embeds a file from path into binary, resulting file's type will
--- be Response.
-embeddedFile :: TL.Text -> ExpQ
-embeddedFile path = let
-    filePath = path^.from packed :: FilePath
-    ct = path^.from lazy.to Mime.defaultMimeLookup.LS.utf8.from LS.packed & stringE
-  in [| let header = Hdr.hdr Hdr.ContentType $ct
-        in rawBS 200 [header] $(embedFile filePath)
-           :: Response|]

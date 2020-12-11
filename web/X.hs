@@ -372,69 +372,6 @@ noCrawling = do
 
 -- * Serving static assets
 
--- | Serve source-embedded files by their paths. Note that for dev
--- purposes the re-embedding of files might take too much time.
-statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
-  mime = path^.LS.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
-  headers = [Hdr.contentType mime]
-  response = WR.rawBl (toEnum 200) headers (bs^.from strict)
-  path' = TS.pack path
-  in (path,) <$> (WE.pin path' $ WE.staticResponse response)
-
--- | Generate endpoints for source-embedded files and return the html
--- to include them.
-includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ sequence_
-  where
-    f :: (FilePath, URL.URL) -> Html
-    f (path, url) = case P.split "." path^.reversed.ix 0 of
-      "css" -> includeCss url
-      "js" -> includeJs url
-      _ -> pure ()
-
--- | Serve the subtree at fp from disk. The url is generated, the rest
--- needs to match file's path in the. TODO: resolve ".." in path and
--- error out if path goes outside of the served subtree. And check the
--- standard of if .. is even allowed in url paths.
-staticDiskSubtree' mod notFound (fp :: FilePath) = do
-  return $ \_ -> do
-    e <- asks (view WE.dynPath) <&> sanitizePath
-    e & either
-      (\err -> do
-          liftIO $ print err
-          return notFound
-      )
-      (\subPath -> mod <$> WR.diskFile (fp <> "/" <> subPath))
-  where
-    sanitizePath :: [TS.Text] -> Either P.String P.String
-    sanitizePath parts = if any (== "..") parts
-      then Left "Not allowed to go up"
-      else Right (TS.unpack $ TS.intercalate "/" parts)
-
--- | Serve entire path from under created url
-staticDiskSubtree notFound path = staticDiskSubtree' P.id notFound path
-
--- | Serve files from filesystem path using a content adressable hash
-assets notFound path = do
-  hashPin path $ staticDiskSubtree' headerMod notFound path
-  where
-    headerMod = WR.headers <>~ [HR.cacheForever]
-    hashPin path what = do
-      hash <- liftIO (folderHash path) <&> TS.pack
-      liftIO $ print (path, hash)
-      WE.pin hash what
-
-folderHash :: String -> IO [Char]
-folderHash path = do
-  (_, o, e, _) <- IO.runInteractiveCommand cmd
-  IO.hGetContents e >>= hPutStrLn stderr
-  IO.hGetContents o <&> P.take 40
-  where
-    cmd = "tar cf - '" <> path <> "' | sha1sum | cut -d ' ' -f 1"
-    -- todo: better path escaping
-
-folderHashTH :: FilePath -> ExpQ
-folderHashTH path = runIO (folderHash path) >>= stringE
-
 -- * Html + CSS
 
 -- todo: The below could be more general!
@@ -516,6 +453,7 @@ siteMain maybeTls mc ms siteRoot settings site = do
               WS.websocketsOr WS.defaultConnectionOptions ws
                  (error "This should never happen")
                  req respond
+            file@ (File {}) -> respond $ HR.toRaw file
           _ -> do
             print $ "Path not found: " <> show (Wai.pathInfo req)
               <> ", URL: " <> TL.unpack (render' siteRoot)
