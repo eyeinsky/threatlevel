@@ -10,7 +10,6 @@ import qualified Data.Text.Encoding as TE
 import X.Prelude hiding (unlines, find)
 
 import HTTP.Common
-import qualified Cookie as C
 
 
 newtype Header = Header (HeaderName, T)
@@ -187,19 +186,6 @@ instance ToPayload RequestHeader where
             , p "Referer"              Referer
             , p "User-Agent"           UserAgent
             ]
-
-
-
--- * Cookie
-
--- def moved to Cookie, as JS_DOM is using it too
-
-instance ToPayload C.Cookie where
-   toPayload = C.cookieString
-
-cookie' k v c d e = Header (SetCookie, toPayload $ C.Cookie k v c d e)
-mkC k v = cookie' k v Nothing Nothing Nothing
-delC k  = cookie' k "deleted" Nothing Nothing (Just "Thu, 01-Jan-1970 00:00:01 GMT")
 
 -- * Shorthands
 

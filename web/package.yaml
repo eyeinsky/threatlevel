@@ -99,7 +99,6 @@ library:
   # WebAPIs
   - JS.Console
   - IndexedDB.IDB
-  - Cookie
   - DOM.Core
   - DOM.Event
   - DOM.JS

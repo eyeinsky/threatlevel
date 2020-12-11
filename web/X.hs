@@ -284,17 +284,6 @@ inlineStyle element declarations = do
 jsHref :: Expr a -> Attribute
 jsHref url = HTML.href (Dynamic $ Cast url)
 
--- * HTTP.Response
-
-deleteCookie :: TS.Text -> WR.Response -> WR.Response
-deleteCookie key = WR.headers %~ (Hdr.delC (TL.fromStrict key) :)
-
-setCookie :: TS.Text -> TS.Text -> WR.Response -> WR.Response
-setCookie k v = WR.headers %~ (setCookie (TL.fromStrict v))
-  where
-    setCookie :: TL.Text -> [Hdr.Header] -> [Hdr.Header]
-    setCookie val = (Hdr.cookie' (TL.fromStrict k) val Nothing (Just []) Nothing :)
-
 -- * HTTP.Request
 
 hasCookie :: TS.Text -> TS.Text -> Wai.Request -> P.Bool
