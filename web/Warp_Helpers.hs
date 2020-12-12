@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Warp_Helpers
   ( module Warp_Helpers
-  , TLS.tlsSettings
-  , TLS.TLSSettings
+  , Warp.tlsSettings
+  , Warp.TLSSettings
   ) where
 
 import X.Prelude
@@ -10,12 +10,14 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.ByteString as B
 import qualified Data.HashMap.Strict as HM
+import System.IO.Unsafe
+import System.Environment
 
 import qualified Control.Concurrent.Async as Async
 
 import Network.Wai
-import Network.Wai.Handler.Warp hiding (getPort)
-import qualified Network.Wai.Handler.WarpTLS as TLS
+import Network.Wai.Handler.Warp as Warp hiding (getPort)
+import qualified Network.Wai.Handler.WarpTLS as Warp
 import Network.HTTP.Types
 
 import URL
@@ -41,7 +43,7 @@ type AppName = String
 
 type AppDef = (AppName, Authority -> IO Handler)
 type Rule = (AppName, Authority, URL.Port)
-type Https =  (AppDef, Rule, TLS.TLSSettings)
+type Https =  (AppDef, Rule, Warp.TLSSettings)
 
 data Server = Server (Maybe Https) [AppDef] [Rule]
 
@@ -102,4 +104,15 @@ runServer (Server https defs rules) = let
 runHttps :: Https -> IO ()
 runHttps ((_, init), (_, auth, bindPort), tls) = do
   handler <- init auth
-  TLS.runTLS tls (mkPort bindPort) (\req resp -> resp =<< handler req)
+  Warp.runTLS tls (mkPort bindPort) (\req resp -> resp =<< handler req)
+
+-- * Read TLS key and certificate path from environment
+
+tlsSettingsEnvIO :: String -> String -> IO (Maybe Warp.TLSSettings)
+tlsSettingsEnvIO cert key = do
+  certPath <- lookupEnv cert
+  keyPath <- lookupEnv key
+  return $ Warp.tlsSettings <$> certPath <*> keyPath
+
+tlsSettingsEnv :: String -> String -> Maybe Warp.TLSSettings
+tlsSettingsEnv cert key = unsafePerformIO $ tlsSettingsEnvIO cert key
