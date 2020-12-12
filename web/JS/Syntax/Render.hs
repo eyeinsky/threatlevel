@@ -186,8 +186,6 @@ instance Render ClassBodyFieldType where
 prefix :: Text -> Name -> ReaderT (Render.Conf Name) Identity Text
 prefix word a = pure word <+> pure " " <+> renderM a
 
-postfix what a = a <&> (<> what)
-
 function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
 function kw mbName as code = mseq
   [ pure $ kw <> TL.fromStrict (maybe "" getName mbName)

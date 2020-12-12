@@ -2,16 +2,12 @@ module Web.Response where
 
 import qualified Prelude as P
 import X.Prelude
-import Language.Haskell.TH
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
-import Network.Mime as Mime
 import qualified Network.HTTP.Types as WT
 import Data.FileEmbed
 import qualified Data.Aeson as Aeson
-
-import qualified Data.Text.Strict.Lens as LS
 import qualified Data.Text.Lazy.Lens as LL
 
 import qualified HTTP.Header as Hdr

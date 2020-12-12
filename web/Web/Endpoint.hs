@@ -1,7 +1,6 @@
 module Web.Endpoint where
 
 import X.Prelude hiding (Reader, Writer, State, fail)
-
 import Control.Monad.Except
 
 import qualified URL

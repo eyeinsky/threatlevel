@@ -5,7 +5,6 @@ module X.Wai
 
 import Network.Wai as Export hiding (Response)
 import Network.HTTP.Types as Export
-import Network.Wai (Request)
 
 import Control.Monad
 import qualified Data.Text as TS

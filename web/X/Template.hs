@@ -16,14 +16,14 @@ idsElems n = do
       forM (zip ids elems) $ \(id, el) -> el .= findBy id
     return (ids, elems, mount)
 
-data Template a f p out = Template
+data Template a html ctx out = Template
   { templateIds :: [Id]
   , templateMount :: Expr ()
   , templateCreate :: Expr (a -> DocumentFragment)
   , templateUpdate :: Expr (a -> ())
   , templateSsr :: Maybe a -> Html
   , templateGet :: Expr a
-  , templateHtml :: f
+  , templateHtml :: html
 
   , templateOut :: out
   }

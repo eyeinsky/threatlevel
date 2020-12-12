@@ -66,15 +66,11 @@ import Warp_Helpers as Export (getRequestBody)
 import qualified Prelude
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text.Lazy.Lens as LL
-import qualified Data.Text.Strict.Lens as LS
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Time
 
-import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Concurrent
@@ -82,17 +78,13 @@ import Control.Concurrent
 import Web.Cookie as Wai
 import Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
-import qualified Network.Mime as Mime
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as Warp
 
 import Rapid
 
-import System.Process as IO
 import System.IO as IO
-import Language.Haskell.TH
 
-import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 
 import X.Prelude as P

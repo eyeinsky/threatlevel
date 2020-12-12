@@ -7,7 +7,6 @@ import qualified X.Prelude as P
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
-import Control.Monad.Writer (execWriter)
 
 import JS hiding (Raw)
 import qualified JS.BuiltIns.Full as JS
