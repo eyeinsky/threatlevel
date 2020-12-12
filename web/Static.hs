@@ -10,7 +10,6 @@ import qualified Network.Mime as Mime
 import qualified Network.HTTP.Types as Wai
 import System.IO as IO
 import System.Process as IO
-import Control.Exception
 import Language.Haskell.TH
 import Data.FileEmbed
 
@@ -55,7 +54,7 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
   where
     f :: (FilePath, URL) -> Html
     f (path, url) = case P.split "." path^.reversed.ix 0 of
-      "css" -> includeCss url
+      "css" -> stylesheet url
       "js" -> includeJs url
       _ -> pure ()
 
