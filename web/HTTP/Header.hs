@@ -164,7 +164,7 @@ data RequestHeaderName where
    deriving (Eq, Ord)
 
 instance ToPayload RequestHeader where
-   toPayload = flip find map . fst . _unRequestHeader
+   toPayload (RequestHeader (name, _)) = find name map
       where
          map = [
               p "Accept"               Accept

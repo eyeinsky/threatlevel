@@ -98,7 +98,7 @@ import qualified HTTP.Response as HR
 import X.Prelude as P
 import JS hiding (String)
 
-import CSS.Monad (CSSM, DM)
+import CSS.Monad (DM)
 import qualified CSS.Syntax as CSS
 import qualified URL
 import qualified HTML
@@ -214,7 +214,7 @@ for id = HTML.for (unId id)
 
 -- * HTML + Date.Time
 
-parseTextTime :: (Monad m, ParseTime t) => String -> TS.Text -> m t
+parseTextTime :: (Monad m, MonadFail m, ParseTime t) => String -> TS.Text -> m t
 parseTextTime fmt inp =
   parseTimeM True defaultTimeLocale fmt str
   where

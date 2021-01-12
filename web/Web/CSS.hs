@@ -1,7 +1,6 @@
 module Web.CSS where
 
 import X.Prelude
-import HTML (TagName(TagName))
 import Web.Monad
 import CSS
 

@@ -6,7 +6,6 @@ module Warp_Helpers
   ) where
 
 import X.Prelude
-import Control.Monad (guard)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.ByteString as B

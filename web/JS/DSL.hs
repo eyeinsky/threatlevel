@@ -15,7 +15,7 @@ module JS.DSL
   , call, call0, call1, (!.), (.!), ex
   ) where
 
-import Prelude (Floating(..), fromRational, Fractional((/)), Rational)
+import Prelude (Floating(..), Fractional((/)))
 import X.Prelude hiding (Empty, State, Const)
 import qualified X.Prelude as Pr
 import qualified Data.Set as S
