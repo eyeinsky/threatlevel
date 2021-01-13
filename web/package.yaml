@@ -29,7 +29,6 @@ dependencies:
 - mime-types
 - mtl
 - network
-- network-simple
 - tagged
 - template-haskell
 - text
