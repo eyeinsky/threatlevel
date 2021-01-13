@@ -32,6 +32,11 @@ in_deps_do() {
     done
 }
 
+dev_init() {
+    # Use forked rapid (has updated dependency bounds)
+    cabal2nix https://github.com/eyeinsky/rapid.git > github-eyeinsky-rapid.nix
+}
+
 prepare() {
     in_deps_do "cabal2nix . > default.nix"
     (

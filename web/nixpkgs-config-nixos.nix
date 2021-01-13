@@ -7,6 +7,7 @@
       overrides = haskellPackagesNew: haskellPackagesOld: rec {
         f = path: rest: lib.dontCheck (lib.dontHaddock (haskellPackagesNew.callPackage path rest));
 
+        rapid = f ../github-eyeinsky-rapid.nix {};
         render = f ~/src/fw/render {};
         identifiers = f ~/src/fw/identifiers {};
         multiline = f ~/src/fw/multiline {};
