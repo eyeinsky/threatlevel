@@ -93,6 +93,7 @@ library
       TH
       Trie
       WebStorage
+      X.Template.V2
       XML.Render
       Paths_web
   hs-source-dirs:
