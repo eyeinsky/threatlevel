@@ -143,7 +143,8 @@ pseudoElements' = common "::" [unindent|
   -- ::grammar-error
   ::marker
   -- ::part()
-  -- ::placeholder
+  ::placeholder
+  -- ^ Enabled because supported
   ::selection
   ::slotted()
   -- ::spelling-error

@@ -22,7 +22,7 @@ import CSS as Export hiding
   -- generic
   ( filter, all, not
   -- defined in HTML
-  , disabled, readOnly, required, default_, scope, link
+  , disabled, readOnly, required, default_, scope, link, placeholder
   -- defined in JS
   , empty
   -- defined in URL
