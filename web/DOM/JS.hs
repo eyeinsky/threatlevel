@@ -46,6 +46,10 @@ matches s e = call1 (e !. "matches") (jsSelectorFrom s)
 querySelector :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
 querySelector s e = call1 (e !. "querySelector") (jsSelectorFrom s)
 
+-- | Query selector which includes the root node
+querySelector' :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
+querySelector' selector root = (matches selector root .&& root) .|| querySelector selector root
+
 querySelectorAll :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
 querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
 
