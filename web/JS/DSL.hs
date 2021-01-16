@@ -59,6 +59,12 @@ bare e  = write $ BareExpr e
 block    = let_    <=< blockExpr
 block' n = new' n <=< blockExpr
 
+-- * Comment
+
+-- | Stopgap until syntax for block and single-line comments
+comment :: TS.Text -> M r ()
+comment text = bare $ ex $ "// " <> text
+
 -- * Control flow
 
 ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
