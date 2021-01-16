@@ -49,15 +49,8 @@ querySelector s e = call1 (e !. "querySelector") (jsSelectorFrom s)
 querySelectorAll :: JSSelector a => a -> Expr D.Tag -> Expr D.Tag
 querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
 
-queryParents :: JSSelector a => a -> Expr D.Tag -> Expr c
-queryParents s e = let
-  str = jsSelectorFrom s
-  in flip call [Cast str, e] $ funcPure $ \(selector :: Expr String) elem -> do
-    e' <- let_ elem
-    r <- let_ Null
-    JS.for (e' !. "matches") $ do
-      ifelse (matches selector e') (do r .= e'; bare $ ex "break") (e' .= DOM.JS.parentNode e')
-    retrn e'
+closest :: JSSelector s => s -> Expr D.Tag -> Expr D.Tag
+closest s e = call1 (e !. "closest") (jsSelectorFrom s)
 
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
