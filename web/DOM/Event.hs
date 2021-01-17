@@ -7,6 +7,7 @@ instance Event MouseEvent
 instance Event KeyboardEvent
 instance Event HTMLFrameObjectEvent
 instance Event HTMLFormEvent
+instance Event HashChangeEvent
 instance Event Progress
 instance Event Touch
 instance Event WorkerEvent
@@ -56,7 +57,7 @@ data HTMLFormEvent
    -- `contenteditable` or `designMode` are turned one
    | Input
 
-
+data HashChangeEvent = HashChange
 
 -- No "on" prefixed attributes for html elements these events:
 
@@ -111,6 +112,7 @@ deriving instance Show KeyboardEvent
 deriving instance Show MouseEvent
 deriving instance Show HTMLFrameObjectEvent
 deriving instance Show HTMLFormEvent
+deriving instance Show HashChangeEvent
 deriving instance Show Progress
 deriving instance Show Touch
 deriving instance Show WorkerEvent
