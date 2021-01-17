@@ -191,6 +191,12 @@ forAwait expr mkBlock = do
    block <- mkCode $ mkBlock (EName name)
    write $ ForAwait name expr block
 
+forOf :: Expr p -> (Expr n -> M r ()) -> M r ()
+forOf expr mkBlock = do
+   name <- next
+   block <- mkCode $ mkBlock (EName name)
+   write $ ForOf name expr block
+
 while :: Expr r -> M r a -> M r ()
 while cond code = write . f =<< mkCode code
    where f = While cond

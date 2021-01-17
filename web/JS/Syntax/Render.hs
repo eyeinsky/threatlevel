@@ -41,15 +41,8 @@ instance Render (Statement a) where
       , par . unsemi <$> sequence [renderM init, renderM cond, renderM post]
       , curlyCode conts
       ]
-    ForIn name expr code -> mseq
-      [ pure "for"
-      , par <$> mseq
-          [ var name
-          , pure " in "
-          , renderM expr
-          ]
-      , curlyCode code
-      ]
+    ForIn name expr code -> mseq $ loop name expr code var " in "
+    ForOf name expr code -> mseq $ loop name expr code const " of "
 
     ForAwait name expr code -> mseq
       [ pure "for await"
@@ -126,6 +119,15 @@ instance Render (Statement a) where
       withLabel statement maybeLabel = case maybeLabel of
         Just label -> pure statement <+> pure " " <+> renderM label
         _ -> pure statement
+      loop name expr code varDecl loopType =
+        [ pure "for"
+        , par <$> mseq
+          [ varDecl name
+          , pure loopType
+          , renderM expr
+          ]
+        , curlyCode code
+        ]
 
 instance Render (Expr a) where
   type Conf (Expr a) = Conf
