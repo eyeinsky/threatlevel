@@ -9,6 +9,7 @@ import qualified Data.Text.Lazy.Encoding as TL
 import qualified Network.Mime as Mime
 import qualified Network.HTTP.Types as Wai
 import System.IO as IO
+import Control.Exception
 import System.Process as IO
 import Language.Haskell.TH
 import Data.FileEmbed
@@ -24,10 +25,10 @@ import X
 
 -- ** File
 
-diskFile :: MonadIO m => FilePath -> m Response
+diskFile :: MonadIO m => FilePath -> m (Either IOException Response)
 diskFile path = do
-  bytes <- liftIO $ BL.readFile path
-  return $ rawBl (toEnum 200) [pathContentType path] bytes
+  either <- liftIO $ try $ BL.readFile path
+  return $ rawBl (toEnum 200) [pathContentType path] <$> either
 
 -- | Embeds a file from path into binary, resulting file's type will
 -- be Response.
@@ -67,7 +68,11 @@ staticDiskSubtree' mod onError (path :: FilePath) = do
     e <- asks (view WE.dynPath) <&> sanitizePath
     case e of
       Left e -> onError e
-      Right subPath -> mod <$> diskFile (path <> "/" <> subPath)
+      Right subPath -> do
+        either <- diskFile (path <> "/" <> subPath)
+        case either of
+          Left ioException -> onError $ TS.pack $ show ioException
+          Right response -> return $ mod response
 
 sanitizePath :: [TS.Text] -> Either TS.Text FilePath
 sanitizePath parts = if any (== "..") parts
@@ -78,7 +83,7 @@ sanitizePath parts = if any (== "..") parts
 staticDiskSubtree notFound path = staticDiskSubtree' P.id (\_ -> return notFound) path
 
 -- | Serve files from filesystem path using a content adressable hash
-assets :: (API m s, MonadIO m, Confy s) => WR.Response -> String -> m URL
+assets :: (API m s, MonadIO m, Confy s) => WR.Response -> FilePath -> m URL
 assets notFound path = do
   hashPin path $ staticDiskSubtree' headerMod (\_ -> return notFound) path
   where
