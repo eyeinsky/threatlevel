@@ -9,6 +9,8 @@ import HTTP.Common (ToPayload(..))
 import qualified HTTP.Header as H
 import Web.Response
 
+-- * Abstract cookie
+
 data Field
   = Expires UTCTime
   | MaxAge Int
@@ -42,6 +44,9 @@ instance ToPayload Field where
   toPayload field = case field of
     Expires utc -> "Expires=" <> TL.pack (formatTime defaultTimeLocale fmt utc)
       where fmt = "%a, %d %b %Y %X GMT"
+      {- ^ Expires=<date>, from https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+         https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date#syntax
+         Date: <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT -}
     MaxAge n -> "Max-Age=" <> TL.pack (show n)
     Domain ts -> "Domain=" <> TL.fromStrict ts
     Path p -> "Path=" <> render' p
@@ -54,9 +59,24 @@ instance ToPayload Field where
 cookie :: TS.Text -> TS.Text -> Cookie
 cookie k v = Cookie k v []
 
-secureCookie :: TS.Text -> TS.Text -> UTCTime -> Cookie
-secureCookie k v expires = cookie k v & fields .~ Expires expires : secure
-  where secure = [Secure, HttpOnly]
+secureCookie :: TS.Text -> TS.Text -> Cookie
+secureCookie k v = cookie k v & fields .~ [Secure, HttpOnly]
+
+-- * Interface to Response
 
 setCookie :: Cookie -> Response -> Response
 setCookie c = headers <>~ [H.header H.SetCookie (toPayload c)]
+
+deleteCookie :: Cookie -> Response -> Response
+deleteCookie cookie = headers <>~ [H.header H.SetCookie (toPayload cookie')]
+  where
+    cookie' = cookie & fields %~ (Expires inThePast :)
+    inThePast = UTCTime (fromGregorian 1970 1 1) 1
+    {- ^ "Thu, 01-Jan-1970 00:00:01 GMT"
+
+       From https://tools.ietf.org/search/rfc6265#section-3.1 (search "Finally,
+       to remove a cookie")
+
+       To remove a cookie, in short:
+       - set Expires to the past
+       - use same path and domain -}
