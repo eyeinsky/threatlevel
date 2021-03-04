@@ -8,11 +8,11 @@
         f = path: rest: lib.dontCheck (lib.dontHaddock (haskellPackagesNew.callPackage path rest));
 
         rapid = f ../github-eyeinsky-rapid.nix {};
-        render = f ~/src/fw/render {};
-        identifiers = f ~/src/fw/identifiers {};
-        multiline = f ~/src/fw/multiline {};
-        web-browser = f ~/src/fw/web-browser {};
-        web-url = f ~/src/fw/web-url {};
+        render = f ../render {};
+        identifiers = f ../identifiers {};
+        multiline = f ../multiline {};
+        web-browser = f ../web-browser {};
+        web-url = f ../web-url {};
         web = lib.justStaticExecutables (f ./default.nix {});
       };
     };
