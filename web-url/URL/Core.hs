@@ -6,7 +6,7 @@ import Data.String
 import Data.Word (Word8, Word16)
 import qualified Data.Text as TS
 import Data.Text.Lens
-import Control.Lens
+import Control.Lens hiding (un)
 import GHC.Generics (Generic)
 
 -- * Absolute
@@ -150,3 +150,15 @@ deriving instance Show Port
 deriving instance Show Path
 deriving instance Show Params
 deriving instance Show Fragment
+
+-- * Convenience
+
+param :: TS.Text -> TS.Text -> URL -> URL
+param k v = params . un <>~ [(k, Just v)]
+
+paramKey :: TS.Text -> URL -> URL
+paramKey k = params . un <>~ [(k, Nothing)]
+
+param' :: TS.Text -> URL -> URL
+param' = paramKey
+{-# DEPRECATED param' "Use paramKey instead." #-}

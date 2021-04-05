@@ -6,7 +6,9 @@ module X
 
 import HTML as Export hiding (
   -- redefined here
-  href, src, for, favicon, html, action, param, style,
+  href, src, for, favicon, html, action, style
+  -- used in URL
+  , param,
   -- used in CSS
   em, font, content, Value,
   -- used in HTTP
@@ -320,11 +322,6 @@ instance ToHtml (Expr TS.Text) where
   toHtml a = HTML.dyn $ createTextNode $ Cast a
 
 html = to toHtml
-
--- * URL
-
-param' k = params . URL.un <>~ [(k, Nothing)]
-param k v = params . URL.un <>~ [(k, Just v)]
 
 -- * Endpoint
 
