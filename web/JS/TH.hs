@@ -66,14 +66,14 @@ name2dataDecl name = reify name >>= \info -> case info of
       _ -> fail "name2dataDecl unhandled case"
     where
       getCon a = case a of
-        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [con] _DerivClause_s -> con
+        DataInstD _ _ _ _ [con] _ -> con
         _ -> error "getCon"
       isSingleDICon a = case a of
-        DataInstD _Cxt _MaybeTyVarBndr _Type _MaybeKind [_] _DerivClause_s -> True
+        DataInstD _ _ _ _ [_] _ -> True
         _ -> False
 #if MIN_VERSION_template_haskell(2,15,0)
       mkAppliedTyped :: Dec -> Type
-      mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _MaybeKind [con] _DerivClause_s) = appliedTyped
+      mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _ [con] _) = appliedTyped
         where
           tyVarBndrName :: TyVarBndr -> Name
           tyVarBndrName tvb = case tvb of
@@ -87,6 +87,7 @@ name2dataDecl name = reify name >>= \info -> case info of
       mkAppliedTyped (DataInstD _ typeFirst (types :: [Type]) _ _ _) = appliedTyped
         where appliedTyped = foldl AppT (ConT typeFirst) types :: Type
 #endif
+      mkAppliedTyped _ = error "name2dataDecl: the impossible happened -- the argument is always `DataInstD`"
 
   _ -> fail "name2dataDecl: Not implemented"
   where
