@@ -35,16 +35,26 @@ data DataDecl
   -- | Data family instance: @data instance Family Int = FamilyInt Something@
   | DataFamilyInstance Type Name [(Name, Type)]
 
+-- | Deriev ToExpr instance for data type
 deriveToExpr :: Name -> Q [Dec]
-deriveToExpr name = do
-  dataDecl <- name2dataDecl name
-  case dataDecl of
-    Enum typeName _ -> [d| instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where lit v = lit (show v) |]
-    SingleRecord typeName conName fieldNamesTypes -> singleRecordConstructor (conT typeName) conName fieldNamesTypes
-    DataFamilyInstance type_ conName fieldNamesTypes -> singleRecordConstructor (pure type_) conName fieldNamesTypes
-    MultiMixed -> fail "Multi-mixed data types not implemented"
-    RegularData _ _ -> fail "RegularData not implemented"
-    Empty -> fail "Type has no data constructors"
+deriveToExpr name = name2dataDecl name >>= \case
+  Enum typeName _ -> [d| instance {-# OVERLAPPING #-} ToExpr $(conT typeName) where lit v = lit (show v) |]
+  SingleRecord typeName conName fieldNamesTypes ->
+    singleRecordToExpr (conT typeName) conName fieldNamesTypes
+  DataFamilyInstance type_ conName fieldNamesTypes ->
+    singleRecordToExpr (pure type_) conName fieldNamesTypes
+  MultiMixed -> fail "Multi-mixed data types not implemented"
+  RegularData _ _ -> fail "RegularData not implemented"
+  Empty -> fail "Type has no data constructors"
+
+-- | Derieve fieldaccessors for data type
+makeExprFields :: Name -> Q [Dec]
+makeExprFields name = name2dataDecl name >>= \case
+  SingleRecord typeName conName fieldNamesTypes ->
+    singleRecordHasField (conT typeName) conName fieldNamesTypes
+  DataFamilyInstance type_ conName fieldNamesTypes ->
+    singleRecordHasField (pure type_) conName fieldNamesTypes
+  _ -> fail "makeExprFields: not implemented"
 
 -- | Reify name to a type and data constructor pairs
 name2dataDecl :: Name -> Q DataDecl
@@ -121,12 +131,15 @@ name2dataDecl name = reify name >>= \info -> case info of
 
 -- * Splice generators
 
-singleRecordConstructor :: TypeQ -> Name -> [(Name, Type)] -> Q [Dec]
-singleRecordConstructor type_ conName fieldNamesTypes = do
+singleRecordHasField :: TypeQ -> Name -> [(Name, Type)] -> Q [Dec]
+singleRecordHasField type_ conName fieldNamesTypes = do
   let namesTypes = lensFields (nameBase conName) $ map (_1 %~ nameBase) fieldNamesTypes :: [(String, Type)]
-  hasFields :: [[Dec]] <- mapM (mkHasField type_) namesTypes
-  toExpr :: [Dec] <- mkToExpr type_ namesTypes
-  return $ P.concat $ toExpr : hasFields
+  P.concat <$> mapM (mkHasField type_) namesTypes
+
+singleRecordToExpr :: TypeQ -> Name -> [(Name, Type)] -> Q [Dec]
+singleRecordToExpr type_ conName fieldNamesTypes = do
+  let namesTypes = lensFields (nameBase conName) $ map (_1 %~ nameBase) fieldNamesTypes :: [(String, Type)]
+  mkToExpr type_ namesTypes
 
 mkToExpr :: TypeQ -> [(String, Type)] -> Q [Dec]
 mkToExpr mainType namesTypes = case namesTypes of
