@@ -320,6 +320,8 @@ instance ToHtml (Expr String) where
   toHtml a = HTML.dyn $ createTextNode a
 instance ToHtml (Expr TS.Text) where
   toHtml a = HTML.dyn $ createTextNode $ Cast a
+instance ToHtml (Expr Int) where
+  toHtml e = dyn $ createTextNode $ toString e
 
 html = to toHtml
 
