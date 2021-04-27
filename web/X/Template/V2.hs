@@ -67,8 +67,8 @@ makeFields ''SSR
 
 data Client a =  Client
   { clientMount :: Expr ()
-  , clientCreate :: Expr (a -> DocumentFragment)
-  , clientUpdate :: Expr (a -> ())
+  , clientCreate :: Create a
+  , clientUpdate :: Update a
   , clientGet :: Expr a
   }
 makeFields ''Client
@@ -99,14 +99,16 @@ mergeMounts li = js $ newf $ callMounts li
 -- value.
 mock
   :: forall m a x1 x2. MonadWeb m
-  => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
+  => TS.Text -> m (Create a, Update a, Expr x2, Html, a -> Html)
 mock (title :: TS.Text) = do
   let title' = lit title :: Expr String
-  create <- js $ newf $ \(_ :: Expr p) -> do
+  create <- js $ fn $ \(a :: Expr a) -> do
     log $ "mock: create " <> title'
     fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
-    retrn fragment
-  update <- js $ newf $ log $ "mock: update " <> title'
+    retrn $ context a fragment
+  update <- js $ fn $ \(a :: Expr (Context a)) -> do
+    log $ "mock: update " <> title'
+    retrn (Undefined :: Expr ())
   get <- js $ newf $ log $ "mock: get " <> title'
   let htmlMock = div $ "mock: html' " <> toHtml title
       ssr _ = htmlMock
@@ -133,11 +135,9 @@ mkTemplate0 ids mount create update get ssr out =
 ssrOnly :: (t -> Html) -> Template0 t ctx
 ssrOnly ssr = Template todo todo todo todo todo ssr todo
 
-
+emptyTemplate :: forall k a (ctx :: k) out. Template a ctx out
 emptyTemplate = Template
-   undefined undefined undefined undefined undefined undefined undefined
-
-
+   [] Undefined (Prelude.const Undefined) (Prelude.const Undefined) Undefined (Prelude.const "") undefined
 
 getTemplate0
   :: (GetTemplate t ctx, Monad m, MonadFix m, In t ctx ~ ())

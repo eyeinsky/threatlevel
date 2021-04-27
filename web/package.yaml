@@ -119,6 +119,7 @@ library:
   - X.Cookie
   - X.DOM
   - X.Template
+  - X.Template.V2
   - X.Auth.Google
   - X.Google.Maps
   - X.Google.Spreadsheet
