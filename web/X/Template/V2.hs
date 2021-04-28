@@ -38,6 +38,20 @@ withNodes ctx go = iterArray (nodes ctx) $ \ix -> do
   node <- const $ nodes ctx !- ix -- <- remember me
   go node
 
+createContext :: Expr a -> Html -> M r (Expr (Context a))
+createContext item html = do
+  fragment <- createHtmls html
+  nodes <- const $ ex "Array" !// "from" $ fragment !. "childNodes"
+  ctx <- const $ context item nodes
+  return ctx
+
+-- | Append DOM nodes from @context@ to element with @id@
+appendContext :: Expr (Context a) -> Id -> M r ()
+appendContext context id = do
+  dest <- const $ querySelector id document
+  withNodes context $ \node -> do
+    bare $ dest !// "appendChild" $ node
+
 -- ** Template
 
 type Create a = Expr a -> Expr (Context a)
