@@ -88,6 +88,7 @@ import System.IO as IO
 
 import qualified HTTP.Response as HR
 
+import qualified Prelude as P
 import X.Prelude as P
 import JS hiding (String)
 
@@ -500,3 +501,33 @@ eventPromise el eventType p = do
         bare $ call (el !. "removeEventListener") args
     bare $ call (el !. "addEventListener") args
   return $ newPromise executor
+
+-- * Date
+
+-- | Formats dates as "in 2 days" etc.
+--
+-- Adapted from here: https://blog.webdevsimplified.com/2020-07/relative-time-format/
+mkFormatFromNow :: Expr a -> M r (Expr Date -> Expr String)
+mkFormatFromNow formatter = do
+  divisions <- const (lit $ map (\(a, b) -> lit [a, b])
+    [ (60, "seconds")
+    , (60, "minutes")
+    , (24, "hours")
+    , (7, "days")
+    , (4.34524, "weeks")
+    , (12, "months")
+    , (ex "Number" !. "POSITIVE_INFINITY", "years")
+    ] :: Expr [(Double, String)])
+  let amount a = a !- 0
+      name a = a !- 1
+
+  fn $ \date -> do
+    duration <- let_ $ (date - call0 (New dateConstructor)) P./ 1000
+    iterArray divisions $ \ix -> do
+      division <- const $ divisions !- ix
+      ifonly ((ex "Math" !// "abs" $ duration) .< amount division) $ do
+        retrn $ call (formatter !. "format")
+          [ ex "Math" !// "round" $ duration
+          , name division ]
+      duration ./= amount division
+    retrn (Null :: Expr String)

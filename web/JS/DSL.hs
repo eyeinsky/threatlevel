@@ -250,9 +250,12 @@ generator = let_ <=< func Generator
 newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
 newf' n = new' n <=< func AnonFunc
 
--- fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
 fn f = newf f <&> convert []
 fn' n f = newf' n f <&> convert []
+
+async_ :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+async_ f = async f <&> convert []
 
 a !/ b = call0 (a !. b)
 a !// b = call1 (a !. b)
