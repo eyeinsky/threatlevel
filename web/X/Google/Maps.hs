@@ -4,7 +4,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import Data.List
 
-import X.Prelude hiding ((?=))
+import X.Prelude
 import URL
 
 -- * JS
@@ -26,7 +26,7 @@ renderStaticUrl :: StaticMap -> URL
 renderStaticUrl hm = foldr f staticApi hm
     where
       f :: (TS.Text, Val) -> URL -> URL
-      f (k, v) url = url & k ?= either id g v
+      f (k, v) url = url & param k (either id g v)
       g :: Submap -> TS.Text
       g m = let
         (props, coords) = partition (snd ^ isJust) m

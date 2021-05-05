@@ -158,7 +158,3 @@ param k v = params . un <>~ [(k, Just v)]
 
 paramKey :: TS.Text -> URL -> URL
 paramKey k = params . un <>~ [(k, Nothing)]
-
-param' :: TS.Text -> URL -> URL
-param' = paramKey
-{-# DEPRECATED param' "Use paramKey instead." #-}
