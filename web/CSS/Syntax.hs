@@ -42,6 +42,8 @@ data Value
    | ColorHex Word32
    | ColorRGB Word8 Word8 Word8
    | ColorRGBA Word8 Word8 Word8 Double
+   | ColorHSL Double Double Double
+   | ColorHSLA Double Double Double Double
 
    | Url TL.Text
 
@@ -68,6 +70,8 @@ vmax i = ViewportMax  i
 hex a     = ColorHex a
 rgb a b c = ColorRGB a b c
 rgba a b c d = ColorRGBA a b c d
+hsl a b c = ColorHSL a b c
+hsla a b c d = ColorHSLA a b c d
 
 str = Word
 
@@ -92,6 +96,8 @@ instance Render Value where
       ColorHex w32 -> pure $ "#" <> hex w32
       ColorRGB a b c -> pure $ format "rgb({},{},{})" (a,b,c)
       ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
+      ColorHSL a b c -> pure $ format "hsl({},{}%,{}%, {})" (a,b,c)
+      ColorHSLA a b c d -> pure $ format "hsla({},{}%,{}%, {})" (a,b,c,d)
 
       Url tl -> pure $ "url(\"" <> tl <> "\")"
       Compound l -> TL.intercalate " " <$> mapM renderM (D.toList l)
