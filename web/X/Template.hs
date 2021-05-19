@@ -39,7 +39,7 @@ class GetTemplate t ctx where
   type Out t ctx :: *
   type Out t ctx = ()
 
-  getTemplate :: Monad m => In t ctx -> WebT m (Template t (Html' t ctx) ctx (Out t ctx))
+  getTemplate :: (Monad m, MonadFix m) => In t ctx -> WebT m (Template t (Html' t ctx) ctx (Out t ctx))
 
 -- * Helpers
 
@@ -85,6 +85,6 @@ mkTemplate0 ids mount create update ssr get html =
   Template ids mount create update ssr get html ()
 
 getTemplate0
-  :: (GetTemplate t ctx, Monad m, In t ctx ~ ())
+  :: (GetTemplate t ctx, Monad m, MonadFix m, In t ctx ~ ())
   => WebT m (Template t (Html' t ctx) ctx (Out t ctx))
 getTemplate0 = getTemplate ()

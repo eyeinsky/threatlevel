@@ -50,7 +50,7 @@ querySelector s e = call1 (e !. "querySelector") (jsSelectorFrom s)
 querySelector' :: JSSelector a => a -> Expr e -> Expr D.Tag
 querySelector' selector root = (matches selector root .&& root) .|| querySelector selector root
 
-querySelectorAll :: JSSelector a => a -> Expr e -> Expr D.Tag
+querySelectorAll :: JSSelector a => a -> Expr e -> Expr [D.Tag]
 querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
 
 closest :: JSSelector s => s -> Expr D.Tag -> Expr D.Tag

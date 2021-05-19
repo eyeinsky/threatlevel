@@ -112,15 +112,15 @@ mergeMounts li = js $ newf $ callMounts li
 -- $template$'s $html$ varies in type then this is returned as plain
 -- value.
 mock
-  :: forall m a x1 x2. MonadWeb m
-  => TS.Text -> m (Create a, Update a, Expr x2, Html, a -> Html)
+  :: forall m a. MonadWeb m
+  => TS.Text -> m (Create a, Update a, Expr a, Html, a -> Html)
 mock (title :: TS.Text) = do
   let title' = lit title :: Expr String
   create <- js $ fn $ \(a :: Expr a) -> do
     log $ "mock: create " <> title'
     fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
     retrn $ context a fragment
-  update <- js $ fn $ \(a :: Expr (Context a)) -> do
+  update <- js $ fn $ \(_ :: Expr (Context a)) -> do
     log $ "mock: update " <> title'
     retrn (Undefined :: Expr ())
   get <- js $ newf $ log $ "mock: get " <> title'
@@ -129,8 +129,8 @@ mock (title :: TS.Text) = do
   return (create, update, get, htmlMock, ssr)
 
 mock2
-  :: forall m a x1 x2. MonadWeb m
-  => TS.Text -> m (Expr (a -> DocumentFragment), Expr x1, Expr x2, Html, Maybe a -> Html)
+  :: forall m a. MonadWeb m
+  => TS.Text -> m (Expr (a -> DocumentFragment), Expr a, Expr a, Html, Maybe a -> Html)
 mock2 str = return (Undefined, Undefined, Undefined, toHtml str, \_ -> toHtml str)
 
 -- * Compatibility construcotrs
