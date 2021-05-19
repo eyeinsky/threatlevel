@@ -23,8 +23,8 @@ idsElems n = do
 data Context a
 data Node
 
-context :: Expr a -> Expr b -> Expr (Context a)
-context a b = lit [a, Cast b]
+context :: Expr o -> Expr [Node] -> Expr DocumentFragment -> Expr (Context a)
+context a b fr = lit [a, Cast b, Cast fr]
 
 source :: Expr (Context a) -> Expr a
 source ctx = ctx !- 0
@@ -32,17 +32,24 @@ source ctx = ctx !- 0
 nodes :: Expr (Context a) -> Expr [Node]
 nodes ctx = ctx !- 1
 
+fragment :: Expr (Context a) -> Expr DocumentFragment
+fragment ctx = ctx !- 2
+
+-- *** Helpers
+
 -- | Iterate through the nodes array, run action
 withNodes :: Expr (Context a) -> (Expr Node -> M r b) -> M r ()
 withNodes ctx go = iterArray (nodes ctx) $ \ix -> do
   node <- const $ nodes ctx !- ix -- <- remember me
   go node
 
+fragment2nodes :: Expr DocumentFragment -> Expr [Node]
+fragment2nodes fragment = ex "Array" !// "from" $ fragment !. "childNodes"
+
 createContext :: Expr a -> Html -> M r (Expr (Context a))
 createContext item html = do
   fragment <- createHtmls html
-  nodes <- const $ ex "Array" !// "from" $ fragment !. "childNodes"
-  ctx <- const $ context item nodes
+  ctx <- const $ context item (fragment2nodes fragment) fragment
   return ctx
 
 -- | Append DOM nodes from @context@ to element with @id@
@@ -119,7 +126,7 @@ mock (title :: TS.Text) = do
   create <- js $ fn $ \(a :: Expr a) -> do
     log $ "mock: create " <> title'
     fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
-    retrn $ context a fragment
+    retrn $ context a (fragment2nodes fragment) fragment
   update <- js $ fn $ \(_ :: Expr (Context a)) -> do
     log $ "mock: update " <> title'
     retrn (Undefined :: Expr ())
