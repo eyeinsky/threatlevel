@@ -20,6 +20,7 @@ data Field
   | HttpOnly
   | SameSiteStrict
   | SameSiteLax
+  | SameSiteNone
   deriving (Show)
 
 type Set a = [a]
@@ -54,6 +55,7 @@ instance ToPayload Field where
     HttpOnly -> "HttpOnly"
     SameSiteStrict -> "SameSite=Strict"
     SameSiteLax -> "SameSite=Lax"
+    SameSiteNone -> "SameSite=None"
 
 -- | Smart constructor with empty fields
 cookie :: TS.Text -> TS.Text -> Cookie
