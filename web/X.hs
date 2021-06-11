@@ -220,10 +220,13 @@ htmlTime = format "%F %T".html
 
 -- * JS + HTML (= DOM)
 
+clearContent :: Expr Tag -> Expr ()
+clearContent element = Assign (element !. "innerHTML") ""
+
 -- | Replace content of the @element@ with @fragment@. Done in such a
 -- way to be an expression.
 replaceContent :: Expr DocumentFragment -> Expr Tag -> Expr ()
-replaceContent fragment element = Par (Assign (element !. "innerHTML") "") .|| (element !// "append" $ fragment)
+replaceContent fragment element = Par (clearContent element) .|| (element !// "append" $ fragment)
 
 -- | Get closest parent with data-* attribute. Partial
 closestData :: TS.Text -> Expr Tag -> Expr a
