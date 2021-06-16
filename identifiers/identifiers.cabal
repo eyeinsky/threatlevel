@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 
@@ -21,7 +21,40 @@ library
       Identifiers
   other-modules:
       Paths_identifiers
-  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators TypeSynonymInstances InstanceSigs RankNTypes
+  default-extensions:
+      Arrows
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFunctor
+      DeriveGeneric
+      EmptyDataDecls
+      ExtendedDefaultRules
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      PolyKinds
+      QuasiQuotes
+      RecursiveDo
+      ScopedTypeVariables
+      StandaloneDeriving
+      TemplateHaskell
+      TupleSections
+      TypeFamilies
+      TypeOperators
+      TypeSynonymInstances
+      InstanceSigs
+      RankNTypes
   build-depends:
       base
     , lens
@@ -36,7 +69,40 @@ benchmark identifier-source
       Paths_identifiers
   hs-source-dirs:
       benchmarks
-  default-extensions: Arrows BangPatterns ConstraintKinds DataKinds DefaultSignatures DeriveDataTypeable DeriveFunctor DeriveGeneric EmptyDataDecls ExtendedDefaultRules FlexibleContexts FlexibleInstances FunctionalDependencies GADTs GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude NoMonomorphismRestriction OverloadedStrings PolyKinds QuasiQuotes RecursiveDo ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators TypeSynonymInstances InstanceSigs RankNTypes
+  default-extensions:
+      Arrows
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFunctor
+      DeriveGeneric
+      EmptyDataDecls
+      ExtendedDefaultRules
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      PolyKinds
+      QuasiQuotes
+      RecursiveDo
+      ScopedTypeVariables
+      StandaloneDeriving
+      TemplateHaskell
+      TupleSections
+      TypeFamilies
+      TypeOperators
+      TypeSynonymInstances
+      InstanceSigs
+      RankNTypes
   ghc-options: -w -O2 -threaded
   build-depends:
       base

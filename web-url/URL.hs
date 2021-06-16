@@ -10,6 +10,7 @@ import Control.Lens
 import URL.Core as Export
 import URL.Parse as Export
 import URL.Render as Export
+import URL.TH as Export
 import Render as Export (render')
 
 localhost :: URL

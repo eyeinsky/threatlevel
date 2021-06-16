@@ -62,7 +62,6 @@ library:
   - HTTP.Response
   - HTTP.Response.InlineFile
   - HTTP
-  - URL.TH
   - Warp_Helpers
   - CSS
   - SVG

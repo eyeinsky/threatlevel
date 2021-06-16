@@ -1,14 +1,18 @@
 module URL.TH where
 
+import Prelude
+import Control.Lens hiding (un)
+import qualified Data.Text as TS
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
-import X.Prelude hiding (un)
 
-import qualified Data.Text as TS
-import URL
+import URL.Core
+import URL.Parse
 
+
+url :: QuasiQuoter
 url = QuasiQuoter
-  { quoteExp = \str -> case URL.parseURL $ TS.pack $ filter' str of
+  { quoteExp = \str -> case parseURL $ TS.pack $ filter' str of
       Right url -> urlExpr url
       Left e -> error e
   , quotePat = pat
