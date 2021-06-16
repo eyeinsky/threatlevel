@@ -12,7 +12,7 @@ import URL.Parse
 
 url :: QuasiQuoter
 url = QuasiQuoter
-  { quoteExp = \str -> case parseURL $ TS.pack $ filter' str of
+  { quoteExp = \str -> case parseURL $ prepare str of
       Right url -> urlExpr url
       Left e -> error e
   , quotePat = pat
@@ -20,7 +20,13 @@ url = QuasiQuoter
   , quoteDec = dec
   }
   where
-    filter' = filter (\c -> c /= ' ' && c /= '\n')
+    -- | Remove preceeding and succeeding spacing on lines
+    prepare :: String -> TS.Text
+    prepare str = str
+      & lines
+      & map (TS.strip . TS.pack)
+      & filter (not . TS.null)
+      & mconcat
 
     urlExpr :: URL -> Q Exp
     urlExpr url = let
