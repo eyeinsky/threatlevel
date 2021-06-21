@@ -3,9 +3,7 @@ module URL
   , localhost
   ) where
 
-import qualified Data.Text as TS
 import Prelude
-import Control.Lens
 
 import URL.Core as Export
 import URL.Parse as Export

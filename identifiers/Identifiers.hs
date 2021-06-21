@@ -10,7 +10,6 @@ module Identifiers
 
 import Prelude
 import Data.Function (on)
-import Data.Ord (Ordering(..))
 import Data.List (sort, sortBy, nub, groupBy)
 import Control.Monad.State
 
@@ -103,7 +102,7 @@ instance Increment (Infinite a) where
   increment (Infinite x xs) = (x, xs)
 
 head' :: Increment a => a -> Element a
-head' a = x where (x, xs) = increment a
+head' a = x where (x, _) = increment a
 
 tail' :: Increment a => a -> a
-tail' a = xs where (x, xs) = increment a
+tail' a = xs where (_, xs) = increment a

@@ -83,7 +83,7 @@ name2dataDecl name = reify name >>= \info -> case info of
         _ -> False
 #if MIN_VERSION_template_haskell(2,15,0)
       mkAppliedTyped :: Dec -> Type
-      mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _ [con] _) = appliedTyped
+      mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _ [_] _) = appliedTyped
         where
           tyVarBndrName :: TyVarBndr -> Name
           tyVarBndrName tvb = case tvb of
