@@ -71,7 +71,7 @@ setBoxSizing = rulesFor (TagName "html") (boxSizing "border-box") <> rulesFor an
   where
     inherit = boxSizing "inherit"
 
-centerContent :: CSSM ()
+centerContent :: Declarations
 centerContent = do
   display "flex"
   flexFlow "column nowrap"
