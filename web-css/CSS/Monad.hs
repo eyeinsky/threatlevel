@@ -1,12 +1,14 @@
 module CSS.Monad where
 
+import Prelude
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Control.Monad.RWS
+import Control.Lens
+import Control.Monad.Writer
+import Control.Monad.Reader
 
 import Identifiers as Idents
-
-import X.Prelude hiding (State)
 
 import CSS.Syntax
 

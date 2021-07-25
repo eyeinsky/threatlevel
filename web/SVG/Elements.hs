@@ -1,8 +1,8 @@
 module SVG.Elements where
 
 import X.Prelude
-import TH
 import XML
+import XML.TH
 import DOM.Core
 
 data SVG

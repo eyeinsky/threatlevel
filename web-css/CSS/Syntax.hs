@@ -3,7 +3,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 module CSS.Syntax where
 
-import X.Prelude
+import Prelude
+import Data.String
 import Data.Text.Format
 
 import Numeric (showHex)
@@ -12,8 +13,9 @@ import qualified Data.Text.Lazy as TL
 import Data.Word
 import qualified Data.DList as D
 import Text.Printf
+import Control.Lens
 
-import DOM.Core hiding (Value)
+import Common.Lens
 import Render (renderM, Render, (<+>))
 import qualified Render as R
 
@@ -144,20 +146,23 @@ data AttributeSelector
 
 -- | Element, class, id or pseudo
 data SimpleSelector = SimpleSelector
-  { simpleSelectorTag :: Maybe TagName
-  , simpleSelectorMaybeId :: Maybe Id
-  , simpleSelectorClasses :: [Class]
+  { simpleSelectorTag :: Maybe TS.Text
+  , simpleSelectorMaybeId :: Maybe TS.Text
+  , simpleSelectorClasses :: [TS.Text]
   , simpleSelectorPseudos :: [Pseudo]
   , simpleSelectorAttributeSelectors :: [AttributeSelector]
   }
 makeFields ''SimpleSelector
 
 instance Render SimpleSelector where
-   renderM (SimpleSelector mt mi cs ps _)
-     = g mt <+> g mi <+> (TL.concat <$> (f cs <+> f ps))
-      where f = mapM renderM
-            g = maybe (pure "") renderM
-
+   renderM (SimpleSelector maybeTag maybeId cs ps _)
+     = pure (maybePrefix "" maybeTag <> maybePrefix "#" maybeId)
+     <+> (TL.concat . (map mkClass cs <>) <$> mapM renderM ps)
+     where
+       maybePrefix :: TL.Text -> Maybe TS.Text -> TL.Text
+       maybePrefix p m = maybe "" ((p <>) . TL.fromStrict) m
+       mkClass :: TS.Text -> TL.Text
+       mkClass t = TL.fromStrict $ "." <> t
 
 data Declaration = Declaration TS.Text Value
 instance Render Declaration where
@@ -249,14 +254,12 @@ deriving instance Show SimpleSelector
 deriving instance Show Declaration
 deriving instance Show Value
 deriving instance Show Comment
-
 deriving instance Show Pseudo
 
 -- * Convenience
 
-instance Render TagName where renderM (TagName a) = renderM a
-instance Render Id where renderM (Id a) = ("#" <>) <$> renderM a
-instance Render Class where renderM (Class  a) = ("." <>) <$> renderM a
+tagSelector :: TS.Text -> SimpleSelector
+tagSelector t = SimpleSelector (Just t) Nothing [] [] []
 
 -- | Conversion from something to Selector
 class SelectorFrom a where selFrom :: a -> Selector
@@ -270,20 +273,8 @@ class SimpleSelectorFrom a where
   ssFrom :: a -> SimpleSelector
 instance SimpleSelectorFrom SimpleSelector where
   ssFrom = id
-instance SimpleSelectorFrom TagName where
-  ssFrom a = SimpleSelector (Just a) Nothing [] [] []
-instance SimpleSelectorFrom [Class] where
-  ssFrom a = SimpleSelector Nothing Nothing a [] []
-instance SimpleSelectorFrom Class where
-  ssFrom a = SimpleSelector Nothing Nothing [a] [] []
-instance SimpleSelectorFrom Id where
-  ssFrom a = SimpleSelector Nothing (Just a) [] [] []
 instance SimpleSelectorFrom Pseudo where
   ssFrom a = SimpleSelector Nothing Nothing [] [a] []
-
-
-instance IsString Class where
-  fromString = Class . fromString
 
 instance IsString Value where
   fromString = str . TL.pack
@@ -295,13 +286,10 @@ instance IsString SimpleSelector where
     ':' : rest -> fromPseudoClass rest
     _ -> fromTag s
     where
-      fromId s = SimpleSelector Nothing (Just $ Id $ fromString s) [] [] []
-      fromClass s = SimpleSelector Nothing Nothing [Class $ fromString s] [] []
+      fromId s = SimpleSelector Nothing (Just $ fromString s) [] [] []
+      fromClass s = SimpleSelector Nothing Nothing [fromString s] [] []
       fromPseudoClass s = SimpleSelector Nothing Nothing [] [PseudoClass (TS.pack s) Nothing] []
       fromTag s = SimpleSelector (Just $ fromString s) Nothing [] [] []
-
-instance IsString TagName where
-  fromString = TagName . fromString
 
 instance Num Value where
   fromInteger = Int . fromInteger

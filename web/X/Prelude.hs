@@ -20,6 +20,7 @@ import Data.String as Export (IsString(..))
 import Data.Functor as Export
 import Data.Monoid as Export hiding (First(..), Last(..))
 import Data.Semigroup as Export
+import Data.Coerce as Export
 
 import Control.Applicative as Export ((<|>))
 import Control.Monad.IO.Class as Export
@@ -38,7 +39,7 @@ import GHC.Generics as Export (Generic)
 import Debug.Trace as Export
 
 import Data.Text.Multiline as Export
-
+import Common.Lens as Export
 
 import qualified Data.Text.Lazy as TL
 import qualified Prelude
@@ -105,7 +106,3 @@ spanList func list@(x:xs) =
        then (x:ys,zs)
        else ([],list)
     where (ys,zs) = spanList func xs
-
-class HasClasses s a | s -> a where
-  classes :: Lens' s a
-  {-# MINIMAL classes #-}

@@ -7,6 +7,8 @@ LOCAL_DEPS=$(cat <<END
 - multiline
 - render
 - web-browser
+- web-common
+- web-css
 - web-url
 END
 );

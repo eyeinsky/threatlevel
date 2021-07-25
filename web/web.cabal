@@ -21,7 +21,6 @@ library
       HTTP.Response.InlineFile
       HTTP
       Warp_Helpers
-      CSS
       SVG
       HTML
       Web.CSS
@@ -73,9 +72,6 @@ library
       X.Wai
   other-modules:
       CSP
-      CSS.Monad
-      CSS.Syntax
-      CSS.TH
       HTML.Core
       HTML.Paste
       JS.BuiltIns.Array
@@ -90,10 +86,10 @@ library
       SVG.CSS
       SVG.Elements
       SVG.TH
-      TH
       Trie
       WebStorage
       XML.Render
+      XML.TH
       Paths_web
   hs-source-dirs:
       ./
@@ -181,6 +177,8 @@ library
     , warp
     , warp-tls
     , web-browser
+    , web-common
+    , web-css
     , web-url
     , websockets
     , wreq
@@ -276,6 +274,8 @@ test-suite test
     , warp
     , warp-tls
     , web-browser
+    , web-common
+    , web-css
     , web-url
     , websockets
     , wreq

@@ -10,7 +10,8 @@ import Data.Char
 import Data.List
 import Data.Maybe
 
-import TH
+import Common.TH
+
 import CSS.Monad
 
 -- * TH-generators

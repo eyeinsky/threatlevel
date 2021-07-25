@@ -1,14 +1,11 @@
-module TH where
+module XML.TH where
 
 import qualified Data.Text.Lazy as TL
 import Language.Haskell.TH
 
-import X.Prelude
+import Common.TH
 
-reserved_ :: (Eq a, IsString a, Semigroup a) => a -> a
-reserved_ t = if t `elem` ["class", "type", "in", "default", "where"]
-  then t <> "_"
-  else t
+import X.Prelude
 
 mk t name = [d|
   $(varP $ mkName name) = (\c -> let

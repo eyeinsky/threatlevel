@@ -52,6 +52,8 @@ dependencies:
 - multiline
 - websockets
 - wai-websockets
+- web-css
+- web-common
 
 library:
   source-dirs:
@@ -63,7 +65,6 @@ library:
   - HTTP.Response.InlineFile
   - HTTP
   - Warp_Helpers
-  - CSS
   - SVG
   - HTML
   - Web.CSS

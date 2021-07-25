@@ -1,7 +1,4 @@
-module XML.Core
-  ( module XML.Core
-  , classes
-  ) where
+module XML.Core where
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL

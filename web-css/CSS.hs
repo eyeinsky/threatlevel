@@ -1,33 +1,23 @@
 module CSS
   ( module CSS
   , module CSS.Syntax
-  , prop
-  , module DOM.Core
+  , module CSS.TH
   , type CSSM, type Declarations
-
-  , keyframes', keyframe, browser
+  , keyframes', keyframe
   , media, supports
   , DeclM
-
-  , module SVG.CSS
   ) where
 
-import X.Prelude as P
+import Prelude as P
+import Control.Lens
 
-import Web.Browser
+import Render
 
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
-
 import CSS.Monad
 import CSS.TH
-import DOM.Core hiding (Value) -- don't export attribute value, but css value
-
-import SVG.CSS
-
-import Render
-
 
 -- | TH-generate all properties with @prop@
 concat <$> mapM declareCssProperty allProperties
@@ -49,10 +39,10 @@ sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
 
 anyTag :: Selector
-anyTag = selFrom $ TagName "*"
+anyTag = selFrom $ tagSelector "*"
 
 anyChild :: CSSM () -> CSSM ()
-anyChild = child ("*" :: TagName)
+anyChild = child (tagSelector "*")
 
 renderDecls :: DeclM a -> Text
 renderDecls dm = render () $ view decls $ execDeclM dm
@@ -60,14 +50,14 @@ renderDecls dm = render () $ view decls $ execDeclM dm
 -- * Useful styles
 
 resetCSS :: [Rule]
-resetCSS = rulesFor (TagName "body") no <> rulesFor (TagName "div") no
+resetCSS = rulesFor (tagSelector "body") no <> rulesFor (tagSelector "div") no
    where
       no = do
         prop "padding" $ px 0
         prop "margin" $ px 0
 
 setBoxSizing :: [Rule]
-setBoxSizing = rulesFor (TagName "html") (boxSizing "border-box") <> rulesFor anyTag inherit
+setBoxSizing = rulesFor (tagSelector "html") (boxSizing "border-box") <> rulesFor anyTag inherit
   where
     inherit = boxSizing "inherit"
 
