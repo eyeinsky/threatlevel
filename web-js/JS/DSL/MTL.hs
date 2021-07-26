@@ -16,11 +16,12 @@ import Data.Default
 import Data.Either
 import Control.Monad.Writer
 import Control.Monad.State hiding (State)
+import Control.Monad.Reader
 
 import Render
 
 import JS.Syntax hiding (Conf, Static)
-import qualified JS.Syntax
+import qualified JS.Syntax as Syntax
 import JS.DSL.MTL.Function as JS
 import JS.DSL.MTL.Core as JS
 
@@ -220,7 +221,7 @@ continue = write $ Continue Nothing
 type Promise = Expr
 
 await :: Expr a -> JS.M r (Expr a)
-await = let_ . JS.Syntax.Await
+await = let_ . Syntax.Await
 {-# DEPRECATED await "Use const $ Await instead." #-}
 
 -- | Make a promise out of a function through async
@@ -253,21 +254,17 @@ async_ f = async f <&> convert []
 -- * Modules
 
 lib :: M r (Expr a) -> M r (Expr a)
-lib mcode = let
+lib mcode = do
+  env <- ask
+  let
     State fresh used lib = def
-    codeText = render Minify . snd . fst . run fresh used lib $ mcode -- fix: take config from somewhere
+    codeText = render env . snd . fst . run env fresh used lib $ mcode -- fix: take config from somewhere
     codeHash = H.hash codeText
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
-  in do
+
   set <- gets (^.library)
   when (P.not $ codeHash `S.member` set) $ do
     f <- mcode
     nameExpr .= f
     modify (library %~ S.insert codeHash)
   return nameExpr
-
-instance Render (M r a) where
-  type Conf (M r a) = JS.Syntax.Conf
-  renderM = renderM . snd . fst . run fresh used lib
-    where
-      State fresh used lib = def

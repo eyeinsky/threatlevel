@@ -4,8 +4,10 @@ import Prelude
 import Data.Functor
 import Data.Default
 import Control.Monad.State hiding (State)
+import Control.Monad.Reader
 
 import JS.Syntax hiding (Conf)
+import qualified JS.Syntax as Syntax
 import JS.DSL.MTL.Core
 
 
@@ -58,25 +60,29 @@ instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
 type FuncConstr a = Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a)
 
 -- | Create function from a literal: provide JSM state and reader
-funcPrim :: Function a => FuncConstr a -> State -> a -> (Expr (Type a), State)
-funcPrim constr (State fresh used lib) fexp = (constr Nothing args code, s1)
+funcPrim
+  :: Function a
+  => Syntax.Conf -> FuncConstr a -> State -> a -> (Expr (Type a), State)
+funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
    where
-     ((args, code), s1) = run fresh used lib (funcLit fexp)
+     ((args, code), s1) = run env fresh used lib (funcLit fexp)
 
 -- | Create function, starting from empty state and reader
 funcPure :: Function f => f -> Expr (Type f)
-funcPure = funcPrim AnonFunc def <&> fst
+funcPure = funcPrim undefined AnonFunc def <&> fst
 
 -- | Create function, getting state and reader from enclosing monad.
 func :: Function f => FuncConstr f -> f -> M parent (Expr (Type f))
 func constr f = do
-  (a, s) <- funcPrim constr <$> get <*> pure f
+  env <- ask
+  (a, s) <- funcPrim env constr <$> get <*> pure f
   put s *> pure a
 
 -- | Return formal arguments and
 bla :: Function f => f -> M parent ([Name], Code (Final f))
 bla fexp = do
+  env <- ask
   State fresh used lib <- get
-  let ((args, code), newState) = run fresh used lib (funcLit fexp)
+  let ((args, code), newState) = run env fresh used lib (funcLit fexp)
   put newState
   return (args, code)
