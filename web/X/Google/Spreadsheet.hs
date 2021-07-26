@@ -12,7 +12,7 @@ import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 
-import X.Prelude
+import Common.Prelude
 
 
 p = Wreq.param

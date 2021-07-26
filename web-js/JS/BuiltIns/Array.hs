@@ -1,6 +1,6 @@
 module JS.BuiltIns.Array where
 
-import X.Prelude hiding (length)
+import Prelude hiding (length, const)
 import JS.DSL
 
 -- ** Mutating

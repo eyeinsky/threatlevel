@@ -5,13 +5,12 @@ module JS.Roundtrip
   , obj
   ) where
 
-import qualified Prelude
 import Data.List
 
 import Data.Data
 import GHC.Generics
 
-import X.Prelude
+import Common.Prelude
 import JS hiding (String)
 import JS.TH
 
@@ -42,7 +41,7 @@ obj dc = case fieldNames of
       else Nothing
 
 countFields :: Data a => a -> Int
-countFields a = length $ gmapQ (Prelude.const ()) a
+countFields a = length $ gmapQ (\_ -> ()) a
 
 
 type family Result a :: *

@@ -1,9 +1,12 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module JS.Syntax.Render (Conf(..), unargs) where
 
+import Prelude
 import Data.Default
 import qualified Data.Text.Lazy as TL
-import X.Prelude hiding (True, False, Empty, unwords, unlines, replicate, Const)
+import Control.Monad.Reader
+import Control.Monad.Identity
+import Data.Functor
 
 import Render hiding (Conf)
 import qualified Render

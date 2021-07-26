@@ -1,6 +1,6 @@
 module JS.BuiltIns.String where
 
-import X.Prelude
+import Prelude
 import JS.DSL
 
 toString :: Expr a -> Expr String

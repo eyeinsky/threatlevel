@@ -6,7 +6,7 @@ cabal-version: 1.12
 
 name:           web
 version:        0.2.0.0
-category:       Language
+category:       Web
 author:         Markus Läll
 maintainer:     markus.l2ll@gmail.com
 license:        GPL-2
@@ -22,6 +22,7 @@ library
       HTTP
       Warp_Helpers
       SVG
+      SVG.CSS
       HTML
       Web.CSS
       Web.Endpoint
@@ -29,22 +30,8 @@ library
       Web.Response
       XML
       XML.Core
-      JS.Syntax
-      JS.DSL
-      JS.Derive
-      JS.Roundtrip
       Sessions
-      JS.TH
-      JS.API
       JW.T
-      JS.BuiltIns.JSON
-      JS.BuiltIns.Date
-      JS.BuiltIns.String
-      JS.BuiltIns.Number
-      JS.BuiltIns.Object
-      JS.BuiltIns
-      JS.Event
-      JS.Console
       IndexedDB.IDB
       DOM.Core
       DOM.Event
@@ -52,10 +39,6 @@ library
       DOM
       PWA
       WebSockets
-      JS
-      JS.Lib
-      JS.Lib.Sleep
-      JS.Lib.Async
       Static
       Hot
       X
@@ -74,16 +57,7 @@ library
       CSP
       HTML.Core
       HTML.Paste
-      JS.BuiltIns.Array
-      JS.BuiltIns.Full
-      JS.BuiltIns.Promise
-      JS.DSL.Function
-      JS.DSL.Identifiers
-      JS.DSL.MTL
-      JS.Syntax.Render
-      JS.Syntax.Types
       SVG.Attributes
-      SVG.CSS
       SVG.Elements
       SVG.TH
       Trie
@@ -179,6 +153,7 @@ library
     , web-browser
     , web-common
     , web-css
+    , web-js
     , web-url
     , websockets
     , wreq
@@ -276,6 +251,7 @@ test-suite test
     , web-browser
     , web-common
     , web-css
+    , web-js
     , web-url
     , websockets
     , wreq

@@ -1,7 +1,7 @@
 module JS.Syntax.Types where
 
-import X.Prelude hiding (True, False, Empty, unwords, unlines, replicate)
-
+import Prelude
+import Data.String
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 

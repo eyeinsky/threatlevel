@@ -1,6 +1,6 @@
 module JS.BuiltIns.Promise where
 
-import X.Prelude
+import Common.Prelude
 import JS.DSL
 
 newPromise executor =  call1 (New $ ex "Promise") executor

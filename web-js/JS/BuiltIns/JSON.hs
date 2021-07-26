@@ -1,6 +1,6 @@
 module JS.BuiltIns.JSON where
 
-import X.Prelude
+import Prelude
 import JS.DSL
 
 jSON :: Expr a

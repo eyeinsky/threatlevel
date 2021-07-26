@@ -1,7 +1,6 @@
 module JS.Lib.Sleep where
 
-import X.Prelude
-import qualified Prelude as P
+import Prelude as P hiding (const)
 import JS
 
 mkSleep :: (Expr Double -> Expr Double -> Expr Double) -> Expr Double -> M r ()

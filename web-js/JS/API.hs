@@ -1,6 +1,6 @@
 module JS.API where
 
-import X.Prelude
+import Prelude
 import JS.DSL
 
 -- * Object

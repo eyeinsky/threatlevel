@@ -15,9 +15,9 @@ module JS.DSL
   , call, call0, call1, (!.), (.!), ex
   ) where
 
-import Prelude (Floating(..), Fractional((/)))
-import X.Prelude hiding (Empty, State, Const)
-import qualified X.Prelude as Pr
+import qualified Prelude as P
+import Common.Prelude as P hiding (break)
+import Data.String
 import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS
@@ -26,6 +26,11 @@ import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Aeson as A
 import Data.Time
+import Data.Default
+import Data.Either
+import Control.Arrow
+import Control.Monad.Writer
+import Control.Monad.State hiding (State)
 
 import JS.Syntax hiding (Conf, Static)
 import qualified JS.Syntax
@@ -220,7 +225,7 @@ infixr 0 .=$
 a .+= b = a .= (a + b)
 a .-= b = a .= (a - b)
 a .*= b = a .= (a * b)
-a ./= b = a .= (a / b)
+a ./= b = a .= (a P./ b)
 
 --
 
@@ -386,7 +391,7 @@ lib mcode = let
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
   in do
   set <- gets (^.library)
-  when (Pr.not $ codeHash `S.member` set) $ do
+  when (P.not $ codeHash `S.member` set) $ do
     f <- mcode
     nameExpr .= f
     modify (library %~ S.insert codeHash)

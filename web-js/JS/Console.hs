@@ -1,6 +1,6 @@
 module JS.Console where
 
-import X.Prelude
+import Prelude
 import JS.BuiltIns
 
 

@@ -1,6 +1,6 @@
 module JS.BuiltIns.Object where
 
-import X.Prelude
+import Prelude
 import JS.DSL
 
 

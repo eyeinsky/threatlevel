@@ -8,7 +8,7 @@ module JS.Lib
 import JS.Lib.Sleep
 import JS.Lib.Async
 
-import X.Prelude
+import Prelude hiding (const)
 import qualified Prelude as P
 import JS
 import JS.DSL (not)

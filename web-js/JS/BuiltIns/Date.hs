@@ -1,6 +1,6 @@
 module JS.BuiltIns.Date where
 
-import X.Prelude
+import Prelude
 import JS.DSL
 
 data Date

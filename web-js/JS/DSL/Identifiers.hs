@@ -1,6 +1,6 @@
 module JS.DSL.Identifiers (identifiers) where
 
-import X.Prelude
+import Prelude
 import Data.Text
 import Identifiers (identifiersFilter)
 

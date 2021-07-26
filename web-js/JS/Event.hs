@@ -1,9 +1,7 @@
 module JS.Event where
 
+import Prelude
 import qualified Data.Text as TS
-
-import X.Prelude
--- import JS.BuiltIn
 
 class Show a => Event a where
   eventString :: a -> TS.Text

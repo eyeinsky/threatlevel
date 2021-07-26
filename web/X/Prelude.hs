@@ -12,11 +12,9 @@ import Prelude as Export hiding
 
 import Data.Default as Export
 import Data.Maybe as Export
-import Data.Foldable as Export
 import Data.Text.Lazy.Lens as Export (packed)
 import Data.Either as Export (partitionEithers)
 import Data.List as Export (isPrefixOf)
-import Data.String as Export (IsString(..))
 import Data.Functor as Export
 import Data.Monoid as Export hiding (First(..), Last(..))
 import Data.Semigroup as Export
@@ -30,9 +28,6 @@ import Control.Monad.State as Export hiding (fail)
 import Control.Monad.Writer as Export hiding (First(..), Last(..), fail)
 import Control.Monad.RWS as Export hiding (First(..), Last(..), fail)
 import Control.Monad.Fail as Export
-
-
-import Control.Arrow as Export (first, second, (***))
 import Control.Lens as Export hiding ((.=), (.>), transform, Setter, Getter, Context, forOf)
 
 import GHC.Generics as Export (Generic)
@@ -40,26 +35,15 @@ import Debug.Trace as Export
 
 import Data.Text.Multiline as Export
 import Common.Lens as Export
+import Common.Prelude as Export
 
 import qualified Data.Text.Lazy as TL
-import qualified Prelude
-
--- Data.Function
-infixr 9 ^
-(^) = flip (.)
-
--- Data.Bool
-infix 1 ?
-(?) bool = if bool then Prelude.const else flip Prelude.const
 
 bool f t b = if b then t else f
 
 eq = (==)
 notEq = (/=)
 neq = (/=)
-
-todo :: a
-todo = undefined
 
 todoMsg :: String -> a
 todoMsg msg = trace msg (error msg)

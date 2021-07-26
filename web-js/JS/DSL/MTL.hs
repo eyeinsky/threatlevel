@@ -1,9 +1,13 @@
 module JS.DSL.MTL where
 
-import X.Prelude hiding (Empty, State, Const)
+import Prelude
 import qualified Data.Text as TS
 import qualified Data.Set as S
 import qualified Data.HashMap.Strict as HS
+import Control.Monad.Writer
+import Control.Monad.State hiding (State)
+import Data.Default
+import Control.Lens
 
 import qualified Identifiers as IS
 import JS.DSL.Identifiers

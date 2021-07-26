@@ -4,7 +4,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import Data.List
 
-import X.Prelude
+import Common.Prelude
 import URL
 
 -- * JS

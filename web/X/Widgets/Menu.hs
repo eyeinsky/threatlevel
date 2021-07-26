@@ -1,7 +1,7 @@
 module X.Widgets.Menu where
 
 import Control.Monad.Writer
-import X.Prelude
+import Common.Prelude
 import X
 import qualified HTML
 
