@@ -1,79 +1,273 @@
-module JS.DSL.MTL where
+{-# LANGUAGE ExtendedDefaultRules #-}
+module JS.DSL.MTL
+  ( module JS.DSL.MTL
+  , M, State(..), run
+  , library, Function, funcPure, func, mkCode, Final
+  , pr
+  ) where
 
-import Prelude
-import qualified Data.Text as TS
+import qualified Prelude as P
+import Common.Prelude as P hiding (break)
 import qualified Data.Set as S
-import qualified Data.HashMap.Strict as HS
+import qualified Data.Hashable as H
+import qualified Data.Text as TS
+import qualified Data.Text.Lazy as TL
+import Data.Default
+import Data.Either
 import Control.Monad.Writer
 import Control.Monad.State hiding (State)
-import Data.Default
-import Control.Lens
 
-import qualified Identifiers as IS
-import JS.DSL.Identifiers
-import JS.Syntax hiding (Conf)
+import Render
 
--- * Monad
+import JS.Syntax hiding (Conf, Static)
+import qualified JS.Syntax
+import JS.DSL.MTL.Function as JS
+import JS.DSL.MTL.Core as JS
 
-type Idents = [TS.Text]
-type Fresh = Idents
-type Used = HS.HashMap TS.Text Idents
-type Lib = S.Set Int
+-- * Variable
 
-data State = State
-  { stateFreshIdentifiers :: Fresh
-  , stateInUseIdentifiers :: Used
-  , stateLibrary :: Lib
-  }
-makeFields ''State
+-- ** Declaration
 
-instance Default State where
-  def = State identifiers mempty S.empty
+bind :: forall a b r. (Name -> Expr a -> Statement r) -> Expr a -> Name -> M r (Expr b)
+bind decl expr name = do
+  write $ decl name expr
+  return $ EName name
 
-type M r = WriterT (Code r) (StateT State Identity)
+newPrim :: (Name -> Expr a -> Statement r) -> Expr a -> M r (Expr a)
+newPrim kw e = bind kw e =<< next
 
-run :: Fresh -> Used -> Lib -> M r a -> ((a, Code r), State)
-run fresh used lib m = id . st . wr $ m
-   where id = runIdentity
-         st = flip runStateT (State fresh used lib)
-         wr = runWriterT
+new, let_, const :: Expr a -> M r (Expr a)
+new = newPrim VarDef
+{-# DEPRECATED new "Use const, let_ or var instead." #-}
+var = new
+let_ = newPrim Let
+const = newPrim Const
 
-write :: Statement r -> M r ()
-write stm = tell [stm]
+new' :: TS.Text -> Expr a -> M r (Expr a)
+new' n e = bind Let e =<< pushName n
 
--- * Core API
+bare :: Expr a -> M r ()
+bare e  = write $ BareExpr e
 
-next :: M r Name
-next = do
-  name :: TS.Text <- IS.next freshIdentifiers
-  names <- gets (view inUseIdentifiers)
-  if HS.member name names
-    then next
-    else return $ Name name
+block    = let_    <=< blockExpr
+block' n = new' n <=< blockExpr
 
-pushName :: TS.Text -> M r Name
-pushName name = do
-  names <- gets (view inUseIdentifiers)
-  case HS.lookup name names of
-    Just (s : uffixes) -> do
-      modify (inUseIdentifiers %~ HS.insert name uffixes)
-      return $ Name $ name <> "_" <> s
-    _ -> do
-      modify (inUseIdentifiers %~ HS.insert name IS.identifierSource)
-      return $ Name name
+-- ** Assignment
 
-{- | Evaluate JSM code to @Code r@
+-- | Shorthands for assignment statement
+infixr 4 .=
+(.=) :: Expr a -> Expr b -> M r ()
+lhs .= rhs = write $ BareExpr $ lhs `Assign` rhs
 
-     It doesn't actually write anything, just runs
-     a JSM code into its code value starting from the
-     next available name (Int) -- therefore not
-     overwriting any previously defined variables. -}
-mkCode :: M sub a -> M parent (Code sub)
-mkCode mcode = do
-  (w, s1) <- fromNext <$> get <*> pure mcode
-  put s1 *> pure w
-  where
-    fromNext :: State -> M r t -> (Code r, State)
-    fromNext (State fresh used lib) m = (w, s1)
-      where
-        ((_, w), s1) = run fresh used lib m
+-- | @infixr 0@ shorthand for assignment statement -- for combining
+-- with the dollar operator (@$@).
+infixr 0 .=$
+(.=$) = (.=)
+
+-- | Compound assignments in statement form
+a .+= b = a .= (a + b)
+a .-= b = a .= (a - b)
+a .*= b = a .= (a * b)
+a ./= b = a .= (a P./ b)
+
+-- * Comment
+
+-- | Stopgap until syntax for block and single-line comments
+comment :: TS.Text -> M r ()
+comment text = bare $ ex $ "// " <> text
+
+-- * Control flow
+
+ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
+ternary = Ternary
+
+ifmelse :: Expr Bool -> M r a -> Maybe (M r a) -> M r ()
+ifmelse cond true mFalse = do
+   trueCode <- mkCode true
+   mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
+   write $ IfElse cond trueCode mElseCode
+
+ifelse :: Expr Bool -> M r a -> M r a -> M r ()
+ifelse c t e = ifmelse c t (Just e)
+
+ifonly :: Expr Bool -> M r a -> M r ()
+ifonly c t   = ifmelse c t Nothing
+
+retrn :: Expr a -> M a ()
+retrn e = write $ Return $ Cast e
+
+empty :: M a ()
+empty = write Empty
+
+-- * Try/catch
+
+tryCatch :: M r () -> (Expr n -> M r ()) -> M r ()
+tryCatch try catch = do
+  try' <- mkCode try
+  err <- next
+  catch' <- mkCode $ catch (EName err)
+  write $ TryCatchFinally try' [(err, catch')] Nothing
+
+tryCatchFinally :: M r () -> (Expr n -> M r ()) -> M r () -> M r ()
+tryCatchFinally try catch finally = do
+  try' <- mkCode try
+  err <- next
+  catch' <- mkCode $ catch (EName err)
+  finally' <- mkCode finally
+  write $ TryCatchFinally try' [(err, catch')] (Just finally')
+
+throw :: Expr a -> M r ()
+throw e = write $ Throw e
+
+-- * Swtich
+
+-- m = match type
+-- r = code block return type
+type Case m r = Either (Code r) (Expr m, Code r)
+type SwitchBodyM m r = WriterT [Case m r] (M r)
+
+switch :: forall m r a. Expr m -> SwitchBodyM m r a -> M r ()
+switch e m = do
+  li :: [Case m r] <- execWriterT m
+  let (def, cases') = partitionEithers li
+  write $ Switch e cases' (case def of def' : _ -> Just def'; _ -> Nothing)
+
+case_ :: Expr m -> M r a -> SwitchBodyM m r ()
+case_ match code = do
+  code' <- lift $ mkCode (code >> break)
+  tell $ pure $ Right (match, code')
+
+default_ :: M r a -> SwitchBodyM m r ()
+default_ code = lift (mkCode code) >>= Left ^ pure ^ tell
+
+-- * Class
+
+type ClassBodyM = forall r. WriterT [ClassBodyPart] (M r) ()
+
+-- ** Class declaration
+
+class_ :: Name -> ClassBodyM -> M r (Expr b)
+class_ name bodyParts = do
+  bodyParts' <- execWriterT bodyParts
+  write $ Class name Nothing bodyParts'
+  return $ EName name
+
+newClass :: ClassBodyM -> M r (Expr b)
+newClass bodyParts = do
+  name <- next
+  class_ name bodyParts
+
+extends :: Name -> ClassBodyM -> M r (Expr b)
+extends what bodyParts = do
+  bodyParts' <- execWriterT bodyParts
+  name <- next
+  write $ Class name (Just what) bodyParts'
+  return $ EName name
+
+-- ** Method and field helpers
+
+constructor :: Function fexp => fexp -> ClassBodyM
+constructor fexp = do
+  (formalArgs, functionBody) <- lift $ bla fexp
+  tell [ClassBodyMethod (Constructor formalArgs) functionBody]
+
+methodMaker :: Function fexp => (Name -> [Name] -> ClassBodyMethodType) -> Name -> fexp -> ClassBodyM
+methodMaker mm name fexp = do
+  (formalArgs, functionBody) <- lift $ bla fexp
+  tell [ClassBodyMethod (mm name formalArgs) functionBody]
+  return ()
+
+method, staticMethod, get, staticGet, set  :: Function fexp => Name -> fexp -> ClassBodyM
+method = methodMaker InstanceMethod
+staticMethod = methodMaker StaticMethod
+get = methodMaker (\a _ -> Getter a)
+staticGet = methodMaker (\a _ -> StaticGetter a)
+set = methodMaker (\a [b] -> Setter a b)
+
+-- * Loops
+
+for :: Expr r -> M r a -> M r ()
+for cond code = write . f =<< mkCode code
+   where f = For Empty cond Empty
+
+forIn :: Expr p -> (Expr n -> M r ()) -> M r ()
+forIn expr mkBlock = do
+   name <- next
+   block <- mkCode $ mkBlock (EName name)
+   write $ ForIn name expr block
+
+forAwait :: Expr p -> (Expr n -> M r ()) -> M r ()
+forAwait expr mkBlock = do
+   name <- next
+   block <- mkCode $ mkBlock (EName name)
+   write $ ForAwait name expr block
+
+forOf :: Expr p -> (Expr n -> M r ()) -> M r ()
+forOf expr mkBlock = do
+   name <- next
+   block <- mkCode $ mkBlock (EName name)
+   write $ ForOf name expr block
+
+while :: Expr r -> M r a -> M r ()
+while cond code = write . f =<< mkCode code
+   where f = While cond
+
+break = write $ Break Nothing
+continue = write $ Continue Nothing
+
+-- * Async/await
+
+type Promise = Expr
+
+await :: Expr a -> JS.M r (Expr a)
+await = let_ . JS.Syntax.Await
+{-# DEPRECATED await "Use const $ Await instead." #-}
+
+-- | Make a promise out of a function through async
+promise :: Function f => f -> JS.M r (Promise b)
+promise f = call0 <$> async f
+
+-- * Unsorted
+
+blockExpr :: M r a -> M r (Expr r)
+blockExpr = fmap (AnonFunc Nothing []) . mkCode
+-- ^ Writes argument 'M r a' to writer and returns a callable name
+
+-- * Typed functions
+
+newf, async, generator :: Function f => f -> M r (Expr (Type f))
+newf = let_ <=< func AnonFunc
+async = let_ <=< func Async
+generator = let_ <=< func Generator
+
+newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
+newf' n = new' n <=< func AnonFunc
+
+fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+fn f = newf f <&> convert []
+fn' n f = newf' n f <&> convert []
+
+async_ :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+async_ f = async f <&> convert []
+
+-- * Modules
+
+lib :: M r (Expr a) -> M r (Expr a)
+lib mcode = let
+    State fresh used lib = def
+    codeText = render Minify . snd . fst . run fresh used lib $ mcode -- fix: take config from somewhere
+    codeHash = H.hash codeText
+    nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
+  in do
+  set <- gets (^.library)
+  when (P.not $ codeHash `S.member` set) $ do
+    f <- mcode
+    nameExpr .= f
+    modify (library %~ S.insert codeHash)
+  return nameExpr
+
+instance Render (M r a) where
+  type Conf (M r a) = JS.Syntax.Conf
+  renderM = renderM . snd . fst . run fresh used lib
+    where
+      State fresh used lib = def

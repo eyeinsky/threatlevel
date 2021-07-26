@@ -1,4 +1,4 @@
-module JS.DSL.Function where
+module JS.DSL.MTL.Function where
 
 import Prelude
 import Data.Functor
@@ -6,7 +6,7 @@ import Data.Default
 import Control.Monad.State hiding (State)
 
 import JS.Syntax hiding (Conf)
-import JS.DSL.MTL
+import JS.DSL.MTL.Core
 
 
 -- *** Typed

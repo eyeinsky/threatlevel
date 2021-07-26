@@ -1,11 +1,6 @@
-module JS.DSL.Identifiers (identifiers) where
+module JS.Syntax.Reserved where
 
-import Prelude
 import Data.Text
-import Identifiers (identifiersFilter)
-
-identifiers :: [Text]
-identifiers = identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)
 
 -- * Reserved by ECMA
 

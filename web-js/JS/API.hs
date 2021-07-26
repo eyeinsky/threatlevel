@@ -3,19 +3,6 @@ module JS.API where
 import Prelude
 import JS.DSL
 
--- * Object
-
-this :: Expr a
-this = ex "this"
-
--- * Bool
-
-true :: Expr Bool
-true = ex "true"
-
-false :: Expr Bool
-false = ex "false"
-
 -- * Async
 
 data JobId
