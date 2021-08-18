@@ -1,0 +1,67 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           web-common
+version:        0.1.0.0
+category:       Language
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
+license:        GPL-2
+build-type:     Simple
+
+library
+  exposed-modules:
+      Common.TH
+      Common.Lens
+      Common.Prelude
+  other-modules:
+      Paths_web_common
+  hs-source-dirs:
+      ./
+  default-extensions:
+      Arrows
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFunctor
+      DeriveGeneric
+      DerivingStrategies
+      EmptyDataDecls
+      ExtendedDefaultRules
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      NamedFieldPuns
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      PolyKinds
+      QuasiQuotes
+      RankNTypes
+      RecursiveDo
+      ScopedTypeVariables
+      StandaloneDeriving
+      TemplateHaskell
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeInType
+      TypeOperators
+      TypeSynonymInstances
+      UndecidableInstances
+  ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
+  build-depends:
+      base
+    , lens
+    , template-haskell
+  default-language: Haskell2010
