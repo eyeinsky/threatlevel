@@ -23,7 +23,7 @@ parrallaxContainer bgValue = do
 
 sticky scrollContainer elemId extraCss = do
   cls <- css $ pure ()
-  cssRule (ssFrom elemId & classes <>~ [cls]) $ do
+  cssRule (ssFrom elemId & classes <>~ [static $ coerce cls]) $ do
     position "fixed"
     CSS.top 0
     zIndex 1

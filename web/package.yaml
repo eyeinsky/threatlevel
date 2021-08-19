@@ -1,6 +1,6 @@
 name: web
 version: '0.2.0.0'
-category: Language
+category: Web
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
@@ -52,6 +52,9 @@ dependencies:
 - multiline
 - websockets
 - wai-websockets
+- web-css
+- web-common
+- web-js
 
 library:
   source-dirs:
@@ -63,8 +66,8 @@ library:
   - HTTP.Response.InlineFile
   - HTTP
   - Warp_Helpers
-  - CSS
   - SVG
+  - SVG.CSS
   - HTML
   - Web.CSS
   - Web.Endpoint
@@ -73,29 +76,10 @@ library:
   - XML
   - XML.Core
 
-  # JavaScript syntax, DSL and meta
-  - JS.Syntax
-  - JS.DSL
-  - JS.Derive
-  - JS.Roundtrip
   - Sessions
-  - JS.TH
-
-  # JavaScript standard built-in objects
-  - JS.API
   - JW.T
-  - JS.BuiltIns.JSON
-  - JS.BuiltIns.Date
-  - JS.BuiltIns.String
-  - JS.BuiltIns.Number
-  - JS.BuiltIns.Object
-  - JS.BuiltIns
-
-  # JavaScript APIs
-  - JS.Event
 
   # WebAPIs
-  - JS.Console
   - IndexedDB.IDB
   - DOM.Core
   - DOM.Event
@@ -103,11 +87,6 @@ library:
   - DOM
   - PWA
   - WebSockets
-
-  - JS
-  - JS.Lib
-  - JS.Lib.Sleep
-  - JS.Lib.Async
 
   # pre-X
   - Static
@@ -136,6 +115,7 @@ tests:
     main: manual-browser-tests.hs
     source-dirs:
     - tests
+
 default-extensions:
 - Arrows
 - BangPatterns

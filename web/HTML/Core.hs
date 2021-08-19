@@ -9,7 +9,7 @@ import Control.Monad.Writer
 import X.Prelude hiding (id)
 import DOM.Core hiding (Document)
 import XML
-import TH
+import XML.TH
 import HTML.Paste
 
 data Html5

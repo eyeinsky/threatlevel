@@ -3,7 +3,7 @@ module SVG.Attributes where
 
 import X.Prelude
 import XML
-import TH
+import XML.TH
 import SVG.TH
 
 concat <$> mapM (mkAttr 'Custom [t|Attribute|]) svg11allAttributes

@@ -5,8 +5,8 @@ import Web.Monad
 import CSS
 
 reset = do
-  cssRule (TagName "html") (boxSizing "border-box")
-  cssRule (TagName "ul") (listStyle "none")
+  cssRule (tagSelector "html") (boxSizing "border-box")
+  cssRule (tagSelector "ul") (listStyle "none")
   cssRule anyTag $ do
     boxSizing "inherit"
     zero

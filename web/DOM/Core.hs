@@ -9,10 +9,11 @@ import qualified Data.Text.Lazy as TL
 import JS
 import Render
 import JS.Syntax (Conf(..))
+import CSS hiding (Value)
 
-data TagName = TagName { unTagName :: Value }
-data Id      = Id { unId :: Value }
-data Class   = Class { unClass :: Value }
+newtype TagName = TagName { unTagName :: Value }
+newtype Id      = Id { unId :: Value }
+newtype Class   = Class { unClass :: Value }
 
 -- | Stubs
 data Tag
@@ -52,6 +53,8 @@ static v = case v of
   Static s -> s
   Dynamic a -> error $ show $ render Minify a
 
+-- * Instances
+
 instance IsString Value where
   fromString = Static . fromString
 
@@ -66,13 +69,27 @@ instance JS.ToExpr Value where
     Dynamic a -> Cast a
 
 deriving instance Show TagName
+instance IsString TagName where
+  fromString = TagName . fromString
+
 instance Show Value where
   show (Static a) = show a
   show (Dynamic _) = "dynamic"
 deriving instance Show Id
 deriving instance Show Class
 
--- * RenderJSM
+-- ** SimpleSelectorFrom
+
+instance SimpleSelectorFrom TagName where
+  ssFrom a = SimpleSelector (Just $ static $ coerce a) Nothing [] [] []
+instance SimpleSelectorFrom [Class] where
+  ssFrom a = SimpleSelector Nothing Nothing (map (static . coerce) a) [] []
+instance SimpleSelectorFrom Class where
+  ssFrom a = ssFrom [a]
+instance SimpleSelectorFrom Id where
+  ssFrom a = SimpleSelector Nothing (Just $ static $ coerce a) [] [] []
+
+-- ** RenderJSM
 
 class RenderJSM a where
   renderJSM :: a -> JS.M r (JS.Expr Tag)

@@ -29,8 +29,6 @@ import CSS as Export hiding
   , empty
   -- defined in URL
   , host
-  -- defined both in HTML and DOM.Core
-  , Document
   )
 import Web.Monad as Export
 import JS.Event as Export
@@ -93,7 +91,6 @@ import X.Prelude as P
 import JS hiding (String)
 
 import CSS.Monad (DM)
-import qualified CSS.Syntax as CSS
 import qualified URL
 import qualified HTML
 import qualified JS.Event
@@ -246,11 +243,7 @@ instance ToExpr Class where
   lit = unClass ^ render' ^ lit
 
 instance ToExpr SimpleSelector where
-  lit s = lit
-    $ (maybe mempty render' $ s^.CSS.tag)
-    <> (maybe mempty render' $ s^.CSS.maybeId)
-    <> (TL.concat $ map render' $ s^.P.classes)
-    <> (TL.concat $ map render' $ s^.CSS.pseudos)
+  lit = lit . render'
 
 addClass :: Class -> Expr a -> M r ()
 addClass cls el = bare $ call1 (el !. "classList" !. "add") $ mkExpr cls
@@ -269,7 +262,7 @@ mkExpr = Cast . lit . static . unClass
 inlineStyle :: Expr tag -> DM () -> M r ()
 inlineStyle element declarations = do
   forM_ (execWriter declarations) $ \(Declaration k v) -> let
-    property = TL.toStrict $ kebab2camel $ TL.fromStrict k
+    property = TL.toStrict $ P.kebab2camel $ TL.fromStrict k
     in element !. "style" !. property .= lit (render' v)
 
 -- * JS + HTML + URL
@@ -335,17 +328,18 @@ getRenderConf = WM.getConf <&> view WM.jsConf
 
 -- | Render JSM to Expr a within the current MonadWeb context.
 evalJSM
-  :: forall s m b a. (MonadReader s m, MonadWeb m)
+  :: forall s m b a. (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
   => JS.M b a -> m (Code b)
 evalJSM jsm = do
+  jsRenderConf <- asks (^.jsConf)
   stWeb <- WM.getState
   let
     JS.State fresh used lib = stWeb^.WM.jsState
-    ((_, code :: Code b), _) = JS.run fresh used lib jsm
+    ((_, code :: Code b), _) = JS.run jsRenderConf fresh used lib jsm
   return code
 
 exec'
-  :: (MonadReader s m, MonadWeb m)
+  :: (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
   => (Code b -> Expr x) -> JS.M b a -> m WR.Response
 exec' f jsm = do
   code <- evalJSM jsm
