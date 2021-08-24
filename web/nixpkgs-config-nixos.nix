@@ -13,6 +13,9 @@
         multiline = f ../multiline {};
         web-browser = f ../web-browser {};
         web-url = f ../web-url {};
+        web-common = f ../web-common {};
+        web-js = f ../web-js {};
+        web-css = f ../web-css {};
         web = lib.justStaticExecutables (f ./default.nix {});
       };
     };
