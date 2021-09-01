@@ -25,17 +25,18 @@ mkHot name what = let
   in (reload, stop_)
 
 type SiteType r a
-  = (WE.Confy r, Default r)
+  = (WE.Confy r)
   => WM.Conf
   -> WM.State
   -> URL
   -> Warp.Settings
+  -> r
   -> WE.T r
   -> a
 
-siteMain :: Maybe Warp.TLSSettings -> SiteType r (IO ())
-siteMain maybeTls mc ms siteRoot settings site = do
-  handler <- WE.toHandler mc ms siteRoot def site
+siteMain' :: Maybe Warp.TLSSettings -> SiteType r (IO ())
+siteMain' maybeTls mc ms siteRoot settings env site = do
+  handler <- WE.toHandler mc ms siteRoot env site
   let handler' req respond = do
         r :: Maybe WR.Response <- handler req
         case r of
@@ -54,12 +55,24 @@ siteMain maybeTls mc ms siteRoot settings site = do
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'
 
+
+type SiteType' r a
+  = (WE.Confy r)
+  => URL
+  -> Warp.Settings
+  -> r
+  -> WE.T r
+  -> a
+
+siteMain :: Maybe Warp.TLSSettings -> SiteType' r (IO ())
+siteMain maybeTls = siteMain' maybeTls def def
+
 type HotType k r a = (Ord k) => k -> SiteType r a
 
 mkHotPrim :: Maybe Warp.TLSSettings -> HotType k r (IO (), IO (), IO ())
-mkHotPrim maybeTls name mc ms siteRoot settings site = (hot, stop, main)
+mkHotPrim maybeTls name mc ms siteRoot settings env site = (hot, stop, main)
   where
-    main = siteMain maybeTls mc ms siteRoot settings site
+    main = siteMain' maybeTls mc ms siteRoot settings env site
     (hot, stop) = mkHot name main
 
 hotHttp :: HotType k r (IO (), IO (), IO ())
