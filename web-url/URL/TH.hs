@@ -1,6 +1,7 @@
 module URL.TH where
 
 import Prelude
+import Data.Word
 import Control.Lens hiding (un)
 import qualified Data.Text as TS
 import Language.Haskell.TH
@@ -32,15 +33,17 @@ url = QuasiQuoter
     urlExpr url = let
       t = litE . stringL . TS.unpack
       i = litE . integerL . fromIntegral
-      proto' = url^.proto.un.to t
+      proto' = url^.proto.coerced.to t
       host' = case url^.host of
         IP4 a b c d -> [e| IP4 $(i a) $(i b) $(i c) $(i d) |]
         Domain d -> [e| Domain $(t d) |]
-      port' = url^.port.un.to i
+      port' = url^.port.coerced.to (i :: Word16 -> ExpQ)
       path' = [e| Path $(url^.path.segments & map t & listE) |]
-      params' = [e| Params $(url^.params.un & map paramE & listE) |]
+      params' = [e| Params $(let
+           params' = url^.params.coerced :: [(TS.Text, Maybe TS.Text)]
+        in params' & map paramE & listE) |]
         where
-          paramE (k, mv) = tupE [t k, valueE mv]
+          paramE (k, mv) = [e| Param $(tupE [t k, valueE mv]) |]
           valueE mv = case mv of
             Just a -> [e| Just $(t a) |]
             Nothing -> [e| Nothing |]

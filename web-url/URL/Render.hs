@@ -2,6 +2,7 @@
 module URL.Render where
 
 import Prelude
+import Data.Coerce
 import qualified Data.Text as TS
 import qualified Data.Text.Encoding as TS
 import qualified Data.Text.Lazy as TL
@@ -57,12 +58,12 @@ instance Render Port where
   renderM (Port w16) = pure $ TL.pack (show w16)
 
 instance Render Path where
- renderM (Path p) = pure $ "/" <> TL.intercalate "/" (map TL.fromStrict p)
+ renderM (Path p) = pure $ "/" <> TL.intercalate "/" (map (TL.fromStrict . coerce) p)
    -- renderM for Request => hast to start with /
 
 instance Render Params where
   renderM (Params ps) = pure $ case ps of
-    _ : _ -> "?" <> TL.intercalate "&" (map pair ps)
+    _ : _ -> "?" <> TL.intercalate "&" (map pair . coerce $ ps)
     _ -> ""
     where
       pair (a, b) = maybe a' (\b' -> a' <> "=" <> TL.fromStrict (urlEncode' b')) b

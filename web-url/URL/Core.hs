@@ -6,15 +6,12 @@ import Data.String
 import Data.Word (Word8, Word16)
 import qualified Data.Text as TS
 import Data.Text.Lens
-import Control.Lens hiding (un)
+import Control.Lens
 import GHC.Generics (Generic)
 
 -- * Absolute
 
-declareFields [d|
-  data Proto = Proto
-    { protoUn :: TS.Text }
-  |]
+newtype Proto = Proto TS.Text
 
 instance IsString Proto where
   fromString = view (packed.to Proto)
@@ -44,18 +41,17 @@ instance Read Port where
 deriving instance Generic Port
 
 type Segment = TS.Text
-declareFields [d|
-  data Path = Path { pathSegments :: [Segment] }
-  |]
+newtype Path = Path { pathSegments :: [Segment] }
+makeFields ''Path
+
 instance Semigroup Path where
   Path a <> Path b = Path (a <> b)
 instance Monoid Path where
   mempty = Path mempty
 
-type Param = (TS.Text, Maybe TS.Text)
-declareFields [d|
-  data Params = Params { paramsUn :: [Param] }
-  |]
+newtype Param = Param (TS.Text, Maybe TS.Text)
+newtype Params = Params [Param]
+
 instance Semigroup Params where
   Params a <> Params b = Params (a <> b)
 instance Monoid Params where
@@ -136,6 +132,7 @@ deriving instance Eq Proto
 deriving instance Eq Host
 deriving instance Eq Port
 deriving instance Eq Path
+deriving instance Eq Param
 deriving instance Eq Params
 deriving instance Eq Fragment
 
@@ -149,13 +146,14 @@ deriving instance Show Proto
 deriving instance Show Host
 deriving instance Show Port
 deriving instance Show Path
+deriving instance Show Param
 deriving instance Show Params
 deriving instance Show Fragment
 
 -- * Convenience
 
 param :: TS.Text -> TS.Text -> URL -> URL
-param k v = params . un <>~ [(k, Just v)]
+param k v = params . coerced <>~ [Param (k, Just v)]
 
 paramKey :: TS.Text -> URL -> URL
-paramKey k = params . un <>~ [(k, Nothing)]
+paramKey k = params . coerced <>~ [Param (k, Nothing)]

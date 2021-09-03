@@ -1,6 +1,7 @@
 module URL.Parse where
 
 import Prelude
+import Data.Coerce
 import URL.Core
 import Data.Attoparsec.Text as Atto
 import qualified Data.Text as TS
@@ -83,7 +84,7 @@ paramsP = some <|> no
     paramVal a b = if TS.null b
       then (a, Nothing)
       else (a, Just $ TS.tail b)
-    some = char '?' >> (Params . map split <$> sepBy part (char '&'))
+    some = char '?' >> (Params . map (coerce . split) <$> sepBy part (char '&'))
     no = pure (Params [])
 
 fragmentP :: Parser Fragment
