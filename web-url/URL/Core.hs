@@ -52,8 +52,9 @@ instance Semigroup Path where
 instance Monoid Path where
   mempty = Path mempty
 
+type Param = (TS.Text, Maybe TS.Text)
 declareFields [d|
-  data Params = Params { paramsUn :: [(TS.Text, Maybe TS.Text)] }
+  data Params = Params { paramsUn :: [Param] }
   |]
 instance Semigroup Params where
   Params a <> Params b = Params (a <> b)
