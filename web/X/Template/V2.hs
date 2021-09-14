@@ -95,8 +95,6 @@ data Client a =  Client
 makeFields ''Client
 
 class GetTemplate t ctx where
-  type Html' t ctx :: *
-
   type In t ctx :: *
   type In t ctx = ()
 
