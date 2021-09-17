@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           web-css
+name:           threatlevel-js
 version:        0.1.0.0
 category:       Language
 author:         Markus Läll
@@ -14,12 +14,36 @@ build-type:     Simple
 
 library
   exposed-modules:
-      CSS.Syntax
-      CSS.Monad
-      CSS
+      JS.Syntax
+      JS.DSL
+      JS.DSL.MTL.Core
+      JS.Derive
+      JS.Roundtrip
+      JS.TH
+      JS.API
+      JS.BuiltIns.JSON
+      JS.BuiltIns.Date
+      JS.BuiltIns.String
+      JS.BuiltIns.Number
+      JS.BuiltIns.Object
+      JS.BuiltIns
+      JS.BuiltIns.Full
+      JS.Event
+      JS.Console
+      JS
+      JS.Lib
+      JS.Lib.Sleep
+      JS.Lib.Async
   other-modules:
-      CSS.TH
-      Paths_web_css
+      JS.BuiltIns.Array
+      JS.BuiltIns.Promise
+      JS.DSL.MTL
+      JS.DSL.MTL.Function
+      JS.DSL.Syntax
+      JS.Syntax.Render
+      JS.Syntax.Reserved
+      JS.Syntax.Types
+      Paths_threatlevel_js
   hs-source-dirs:
       ./
   default-extensions:
@@ -62,15 +86,18 @@ library
       UndecidableInstances
   ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
   build-depends:
-      base
-    , dlist
+      aeson
+    , base
+    , containers
+    , data-default
+    , hashable
     , identifiers
     , lens
     , mtl
-    , multiline
     , render
     , template-haskell
     , text
-    , text-format
-    , web-common
+    , threatlevel-common
+    , time
+    , unordered-containers
   default-language: Haskell2010

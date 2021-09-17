@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           web-common
+name:           threatlevel-css
 version:        0.1.0.0
 category:       Language
 author:         Markus Läll
@@ -14,11 +14,12 @@ build-type:     Simple
 
 library
   exposed-modules:
-      Common.TH
-      Common.Lens
-      Common.Prelude
+      CSS.Syntax
+      CSS.Monad
+      CSS
   other-modules:
-      Paths_web_common
+      CSS.TH
+      Paths_threatlevel_css
   hs-source-dirs:
       ./
   default-extensions:
@@ -62,6 +63,14 @@ library
   ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
   build-depends:
       base
+    , dlist
+    , identifiers
     , lens
+    , mtl
+    , multiline
+    , render
     , template-haskell
+    , text
+    , text-format
+    , threatlevel-common
   default-language: Haskell2010
