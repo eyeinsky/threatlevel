@@ -21,6 +21,8 @@ idsElems n = do
 
 -- ** Context
 
+-- | Context contains the source object, the related dom nodes and,
+-- possibly, the fragment
 data Context a
 data Node
 
@@ -63,7 +65,7 @@ appendContext context id = do
 -- ** Template
 
 type Create a = Expr a -> Expr (Context a)
-type Update a = Expr (Context a) -> Expr ()
+type Update a = Expr a -> Expr ()
 
 data Template a ctx out = Template
   { templateIds :: [Id]
@@ -126,7 +128,7 @@ mock (title :: TS.Text) = do
     log $ "mock: create " <> title'
     fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
     retrn $ context a (fragment2nodes fragment) fragment
-  update <- js $ fn $ \(_ :: Expr (Context a)) -> do
+  update :: Update a <- js $ fn $ \(_ :: Expr a) -> do
     log $ "mock: update " <> title'
     retrn (Undefined :: Expr ())
   get <- js $ newf $ log $ "mock: get " <> title'
@@ -148,7 +150,7 @@ nTemplate n = do
     throw "templateUpdate not implemented"
     ctx <- createContext o $ "temlpateCreate not implemented"
     retrn ctx
-  templateUpdate <- js $ fn $ \(ctx :: Expr (Context t)) (o :: Expr t) -> do
+  templateUpdate <- js $ fn $ \(o :: Expr t) -> do
     throw "templateUpdate not implemented"
     retrn (Undefined :: Expr ())
   templateGet <- js $ newf $ do
@@ -161,25 +163,31 @@ nTemplate n = do
 
 -- * Compatibility construcotrs
 
-type Template0 t ctx = Template t ctx (Out t ctx)
+type Template_ t ctx = Template t ctx ()
 
 -- | 1. no out
 -- mkTemplate0
 --   :: (Out t ctx ~ out)
 --   => [Id] -> Expr () -> Expr (t -> DocumentFragment) -> Expr (t -> ())
 --   -> Expr t -> (t -> Html) -> out -> Template0 t ctx
-mkTemplate0 ids mount create update get ssr out =
-  Template ids mount create update get ssr out
+mkTemplate_ ids mount create update get ssr =
+  Template ids mount create update get ssr ()
+
+mkTemplate0 = mkTemplate_
+{-# DEPRECATED mkTemplate0 "Use `mkTemplate_` instead." #-}
 
 -- | 2. only ssr
-ssrOnly :: (t -> Html) -> Template0 t ctx
+ssrOnly :: (t -> Html) -> Template_ t ctx
 ssrOnly ssr = Template todo todo todo todo todo ssr todo
 
-emptyTemplate :: forall k a (ctx :: k) out. Template a ctx out
+emptyTemplate :: forall k a (ctx :: k). Template a ctx ()
 emptyTemplate = Template
-   [] Undefined (Prelude.const Undefined) (Prelude.const Undefined) Undefined (Prelude.const "") undefined
+   [] Undefined (\_ -> Undefined) (\_ -> Undefined) Undefined (\_ -> "") ()
 
-getTemplate0
+getTemplate_, getTemplate0
   :: (GetTemplate t ctx, Monad m, MonadFix m, In t ctx ~ ())
   => WebT m (Template t ctx (Out t ctx))
-getTemplate0 = getTemplate ()
+getTemplate_ = getTemplate ()
+{-# DEPRECATED getTemplate0 "Use `getTemplate_` instead." #-}
+
+getTemplate0 = getTemplate_
