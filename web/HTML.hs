@@ -68,6 +68,9 @@ readOnly = Boolean "readOnly" True
 disabled :: Attribute
 disabled = Boolean "disabled" True
 
+aria :: TS.Text -> Value -> Attribute
+aria name value = Custom ("aria-" <> name) value
+
 --
 
 cssTag :: Html -> Html

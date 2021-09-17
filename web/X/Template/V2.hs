@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module X.Template.V2 where
 
 import qualified Data.Text as TS
@@ -137,6 +138,26 @@ mock2
   :: forall m a. MonadWeb m
   => TS.Text -> m (Expr (a -> DocumentFragment), Expr a, Expr a, Html, Maybe a -> Html)
 mock2 str = return (Undefined, Undefined, Undefined, toHtml str, \_ -> toHtml str)
+
+nTemplate
+  :: forall m t ctx. MonadWeb m
+  => Int -> m (Template t ctx ())
+nTemplate n = do
+  (templateIds, _, templateMount) <- idsElems n
+  templateCreate <- js $ fn $ \o -> do
+    throw "templateUpdate not implemented"
+    ctx <- createContext o $ "temlpateCreate not implemented"
+    retrn ctx
+  templateUpdate <- js $ fn $ \(ctx :: Expr (Context t)) (o :: Expr t) -> do
+    throw "templateUpdate not implemented"
+    retrn (Undefined :: Expr ())
+  templateGet <- js $ newf $ do
+    throw "templateGet not implemented"
+    retrn (Undefined :: Expr t)
+  let
+    templateSsr _ = error "SSR not implemented"
+    templateOut = ()
+  return $ Template {..}
 
 -- * Compatibility construcotrs
 
