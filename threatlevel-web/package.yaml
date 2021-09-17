@@ -98,6 +98,7 @@ library:
   - X.DOM
   - X.Template
   - X.Template.V2
+  - X.Template.V3
   - X.Auth.Google
   - X.Google.Maps
   - X.Google.Spreadsheet

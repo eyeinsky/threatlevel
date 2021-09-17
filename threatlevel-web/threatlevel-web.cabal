@@ -47,6 +47,7 @@ library
       X.DOM
       X.Template
       X.Template.V2
+      X.Template.V3
       X.Auth.Google
       X.Google.Maps
       X.Google.Spreadsheet
@@ -62,6 +63,7 @@ library
       SVG.TH
       Trie
       WebStorage
+      X.Template.Common
       XML.Render
       XML.TH
       Paths_threatlevel_web

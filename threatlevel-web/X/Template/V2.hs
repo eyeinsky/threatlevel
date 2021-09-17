@@ -150,7 +150,7 @@ nTemplate n = do
     throw "templateUpdate not implemented"
     ctx <- createContext o $ "temlpateCreate not implemented"
     retrn ctx
-  templateUpdate <- js $ fn $ \(o :: Expr t) -> do
+  templateUpdate <- js $ fn $ \(_ :: Expr t) -> do
     throw "templateUpdate not implemented"
     retrn (Undefined :: Expr ())
   templateGet <- js $ newf $ do
