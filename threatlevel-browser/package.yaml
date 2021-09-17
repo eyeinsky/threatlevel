@@ -1,8 +1,8 @@
-name: web-browser
+name: threatlevel-browser
 version: '0.1.0.0'
 category: Web
-author: Carl Eyeinsky
-maintainer: eyeinsky9@gmail.com
+author: Markus Läll
+maintainer: markus.l2ll@gmail.com
 license: MIT
 default-extensions:
 - Arrows

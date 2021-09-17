@@ -6,11 +6,11 @@ LOCAL_DEPS=$(cat <<END
 - identifiers
 - multiline
 - render
-- web-browser
-- web-common
-- web-css
-- web-js
-- web-url
+- threatlevel-browser
+- threatlevel-common
+- threatlevel-css
+- threatlevel-js
+- threatlevel-url
 END
 );
 
@@ -26,7 +26,7 @@ echo_() {
 
 in_deps_do() {
     local DO_WHAT=$@
-    for PKG_PATH in $(local_deps) web; do
+    for PKG_PATH in $(local_deps) threatlevel-web; do
         echo "In '$PKG_PATH' run '$DO_WHAT':"
         (
             cd $PKG_PATH
@@ -43,7 +43,7 @@ dev_init() {
 prepare() {
     in_deps_do "cabal2nix . > default.nix"
     (
-        cd web
+        cd threatlevel-web
         cabal2nix --shell . > shell.nix
         patch shell.nix local-deps.patch
     )
@@ -51,7 +51,7 @@ prepare() {
 
 repl() {
     prepare
-    cd web
+    cd threatlevel-web
     CMD="${@:-cabal repl}"
     nix-shell --command "$CMD"
 }

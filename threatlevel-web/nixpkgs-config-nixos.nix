@@ -11,11 +11,11 @@
         render = f ../render {};
         identifiers = f ../identifiers {};
         multiline = f ../multiline {};
-        web-browser = f ../web-browser {};
-        web-url = f ../web-url {};
-        web-common = f ../web-common {};
-        web-js = f ../web-js {};
-        web-css = f ../web-css {};
+        threatlevel-browser = f ../threatlevel-browser {};
+        threatlevel-url = f ../threatlevel-url {};
+        threatlevel-common = f ../threatlevel-common {};
+        threatlevel-js = f ../threatlevel-js {};
+        threatlevel-css = f ../threatlevel-css {};
         web = lib.justStaticExecutables (f ./default.nix {});
       };
     };

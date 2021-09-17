@@ -1,4 +1,4 @@
-name: web-css
+name: threatlevel-css
 version: '0.1.0.0'
 category: Language
 author: Markus Läll
@@ -16,7 +16,7 @@ dependencies:
 - identifiers
 - multiline
 - render
-- web-common
+- threatlevel-common
 
 library:
   source-dirs:

@@ -1,4 +1,4 @@
-name: web-js
+name: threatlevel-js
 version: '0.1.0.0'
 category: Language
 author: Markus Läll
@@ -19,7 +19,7 @@ dependencies:
 
 - identifiers
 - render
-- web-common
+- threatlevel-common
 
 library:
   source-dirs:
