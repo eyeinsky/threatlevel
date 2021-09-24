@@ -82,6 +82,9 @@ noDomain = return $ responseLBS status404 [] "No host"
 getDomain :: Request -> Maybe B.ByteString
 getDomain = lookup "Host" . requestHeaders
 
+reqCookie :: Request -> Maybe B.ByteString
+reqCookie = lookup "Cookie" . requestHeaders
+
 -- * Run web server
 
 instance Hashable URL.Port where
