@@ -99,7 +99,7 @@ folderHash path = do
   IO.hGetContents e >>= hPutStrLn stderr
   IO.hGetContents o <&> P.take 40
   where
-    cmd = "tar cf - '" <> path <> "' | sha1sum | cut -d ' ' -f 1"
+    cmd = "tar -h -c -f - '" <> path <> "' | sha1sum | cut -d ' ' -f 1"
     -- todo: better path escaping
 
 folderHashTH :: FilePath -> ExpQ
