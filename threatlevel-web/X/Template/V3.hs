@@ -1,5 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
-module X.Template.V3 where
+module X.Template.V3
+  ( module X.Template.V3
+  , module X.Template.Common
+  ) where
 
 import X.Prelude
 import X
@@ -8,7 +11,7 @@ import X.Template.Common
 -- * API
 
 type Create a = Expr a -> Expr (Context a)
-type Update a = Expr a -> Expr ()
+type Update a = Expr a -> Expr (Context a) -> Expr ()
 type Fields = [Class]
 
 
@@ -47,7 +50,7 @@ nTemplate n = do
     throw "templateUpdate not implemented"
     ctx <- createContext o $ "temlpateCreate not implemented"
     retrn ctx
-  templateUpdate <- js $ fn $ \(_ :: Expr t) -> do
+  templateUpdate <- js $ fn $ \(_ :: Expr a) (_ :: Expr (Context a)) -> do
     throw "templateUpdate not implemented"
     retrn (Undefined :: Expr ())
   templateGet <- js $ newf $ do
@@ -55,5 +58,15 @@ nTemplate n = do
     retrn (Undefined :: Expr t)
   let
     templateSsr _ = error "SSR not implemented"
-    templateOut = ()
+    templateOut = error "Out not implemented"
   return Template{..}
+
+class GetTemplate t where
+  type In t :: *
+  type In t = ()
+
+  -- | Anything the template needs to pass to outer context.
+  type Out t :: *
+  type Out t = ()
+
+  getTemplate :: (Monad m, MonadFix m) => In t -> WebT m (Template t (Out t))
