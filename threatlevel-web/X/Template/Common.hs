@@ -5,6 +5,8 @@ import X
 
 -- * Context
 
+-- | Context contains the source object, the related dom nodes and,
+-- possibly, the fragment
 data Context a
 data Node
 
