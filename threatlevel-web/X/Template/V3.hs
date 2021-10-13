@@ -12,6 +12,7 @@ import X.Template.Common
 
 type Create a = Expr a -> Expr (Context a)
 type Update a = Expr a -> Expr (Context a) -> Expr ()
+type Mount = Expr ()
 type Fields = [Class]
 
 
@@ -33,6 +34,7 @@ makeFields ''CSR
 data Template a out = Template
   { templateFields :: Fields
   , templateCreate :: Create a
+  , templateMount :: Mount
   , templateUpdate :: Update a
   , templateGet :: Expr a
 
@@ -43,9 +45,12 @@ data Template a out = Template
   }
 makeFields ''Template
 
-nTemplate :: MonadWeb m => Int -> m (Template a ())
+nTemplate :: forall a m. MonadWeb m => Int -> m (Template a (Out a))
 nTemplate n = do
   templateFields <- replicateM n (css $ pure ())
+  templateMount <- js $ newf $ do
+    throw "templateMount not implemented"
+    retrn Undefined
   templateCreate <- js $ fn $ \o -> do
     throw "templateUpdate not implemented"
     ctx <- createContext o $ "temlpateCreate not implemented"
