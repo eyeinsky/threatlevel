@@ -1,20 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module X.Template.V3
   ( module X.Template.V3
-  , module X.Template.Common
+  , module X.Template.V3.Common
   ) where
 
 import X.Prelude
 import X
-import X.Template.Common
+import X.Template.V3.Common
 
 -- * API
-
-type Create a = Expr a -> Expr (Context a)
-type Update a = Expr a -> Expr (Context a) -> Expr ()
-type Mount = Expr ()
-type Fields = [Class]
-
 
 data SSR a out = SSR
   { sSRfields :: Fields
@@ -22,14 +16,6 @@ data SSR a out = SSR
   , sSROut :: out
   }
 makeFields ''SSR
-
-data CSR a out =  Client
-  { cSRCreate :: Create a
-  , cSRUpdate :: Update a
-  , cSRGet :: Expr a
-  , cSROut :: Expr a
-  }
-makeFields ''CSR
 
 data Template a out = Template
   { templateFields :: Fields
@@ -48,19 +34,10 @@ makeFields ''Template
 nTemplate :: forall a m. MonadWeb m => Int -> m (Template a (Out a))
 nTemplate n = do
   templateFields <- replicateM n (css $ pure ())
-  templateMount <- js $ newf $ do
-    throw "templateMount not implemented"
-    retrn Undefined
-  templateCreate <- js $ fn $ \o -> do
-    throw "templateUpdate not implemented"
-    ctx <- createContext o $ "temlpateCreate not implemented"
-    retrn ctx
-  templateUpdate <- js $ fn $ \(_ :: Expr a) (_ :: Expr (Context a)) -> do
-    throw "templateUpdate not implemented"
-    retrn (Undefined :: Expr ())
-  templateGet <- js $ newf $ do
-    throw "templateGet not implemented"
-    retrn (Undefined :: Expr t)
+  templateMount <- nMount
+  templateCreate <- nCreate
+  templateUpdate <- nUpdate
+  templateGet <- nGet
   let
     templateSsr _ = error "SSR not implemented"
     templateOut = error "Out not implemented"
