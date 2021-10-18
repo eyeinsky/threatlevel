@@ -31,6 +31,7 @@ makeFields ''Template
 
 class GetTemplate t ctx where
   type Html' t ctx :: *
+  type Html' t ctx = ()
 
   type In t ctx :: *
   type In t ctx = ()
