@@ -6,9 +6,10 @@ import X.Template.V3.Common
 
 data CSR a out =  CSR
   { cSRFields :: Fields
+  , cSRMount :: Mount
   , cSRCreate :: Create a
   , cSRUpdate :: Update a
-  , cSRGet :: Expr a
+  , cSRGet :: Get a
   , cSROut :: Expr a
   }
 makeFields ''CSR

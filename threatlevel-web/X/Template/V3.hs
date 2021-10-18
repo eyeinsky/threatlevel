@@ -22,7 +22,7 @@ data Template a out = Template
   , templateCreate :: Create a
   , templateMount :: Mount
   , templateUpdate :: Update a
-  , templateGet :: Expr a
+  , templateGet :: Get a
 
   -- | Both create and ssr map a to the input of html
   , templateSsr :: a -> Html -- ssr

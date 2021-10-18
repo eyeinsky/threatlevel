@@ -145,6 +145,7 @@ default-extensions:
 - PolyKinds
 - QuasiQuotes
 - RankNTypes
+- RecordWildCards
 - RecursiveDo
 - ScopedTypeVariables
 - StandaloneDeriving

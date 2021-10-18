@@ -9,6 +9,7 @@ import X.Template.Common
 
 type Create a = Expr a -> Expr (Context a)
 type Update a = Expr a -> Expr (Context a) -> Expr ()
+type Get a = Expr (Context a) -> Expr ()
 type Mount = Expr ()
 type Fields = [Class]
 
@@ -27,6 +28,8 @@ nUpdate :: MonadWeb m => m (Update a)
 nUpdate = js $ fn $ \(_ :: Expr a) (_ :: Expr (Context a)) -> do
   throw "templateUpdate not implemented"
   retrn (Undefined :: Expr ())
-nGet = js $ newf $ do
+
+nGet :: forall a m. (MonadWeb m) => m (Get a)
+nGet = js $ fn $ \(_ :: Expr (Context a)) -> do
   throw "templateGet not implemented"
-  retrn (Undefined :: Expr t)
+  retrn (Undefined :: Expr ())

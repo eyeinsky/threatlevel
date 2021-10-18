@@ -65,6 +65,7 @@ library
       Trie
       WebStorage
       X.Template.Common
+      X.Template.V3.Common
       XML.Render
       XML.TH
       Paths_threatlevel_web
@@ -97,6 +98,7 @@ library
       PolyKinds
       QuasiQuotes
       RankNTypes
+      RecordWildCards
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
@@ -196,6 +198,7 @@ test-suite test
       PolyKinds
       QuasiQuotes
       RankNTypes
+      RecordWildCards
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
