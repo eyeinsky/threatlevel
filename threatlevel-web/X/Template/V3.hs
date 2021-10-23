@@ -31,17 +31,6 @@ data Template a out = Template
   }
 makeFields ''Template
 
-nTemplate :: forall a m. MonadWeb m => Int -> m (Template a (Out a))
-nTemplate n = do
-  templateFields <- replicateM n (css $ pure ())
-  templateMount <- nMount
-  templateCreate <- nCreate
-  templateUpdate <- nUpdate
-  templateGet <- nGet
-  let
-    templateSsr _ = error "SSR not implemented"
-    templateOut = error "Out not implemented"
-  return Template{..}
 
 class GetTemplate t where
   type In t :: *
