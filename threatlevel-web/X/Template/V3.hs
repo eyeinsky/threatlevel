@@ -19,9 +19,9 @@ makeFields ''SSR
 
 data Template a out = Template
   { templateSlots :: Slots
-  , templateCreate :: Create a
-  , templateUpdate :: Update a
-  , templateGet :: Get a
+  , templateCreate :: Creates a
+  , templateUpdate :: Updates a
+  , templateGet :: Gets a
 
   -- | Both create and ssr map a to the input of html
   , templateSsr :: a -> Html -- ssr
