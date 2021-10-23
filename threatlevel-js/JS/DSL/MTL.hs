@@ -94,8 +94,11 @@ ifelse c t e = ifmelse c t (Just e)
 ifonly :: Expr Bool -> M r a -> M r ()
 ifonly c t   = ifmelse c t Nothing
 
+return_ :: Expr a -> M a ()
+return_ e = write $ Return $ Cast e
+
 retrn :: Expr a -> M a ()
-retrn e = write $ Return $ Cast e
+retrn = return_
 
 empty :: M a ()
 empty = write Empty
@@ -268,3 +271,8 @@ lib mcode = do
     nameExpr .= f
     modify (library %~ S.insert codeHash)
   return nameExpr
+
+-- * Convenience
+
+undefined_ :: Expr ()
+undefined_ = Undefined

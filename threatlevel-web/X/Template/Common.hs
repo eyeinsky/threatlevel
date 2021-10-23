@@ -33,6 +33,8 @@ withNodes ctx go = iterArray (nodes ctx) $ \ix -> do
 fragment2nodes :: Expr DocumentFragment -> Expr [Node]
 fragment2nodes fragment = ex "Array" !// "from" $ fragment !. "childNodes"
 
+-- ** Context
+
 createContext :: Expr a -> Html -> M r (Expr (Context a))
 createContext item html = do
   fragment <- createHtmls html
@@ -45,3 +47,16 @@ appendContext context id = do
   dest <- const $ querySelector id document
   withNodes context $ \node -> do
     bare $ dest !// "appendChild" $ node
+
+-- | Find first element matching @selector@ from @context@
+libQuerySelectorCtx :: JSSelector s => s -> Expr [Node] -> M r (Expr Tag)
+libQuerySelectorCtx selector nodes' = do
+  ret <- let_ Null
+  iterArray nodes' $ \ix -> do
+    res <- const $ querySelector' selector (nodes' !- ix)
+    ifonly (res .!== Null) $ ret .= res
+  return ret
+
+mkGet :: MonadWeb m => Class -> m (Expr [Node] -> Expr Tag)
+mkGet cls = js $ fn $ \ns ->
+  return_ =<< libQuerySelectorCtx cls ns
