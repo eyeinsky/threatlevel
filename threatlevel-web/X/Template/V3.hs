@@ -11,14 +11,14 @@ import X.Template.V3.Common
 -- * API
 
 data SSR a out = SSR
-  { sSRfields :: Fields
+  { sSRfields :: Slots
   , sSRSsr :: a -> Html
   , sSROut :: out
   }
 makeFields ''SSR
 
 data Template a out = Template
-  { templateFields :: Fields
+  { templateSlots :: Slots
   , templateCreate :: Create a
   , templateUpdate :: Update a
   , templateGet :: Get a
