@@ -10,13 +10,8 @@ import X.Template.Common
 type Create a = Expr a -> Expr (Context a)
 type Update a = Expr a -> Expr (Context a) -> Expr ()
 type Get a = Expr (Context a) -> Expr ()
-type Mount = Expr ()
 type Fields = [Class]
 
-nMount :: MonadWeb m => m (Expr r)
-nMount = js $ newf $ do
-  log "templateMount not implemented"
-  retrn Undefined
 
 nCreate :: MonadWeb m => m (Create a)
 nCreate = js $ fn $ \o -> do

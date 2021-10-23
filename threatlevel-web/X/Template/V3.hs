@@ -20,7 +20,6 @@ makeFields ''SSR
 data Template a out = Template
   { templateFields :: Fields
   , templateCreate :: Create a
-  , templateMount :: Mount
   , templateUpdate :: Update a
   , templateGet :: Get a
 
