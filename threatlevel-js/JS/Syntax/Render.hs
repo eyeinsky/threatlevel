@@ -115,6 +115,8 @@ instance Render (Statement a) where
       , Render.curly <$> indented bodyParts
       ]
 
+    NoReturn stm -> renderM stm
+
     where
       define kw name = pure kw <+> renderM name
       var = define "var "

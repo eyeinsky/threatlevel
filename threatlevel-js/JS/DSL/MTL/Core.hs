@@ -1,6 +1,7 @@
 module JS.DSL.MTL.Core where
 
 import Prelude
+import Data.Void
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy.IO as TL
 import qualified Data.Set as S
@@ -85,6 +86,12 @@ mkCode mcode = do
         ((_, w), s1) = run conf fresh used lib m
   (w, s1) <- fromNext <$> get <*> pure mcode
   put s1 *> pure w
+
+-- | Runs code in another context with no ability to return
+noReturn :: M Void a -> M parent ()
+noReturn mcode = do
+  code <- mkCode mcode
+  mapM_ (write . Syntax.NoReturn) code
 
 -- * Convenience
 

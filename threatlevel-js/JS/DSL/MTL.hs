@@ -2,7 +2,7 @@
 module JS.DSL.MTL
   ( module JS.DSL.MTL
   , M, State(..), run
-  , library, Function, funcPure, func, mkCode, Final
+  , library, Function, funcPure, func, mkCode, Final, noReturn
   , pr
   ) where
 

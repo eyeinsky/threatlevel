@@ -14,6 +14,10 @@ import Control.Lens as Export hiding
   ((.=), (.>), Empty, Setter, Getter, Const, Context, transform)
 import Control.Arrow as Export hiding (left, right)
 
+import Data.Proxy as Export
+import Data.Void as Export
+import Data.List.Fixed as Export
+
 infixr 9 ^
 (^) = flip (.)
 

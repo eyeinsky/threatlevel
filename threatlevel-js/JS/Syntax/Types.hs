@@ -1,6 +1,7 @@
 module JS.Syntax.Types where
 
 import Prelude
+import Data.Void
 import Data.String
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -35,7 +36,11 @@ data Statement a where
 
    Switch   :: Expr a -> ([(Expr a, Code r)]) -> Maybe (Code r) -> Statement r
 
-   Class :: Name -> Maybe Name -> [ClassBodyPart] -> Statement r
+   Class    :: Name -> Maybe Name -> [ClassBodyPart] -> Statement r
+
+   -- | Provide a typed way to embed @M Void a@ within any return type
+   -- context. With Void we know that the code can't return.
+   NoReturn   :: Statement Void -> Statement b
 
 data Expr a where
    Assign    :: Expr a -> Expr b    -> Expr b
