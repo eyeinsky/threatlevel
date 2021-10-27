@@ -62,6 +62,20 @@ nSlotGetters n = do
   getters <- mapM mkGet fields
   return (fields, getters)
 
+-- | Slots list with typed length
+nSlotsT :: forall m n. (MonadWeb m, NatListC n Class) => Proxy n -> m (NatList n Class)
+nSlotsT p = genList p (css $ pure ())
+
+nSlotsGettersT
+  :: forall m n.
+   ( MonadWeb m
+   , NatListC n Class, Traversable (PeanoList (Prev (ToPeano n))))
+  => Proxy n -> m (NatList n Class, NatList n (Gets Tag))
+nSlotsGettersT p = do
+  slots <- nSlotsT p
+  getters <- mapM mkGet slots
+  return (slots, getters)
+
 -- ** Create, update, get
 
 nCreate :: MonadWeb m => m (Creates a)

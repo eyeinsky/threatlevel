@@ -11,6 +11,8 @@ packages:
 extra-deps:
 - boomerang-1.4.5.6
 - rapid-0.1.4
+- git: https://github.com/eyeinsky/fixedlist.git
+  commit: 8e88d82218fee3716313568b5c30d024461a24f9
 
 nix:
   enable: true
