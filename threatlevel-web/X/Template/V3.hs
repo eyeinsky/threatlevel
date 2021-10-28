@@ -4,6 +4,7 @@ module X.Template.V3
   , module X.Template.Common
   ) where
 
+import Data.Void
 import X.Prelude
 import X
 import X.Template.Common
@@ -12,21 +13,23 @@ import JS.DSL.MTL.Function
 
 -- * API
 
+type Slots = [Class]
 type Creates a = Expr a -> Expr (Context a)
 type Updates a = Expr a -> Expr (Context a) -> Expr ()
 type Gets a = Expr [Node] -> Expr a
-type Slots = [Class]
+type Inits a = Expr (Context a) -> Expr ()
 
-data Template a out get = Template
+data Template a out get init = Template
   { templateSlots :: Slots
   , templateCreate :: Creates a
   , templateUpdate :: Updates a
   , templateGet :: Gets get
+  , templateInit :: init
   , templateOut :: out
   }
 makeFields ''Template
 
-type Template' a = Template a (Out a) (Get a)
+type Template' a = Template a (Out a) (Get a) (Init a)
 
 class GetTemplate t where
   type In t :: *
@@ -34,14 +37,17 @@ class GetTemplate t where
 
   -- | Anything the template needs to pass to outer context.
   type Out t :: *
-  type Out t = ()
+  type Out t = Void
 
   type Get t :: *
   type Get t = t
 
+  type Init t :: *
+  type Init t = ()
+
   getTemplate
     :: (Monad m, MonadFix m)
-    => In t -> WebT m (Template t (Out t) (Get t))
+    => In t -> WebT m (Template t (Out t) (Get t) (Init t))
 
 
 -- * Helpers
