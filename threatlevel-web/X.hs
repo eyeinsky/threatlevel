@@ -158,6 +158,9 @@ jsonPayload data_ =
       [(lit "Content-Type", "application/json")])
   ]
 
+jsonBody :: Expr a -> [(String, Expr String)]
+jsonBody = jsonPayload
+
 -- * HTML + URL
 
 favicon :: URL.URL -> Html
