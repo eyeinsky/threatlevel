@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module X.Template.V3
   ( module X.Template.V3
   , module X.Template.Common

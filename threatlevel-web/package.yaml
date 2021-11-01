@@ -99,7 +99,6 @@ library:
   - X.Template
   - X.Template.V2
   - X.Template.V3
-  - X.Template.V3.CSR
   - X.Auth.Google
   - X.Google.Maps
   - X.Google.Spreadsheet
