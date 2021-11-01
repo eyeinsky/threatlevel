@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           web
+name:           threatlevel-web
 version:        0.2.0.0
 category:       Web
 author:         Markus Läll
@@ -64,7 +64,7 @@ library
       WebStorage
       XML.Render
       XML.TH
-      Paths_web
+      Paths_threatlevel_web
   hs-source-dirs:
       ./
   default-extensions:
@@ -141,6 +141,11 @@ library
     , template-haskell
     , text
     , text-format
+    , threatlevel-browser
+    , threatlevel-common
+    , threatlevel-css
+    , threatlevel-js
+    , threatlevel-url
     , time
     , transformers
     , unordered-containers
@@ -150,11 +155,6 @@ library
     , wai-websockets
     , warp
     , warp-tls
-    , web-browser
-    , web-common
-    , web-css
-    , web-js
-    , web-url
     , websockets
     , wreq
   default-language: Haskell2010
@@ -163,7 +163,7 @@ test-suite test
   type: exitcode-stdio-1.0
   main-is: manual-browser-tests.hs
   other-modules:
-      Paths_web
+      Paths_threatlevel_web
   hs-source-dirs:
       tests
   default-extensions:
@@ -239,6 +239,11 @@ test-suite test
     , template-haskell
     , text
     , text-format
+    , threatlevel-browser
+    , threatlevel-common
+    , threatlevel-css
+    , threatlevel-js
+    , threatlevel-url
     , time
     , transformers
     , unordered-containers
@@ -248,11 +253,6 @@ test-suite test
     , wai-websockets
     , warp
     , warp-tls
-    , web-browser
-    , web-common
-    , web-css
-    , web-js
-    , web-url
     , websockets
     , wreq
   default-language: Haskell2010

@@ -4,41 +4,29 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           web-url
-version:        0.0.1
-synopsis:       Url
+name:           threatlevel-browser
+version:        0.1.0.0
 category:       Web
-homepage:       https://github.com/eyeinsky/web-url#readme
-bug-reports:    https://github.com/eyeinsky/web-url/issues
-maintainer:     eyeinsky <eyeinsky9@gmail.com>
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
 license:        MIT
+license-file:   LICENSE
 build-type:     Simple
-
-source-repository head
-  type: git
-  location: https://github.com/eyeinsky/web-url
 
 library
   exposed-modules:
-      URL
-      URL.Core
-      URL.Parse
-      URL.Render
-      URL.TH
+      Web.Browser
   other-modules:
-      Paths_web_url
+      Paths_threatlevel_browser
   default-extensions:
       Arrows
       BangPatterns
       ConstraintKinds
       DataKinds
       DefaultSignatures
-      DeriveAnyClass
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
-      DerivingStrategies
-      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
@@ -46,7 +34,6 @@ library
       FunctionalDependencies
       GADTs
       GeneralizedNewtypeDeriving
-      InstanceSigs
       KindSignatures
       MultiParamTypeClasses
       NamedFieldPuns
@@ -61,16 +48,12 @@ library
       TemplateHaskell
       TupleSections
       TypeFamilies
-      TypeInType
       TypeOperators
       TypeSynonymInstances
+      InstanceSigs
   build-depends:
-      attoparsec
-    , base
-    , http-types
+      base
+    , bytestring
     , lens
-    , mtl
-    , render
-    , template-haskell
     , text
   default-language: Haskell2010

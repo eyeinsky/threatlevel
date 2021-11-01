@@ -4,20 +4,23 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           web-browser
+name:           threatlevel-common
 version:        0.1.0.0
-category:       Web
-author:         Carl Eyeinsky
-maintainer:     eyeinsky9@gmail.com
-license:        MIT
-license-file:   LICENSE
+category:       Language
+author:         Markus Läll
+maintainer:     markus.l2ll@gmail.com
+license:        GPL-2
 build-type:     Simple
 
 library
   exposed-modules:
-      Web.Browser
+      Common.TH
+      Common.Lens
+      Common.Prelude
   other-modules:
-      Paths_web_browser
+      Paths_threatlevel_common
+  hs-source-dirs:
+      ./
   default-extensions:
       Arrows
       BangPatterns
@@ -27,14 +30,16 @@ library
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
+      DerivingStrategies
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
-      GeneralizedNewtypeDeriving
+      InstanceSigs
       KindSignatures
+      LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
       NoImplicitPrelude
@@ -42,18 +47,21 @@ library
       OverloadedStrings
       PolyKinds
       QuasiQuotes
+      RankNTypes
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
       TemplateHaskell
       TupleSections
+      TypeApplications
       TypeFamilies
+      TypeInType
       TypeOperators
       TypeSynonymInstances
-      InstanceSigs
+      UndecidableInstances
+  ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
   build-depends:
       base
-    , bytestring
     , lens
-    , text
+    , template-haskell
   default-language: Haskell2010

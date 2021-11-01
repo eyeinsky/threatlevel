@@ -1,4 +1,4 @@
-name: web
+name: threatlevel-web
 version: '0.2.0.0'
 category: Web
 author: Markus Läll
@@ -38,8 +38,6 @@ dependencies:
 - wai-extra
 - warp
 - warp-tls
-- web-browser
-- web-url
 - render
 - rapid
 - cryptonite
@@ -52,9 +50,11 @@ dependencies:
 - multiline
 - websockets
 - wai-websockets
-- web-css
-- web-common
-- web-js
+- threatlevel-common
+- threatlevel-browser
+- threatlevel-url
+- threatlevel-css
+- threatlevel-js
 
 library:
   source-dirs:
