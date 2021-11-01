@@ -49,8 +49,8 @@ appendContext context id = do
     bare $ dest !// "appendChild" $ node
 
 -- | Find first element matching @selector@ from @context@
-libQuerySelectorCtx :: JSSelector s => s -> Expr [Node] -> M r (Expr Tag)
-libQuerySelectorCtx selector nodes' = do
+libQuerySelectorNodes :: JSSelector s => s -> Expr [Node] -> M r (Expr Tag)
+libQuerySelectorNodes selector nodes' = do
   ret <- let_ Null
   iterArray nodes' $ \ix -> do
     res <- const $ querySelector' selector (nodes' !- ix)
@@ -59,4 +59,4 @@ libQuerySelectorCtx selector nodes' = do
 
 mkGet :: MonadWeb m => Class -> m (Expr [Node] -> Expr Tag)
 mkGet cls = js $ fn $ \ns ->
-  return_ =<< libQuerySelectorCtx cls ns
+  return_ =<< libQuerySelectorNodes cls ns

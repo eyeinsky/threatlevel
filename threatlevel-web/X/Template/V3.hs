@@ -3,7 +3,6 @@ module X.Template.V3
   , module X.Template.Common
   ) where
 
-import Data.Void
 import X.Prelude
 import X
 import X.Template.Common
@@ -36,7 +35,7 @@ class GetTemplate t where
 
   -- | Anything the template needs to pass to outer context.
   type Out t :: *
-  type Out t = Void
+  type Out t = ()
 
   type Get t :: *
   type Get t = t
@@ -80,3 +79,10 @@ nGet :: forall a m. (MonadWeb m, Back (Expr a), Convert (Expr a) ~ Expr a) => m 
 nGet = js $ fn $ \(_ :: Expr [Node]) -> do
   throw "templateGet not implemented"
   return_ (Undefined :: Expr a)
+
+-- * Create into html
+
+createToHtml :: forall a o g i. Template a o g i -> Expr a -> Html
+createToHtml template o = let
+  ctx = template^.create $ o :: Expr (Context a)
+  in dyn $ X.Template.Common.fragment ctx

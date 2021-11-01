@@ -29,6 +29,7 @@ library:
   - JS.Syntax
   - JS.DSL
   - JS.DSL.MTL.Core
+  - JS.DSL.MTL.Function
   - JS.Derive
   - JS.Roundtrip
   - JS.TH

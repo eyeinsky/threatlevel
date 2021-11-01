@@ -17,6 +17,7 @@ library
       JS.Syntax
       JS.DSL
       JS.DSL.MTL.Core
+      JS.DSL.MTL.Function
       JS.Derive
       JS.Roundtrip
       JS.TH
@@ -38,7 +39,6 @@ library
       JS.BuiltIns.Array
       JS.BuiltIns.Promise
       JS.DSL.MTL
-      JS.DSL.MTL.Function
       JS.DSL.Syntax
       JS.Syntax.Render
       JS.Syntax.Reserved
