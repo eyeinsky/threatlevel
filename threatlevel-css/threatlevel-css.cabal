@@ -20,6 +20,7 @@ library
   other-modules:
       CSS.DSL.Common
       CSS.DSL.MTL
+      CSS.DSL.Polysemy
       CSS.Identifiers
       CSS.Syntax.AST
       CSS.Syntax.Render
