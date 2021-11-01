@@ -40,6 +40,7 @@ library
       JS.BuiltIns.Promise
       JS.DSL.Core
       JS.DSL.MTL
+      JS.DSL.Polysemy
       JS.DSL.Syntax
       JS.Syntax.AST
       JS.Syntax.Render
@@ -96,6 +97,7 @@ library
     , identifiers
     , lens
     , mtl
+    , polysemy
     , render
     , template-haskell
     , text

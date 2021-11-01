@@ -16,6 +16,7 @@ dependencies:
 - text
 - time
 - unordered-containers
+- polysemy
 
 - identifiers
 - render
