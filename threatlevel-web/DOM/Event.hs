@@ -6,6 +6,7 @@ import JS.Event
 instance Event MouseEvent
 instance Event KeyboardEvent
 instance Event HTMLFrameObjectEvent
+instance Event PopState
 instance Event HTMLFormEvent
 instance Event HashChangeEvent
 instance Event Progress
@@ -44,6 +45,8 @@ data HTMLFrameObjectEvent
    | Error
    | Resize
    | Scroll
+
+data PopState = PopState
 
 data HTMLFormEvent
    = Select
@@ -111,6 +114,7 @@ data NetworkEvent
 deriving instance Show KeyboardEvent
 deriving instance Show MouseEvent
 deriving instance Show HTMLFrameObjectEvent
+deriving instance Show PopState
 deriving instance Show HTMLFormEvent
 deriving instance Show HashChangeEvent
 deriving instance Show Progress
