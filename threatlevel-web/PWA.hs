@@ -111,9 +111,9 @@ addAll urls cache = call1 (cache !. "addAll") (lit (map lit urls))
 
 addAll' :: [URL] -> M r1 (Expr (ServiceWorkerEvent -> ()))
 addAll' urls = newf $ \event -> do
-  consoleLog ["install handler"]
+  log "install handler"
   f <- async $ do
-    consoleLog ["install handler: add all: ", lit urls]
+    log2 "install handler: add all: " $ lit urls
     cache <- const $ Await $ open "cache" caches
     bare $ Await $ addAll urls cache
   bare $ waitUntil (call0 f) event
@@ -164,7 +164,7 @@ generate gen = do
         p <- promise $ do
           cache <- const $ Await $ open "cache" caches
           resp <- const $ Await $ match req cache
-          consoleLog ["fetch: cache only:", url req]
+          log2 "fetch: cache only:" $ url req
           retrn resp
         bare $ respondWith p event
       in (mkCond event url', code)
@@ -177,19 +177,19 @@ generate gen = do
           cache :: Expr Cache <- const $ Await $ open "cache" caches
           resp :: Expr Response <- const $ Await $ match req cache
           ifelse (Cast resp) (
-            do consoleLog ["fetch: cache hit:", url req]
+            do log2 "fetch: cache hit:" $ url req
                retrn resp
             ) (
-            do consoleLog ["fetch: cache miss:", url req]
+            do log2 "fetch: cache miss:" $ url req
                resp <- fetchAndCache req cache
-               consoleLog ["fetch: return network response:", url req]
+               log2 "fetch: return network response:" $ url req
                retrn resp
             )
         bare $ respondWith p event
       in (mkCond event url', code)
 
     defaultFetch :: Expr ServiceWorkerEvent -> M r ()
-    defaultFetch event = consoleLog ["fetch: url(", url $ request event, ")", "no conditions"]
+    defaultFetch event = log2 "fetch: url" $ url (request event)
 
 fetchAndCache req cache = do
   resp :: Expr Response <- const $ Await $ fetch (Cast req) []

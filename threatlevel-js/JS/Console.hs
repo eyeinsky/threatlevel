@@ -1,6 +1,7 @@
 module JS.Console where
 
-import Prelude
+import Prelude hiding (log)
+import qualified Data.Text as TS
 import JS.BuiltIns
 
 
@@ -14,17 +15,33 @@ logEnd label = bare $ console !// "groupEnd" $ label
 
 -- ** Consoleobject/debugging
 
-consoleLog :: [Expr a] -> M r ()
-consoleLog args = bare $ call (console !. "log") args
+log :: Expr a -> M r ()
+log = consoleMethod1 "log"
 
-consoleError :: [Expr a] -> M r ()
-consoleError args = bare $ call (console !. "error") args
+log2 :: Expr String -> Expr a -> M r ()
+log2 = consoleMethod2 "log"
 
-log msg = consoleLog [msg]
-dir msg = bare $ call1 (console !. "dir") msg
+consoleError :: Expr a -> M r ()
+consoleError = consoleMethod1 "error"
 
-debug var expr = do
+consoleError2 :: Expr String -> Expr a -> M r ()
+consoleError2 = consoleMethod2 "error"
+
+dir :: Expr a -> M r ()
+dir = consoleMethod1 "dir"
+
+debug_ :: TS.Text -> Expr a -> M r ()
+debug_ var expr = do
    ex var .= expr
-   consoleLog [toString expr + lit " (in: \"" + lit var + lit "\")"]
+   log $ toString expr + lit " (in: \"" + lit var + lit "\")"
 
-log2 label obj = consoleLog [Cast label, Cast obj]
+-- * Helpers
+
+consoleMethod :: TS.Text -> [Expr a] -> M r ()
+consoleMethod method args = bare $ call (console !. method) args
+
+consoleMethod1 :: TS.Text -> Expr a -> M r ()
+consoleMethod1 method arg = consoleMethod method [arg]
+
+consoleMethod2 :: TS.Text -> Expr String -> Expr a -> M r ()
+consoleMethod2 method label arg = bare $ call (console !. method) [label <> ":", Cast arg]

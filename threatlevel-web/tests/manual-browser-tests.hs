@@ -142,7 +142,7 @@ site = T $ mdo
         bare $ iter !/ "return"
         log "stop"
       forAwait iter $ \ev -> do
-        consoleLog ["event", ev]
+        log2 "event" ev
         log2 "iter" iter
       log "after for await"
     return $ htmlDoc "" $ do

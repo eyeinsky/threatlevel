@@ -92,7 +92,7 @@ verifyToken id callback = do
       prepareLogin <- async $ {- \undefined -> -} do
         let params = lit [("client_id" :: Text, lit id )]
             prompt = lit $ [("prompt" :: Text, lit "select_account")]
-        consoleLog ["auth2 load" ]
+        log "auth2 load"
         googleAuth <- const $ Await $ call1 (auth2 !. "init") params
         doLogin' <- async $ do
           user <- const $ Await $ call1 (googleAuth !. "signIn") prompt
@@ -100,7 +100,7 @@ verifyToken id callback = do
           -- get url ("?id_token=" .+ token) Undefined
           DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
         doGoogleSignIn .= doLogin'
-        consoleLog ["google ready"]
+        log "google ready"
 
       const $ call (gapi !. "load") ["auth2", prepareLogin]
     bare $ DOM.addEventListener (Cast DOM.window) Load onLoad
