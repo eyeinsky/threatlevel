@@ -20,6 +20,7 @@ data DataDecl
   -- | No data constructors: @data Void@
   = Empty
 
+  -- | @data T = A Field1 Field2 | B ...@
   | RegularData Name [(Name, Con)]
 
   -- | @data T = A | B ...@
