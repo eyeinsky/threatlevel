@@ -1,18 +1,22 @@
-resolver: lts-14.2
+resolver: lts-18.17
 
 packages:
 - identifiers
 - multiline
 - render
-- web-browser
-- web-url
-- web
+- threatlevel-common
+- threatlevel-browser
+- threatlevel-url
+- threatlevel-css
+- threatlevel-js
+- threatlevel-web
 
 extra-deps:
-- boomerang-1.4.5.6
-- rapid-0.1.4
+- boomerang-1.4.7@sha256:c385e2269c78b2b2135d5b5b47491525e52f8d145f84eca427c7649c953c1cdf,2132
+- git: https://github.com/eyeinsky/rapid.git
+  commit: dcf0b75e306a33a08e4405de4c9f2577331a9bda
 - git: https://github.com/eyeinsky/fixedlist.git
-  commit: 8e88d82218fee3716313568b5c30d024461a24f9
+  commit: 2f4642d8c697d9666fbf579b8d4d5616c3a397ec
 
 nix:
   enable: true
