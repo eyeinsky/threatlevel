@@ -33,6 +33,7 @@ e1 `instanceof` e2 = Op $ OpBinary Instanceof e1 e2
 
 -- * Operators (untyped)
 
+(.==), (.===), (.!=), (.!==) :: Expr a1 -> Expr b -> Expr a2
 e1 .==  e2 = Op $ OpBinary   Eq e1 e2
 e1 .=== e2 = Op $ OpBinary  EEq e1 e2
 e1 .!=  e2 = Op $ OpBinary  NEq e1 e2
@@ -42,11 +43,13 @@ infix 4 .===
 infix 4 .!=
 infix 4 .!==
 
+(.&&), (.||) :: Expr a1 -> Expr b -> Expr a2
 e1 .&& e2 = Op $ OpBinary And e1 e2
 e1 .|| e2 = Op $ OpBinary Or e1 e2
 infixr 3 .&&
 infixr 2 .||
 
+(.<), (.>), (.<=), (.>=) :: Expr a -> Expr b -> Expr c
 e1 .<  e2  = Op $ OpBinary Lt e1 e2
 e1 .>  e2  = Op $ OpBinary Gt e1 e2
 e1 .<= e2 = Op $ OpBinary LEt e1 e2
@@ -56,6 +59,7 @@ infix 4 .>
 infix 4 .<=
 infix 4 .>=
 
+(%) :: Expr a -> Expr b -> Expr c
 e1 % e2 = Op $ OpBinary Modulus e1 e2
 infixl 7  %
 
@@ -87,6 +91,7 @@ instance {-# OVERLAPPABLE #-} ToExpr a => ToExpr [a] where
 instance ToExpr v => ToExpr [(TS.Text, v)] where
    lit li = Lit $ Object $ map f li
       where f (k, v) = (Left $ Name k, lit v)
+ck :: ToExpr [(c, d)] => (b1 -> c) -> [(b1, d)] -> Expr b2
 ck f = lit . map (first f)
 instance ToExpr v => ToExpr [(TL.Text, v)] where
    lit = ck TL.toStrict
@@ -150,6 +155,7 @@ instance Monoid (Expr String) where
 
 -- ** Math
 
+math :: TS.Text -> Expr a
 math name = ex "Math" !. name
 
 instance Num (Expr a) where
@@ -182,5 +188,8 @@ instance Floating (Expr a) where
 
 -- * Function
 
+(!/) :: Expr a -> TS.Text -> Expr c
 a !/ b = call0 (a !. b)
+
+(!//) :: Expr a -> TS.Text -> Expr b -> Expr c
 a !// b = call1 (a !. b)

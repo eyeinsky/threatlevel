@@ -3,8 +3,10 @@ module JS.BuiltIns.Promise where
 import Common.Prelude
 import JS.DSL
 
+newPromise :: Expr b -> Expr c
 newPromise executor =  call1 (New $ ex "Promise") executor
 
+reject :: Expr b -> Expr c
 reject = ex "Promise" !// "reject"
 
 -- * Util

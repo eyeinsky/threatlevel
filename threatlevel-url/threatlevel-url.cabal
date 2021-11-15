@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.5.
 --
 -- see: https://github.com/sol/hpack
 
@@ -8,8 +8,8 @@ name:           threatlevel-url
 version:        0.0.1
 synopsis:       Url
 category:       Web
-homepage:       https://github.com/eyeinsky/web-url#readme
-bug-reports:    https://github.com/eyeinsky/web-url/issues
+homepage:       https://github.com/eyeinsky/threatlevel#readme
+bug-reports:    https://github.com/eyeinsky/threatlevel/issues
 author:         Markus Läll
 maintainer:     markus.l2ll@gmail.com
 license:        MIT
@@ -17,7 +17,8 @@ build-type:     Simple
 
 source-repository head
   type: git
-  location: https://github.com/eyeinsky/web-url
+  location: https://github.com/eyeinsky/threatlevel
+  subdir: threatlevel-url
 
 library
   exposed-modules:

@@ -37,7 +37,7 @@ bind decl expr name = do
 newPrim :: (Name -> Expr a -> Statement r) -> Expr a -> M r (Expr a)
 newPrim kw e = bind kw e =<< next
 
-new, let_, const :: Expr a -> M r (Expr a)
+new, let_, const, var :: Expr a -> M r (Expr a)
 new = newPrim VarDef
 {-# DEPRECATED new "Use const, let_ or var instead." #-}
 var = new
@@ -50,7 +50,10 @@ new' n e = bind Let e =<< pushName n
 bare :: Expr a -> M r ()
 bare e  = write $ BareExpr e
 
+block :: M r a -> M r (Expr r)
 block    = let_    <=< blockExpr
+
+block' :: TS.Text -> M r a -> M r (Expr r)
 block' n = new' n <=< blockExpr
 
 -- ** Assignment
@@ -62,13 +65,16 @@ lhs .= rhs = write $ BareExpr $ lhs `Assign` rhs
 
 -- | @infixr 0@ shorthand for assignment statement -- for combining
 -- with the dollar operator (@$@).
-infixr 0 .=$
+(.=$) :: Expr a -> Expr b -> M r ()
 (.=$) = (.=)
+infixr 0 .=$
 
 -- | Compound assignments in statement form
+(.+=), (.-=), (.*=) :: Num (Expr b) => Expr b -> Expr b -> M r ()
 a .+= b = a .= (a + b)
 a .-= b = a .= (a - b)
 a .*= b = a .= (a * b)
+(./=) :: Fractional (Expr b) => Expr b -> Expr b -> M r ()
 a ./= b = a .= (a P./ b)
 
 -- * Comment
@@ -216,7 +222,10 @@ while :: Expr r -> M r a -> M r ()
 while cond code = write . f =<< mkCode code
    where f = While cond
 
+break :: M r ()
 break = write $ Break Nothing
+
+continue :: M r ()
 continue = write $ Continue Nothing
 
 -- * Async/await

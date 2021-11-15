@@ -10,8 +10,10 @@ currentDate = date
 
 -- * Old
 
+dateConstructor :: Expr a
 dateConstructor = ex "Date"
 
+dateObj :: Expr b
 dateObj = New dateConstructor
 
 dateFrom :: Expr a -> Expr Date

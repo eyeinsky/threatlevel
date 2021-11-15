@@ -3,6 +3,7 @@ module JS.Syntax.Render (Conf(..), unargs) where
 
 import Prelude
 import Data.Default
+import Data.String (IsString)
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
 import Control.Monad.Identity
@@ -201,8 +202,10 @@ function kw mbName as code = mseq
   , curlyCode code
   ]
 
-a =: b = a <+> pure eq' <+> b
-eq' = " = "
+(=:) :: (Monoid b, Applicative f, IsString b) => f b -> f b -> f b
+a =: b = a <+> pure " = " <+> b
+
+unargs :: Render a => [a] -> ReaderT (Render.Conf a) Identity TL.Text
 unargs li = par . uncomma <$> mapM renderM li
 
 instance Render (OpExpr a) where

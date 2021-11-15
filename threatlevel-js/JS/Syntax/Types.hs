@@ -159,16 +159,20 @@ instance Args (b, c)
 
 -- * Non-monadic helpers
 
+ex :: TS.Text -> Expr a
 ex txt = EName $ Name txt
 
 (!.) :: Expr a -> TS.Text -> Expr b
 (!.) expr attr = EAttr $ Attr (Cast expr) (Name attr)
 
-
+(.!) :: Expr a -> Expr b -> Expr c
 (.!) expr key  = Arr expr key
 
 call :: Expr a -> [Expr b] -> Expr c
 call  f as = FuncCall f as
 
+call0 :: Expr a -> Expr c
 call0 f = FuncCall f []
+
+call1 :: Expr a -> Expr b -> Expr c
 call1 f a = FuncCall f [a]

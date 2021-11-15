@@ -19,6 +19,7 @@ import Data.Void as Export
 import Data.List.Fixed as Export
 
 infixr 9 ^
+(^) :: (a -> b) -> (b -> c) -> a -> c
 (^) = flip (.)
 
 todo :: a
@@ -26,4 +27,5 @@ todo = undefined
 
 -- Data.Bool
 infix 1 ?
+(?) :: Bool -> p -> p -> p
 (?) bool = if bool then (\a _ -> a) else (\_ a -> a)

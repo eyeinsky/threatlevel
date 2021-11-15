@@ -4,7 +4,7 @@ synopsis: Url
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: MIT
-github: eyeinsky/web-url
+github: eyeinsky/threatlevel/threatlevel-url
 category: Web
 
 dependencies:

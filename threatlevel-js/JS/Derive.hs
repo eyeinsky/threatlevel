@@ -42,10 +42,10 @@ deriveForType tyName = go =<< reify tyName
       reportError $ x
       return todo
 
-f123 xs f g = case xs of
-  _ : _ : _ -> g xs
-  x : []    -> f x
-  _ -> error "siin 1"
+    f123 xs f g = case xs of
+      _ : _ : _ -> g xs
+      x : []    -> f x
+      _ -> error "siin 1"
 
 
 
@@ -102,6 +102,7 @@ dtClause mTag ifcontents n = do
   names <- replicateM n (newName "a")
   lhs names (mkBody mTag ifcontents $ nameCast<$>names)
 
+lhs :: [Name] -> BodyQ -> ClauseQ
 lhs names body = clause (map varP names) body []
 
 
@@ -117,23 +118,33 @@ mkBody mb inContents li = normalB $ appE [|J.lit|] $ listE $ maybe li
 
 -- * JS related helpers
 
+mkTag :: Name -> ExpQ
 mkTag name = [| ("tag"::String, J.lit $(strName name)) |]
+
+mkContents :: ExpQ -> ExpQ
 mkContents xs = [| ("contents" :: String, $xs) |]
 
 nameCast :: Name {-^ of type Expr a -} -> ExpQ
 nameCast name = [| J.Cast $(varE name) |]
 
+prefix :: Name -> Name
 prefix = mkName . ("js" <>) . nameBase
+
+func :: Con -> [ClauseQ] -> DecQ
 func x = funD (prefix $ getName x)
 
 -- * General purpose helpers
 
+strName :: Name -> ExpQ
 strName = stringE . nameBase
 
+vstName :: (Name, b, c) -> String
 vstName (a,_,_) = nameBase a
 
+fname :: Con -> Name
 fname = prefix . getName
 
+getName :: Con -> Name
 getName c = case c of
    RecC name _ -> name
    NormalC name _ -> name

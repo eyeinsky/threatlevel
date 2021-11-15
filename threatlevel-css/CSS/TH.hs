@@ -6,32 +6,43 @@ module CSS.TH
 import Prelude
 import Language.Haskell.TH
 import Data.Text.Multiline
+import qualified Data.Text as TS
 import Data.Char
 import Data.List
 import Data.Maybe
 
 import Common.TH
 
+import CSS.Syntax
 import CSS.Monad
 
 -- * TH-generators
 
 declareCssProperty :: String -> DecsQ
-declareCssProperty propName = [d| $(camelName propName) = prop $(stringE propName) |]
+declareCssProperty propName = let
+  name = camelName propName
+  in declareFn name [t| Value -> Declarations |] [| prop $(stringE propName) |]
 
 declarePseudoClass :: Either String String -> DecsQ
 declarePseudoClass e = case e of
-  Left name -> [d| $(camelName name) = pseudoClassPlain $(stringE name) |]
-  Right name -> [d| $(camelName name) = pseudoClassArgumented $(stringE name) |]
+  Left name -> let name' = camelName name
+   in declareFn name' [t| CSSM () -> CSSM () |] [| pseudoClassPlain $(stringE name) |]
+  Right name -> let name' = camelName name
+   in declareFn name' [t| TS.Text -> CSSM () -> CSSM () |] [| pseudoClassArgumented $(stringE name) |]
 
 declarePseudoElement :: Either String String -> DecsQ
 declarePseudoElement e = case e of
-  Left name -> [d| $(camelName name) = pseudoElementPlain $(stringE name) |]
-  Right name -> [d| $(camelName name) = pseudoElementArgumented $(stringE name) |]
+  Left name -> let name' = camelName name
+    in declareFn name' [t| CSSM () -> CSSM () |] [| pseudoElementPlain $(stringE name) |]
+  Right name -> let name' = camelName name
+    in declareFn name' [t| TS.Text -> CSSM () -> CSSM () |] [| pseudoElementArgumented $(stringE name) |]
 
 -- | Turn "some-prop-name" into "somePropName", but as already a TH pattern, i.e a lhs of a function definition.
-camelName :: String -> Q Pat
-camelName name = varP $ mkName $ reserved_ $ kebab2camel name
+camelName :: String -> Name
+camelName name = mkName $ reserved_ $ kebab2camel name
+
+camelNameP :: String -> Q Pat
+camelNameP name = varP $ camelName name
 
 -- | From left column of http://www.w3schools.com/cssref/default.asp
 allProperties :: [String]
