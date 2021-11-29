@@ -8,6 +8,7 @@
         f = path: rest: lib.dontCheck (lib.dontHaddock (haskellPackagesNew.callPackage path rest));
 
         rapid = f ../github-eyeinsky-rapid.nix {};
+        fixedlist = f ../github-eyeinsky-fixedlist.nix {};
         render = f ../render {};
         identifiers = f ../identifiers {};
         multiline = f ../multiline {};
