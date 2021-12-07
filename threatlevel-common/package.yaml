@@ -6,6 +6,7 @@ maintainer: markus.l2ll@gmail.com
 license: GPL-2
 dependencies:
 - base
+- data-default
 - fixedlist
 - lens
 - template-haskell

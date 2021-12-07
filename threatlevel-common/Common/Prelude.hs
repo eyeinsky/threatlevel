@@ -17,6 +17,7 @@ import Control.Arrow as Export hiding (left, right)
 import Data.Proxy as Export
 import Data.Void as Export
 import Data.List.Fixed as Export
+import Data.Default as Export
 
 infixr 9 ^
 (^) :: (a -> b) -> (b -> c) -> a -> c

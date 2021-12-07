@@ -12,7 +12,6 @@ import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
-import Data.Default
 import Data.Either
 import Control.Monad.Writer
 import Control.Monad.State hiding (State)
