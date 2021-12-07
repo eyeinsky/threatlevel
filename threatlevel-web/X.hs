@@ -61,9 +61,9 @@ import Web.Browser as Export
 
 import Web.CSS as Export
 
-import Warp_Helpers as Export (getRequestBody)
+import Server as Export (getRequestBody)
 
-import Hot as Export
+import Server.Hot as Export
 
 import qualified Prelude
 import qualified Data.Text as TS
