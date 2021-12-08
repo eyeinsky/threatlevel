@@ -193,6 +193,14 @@ includeJs url = script ! src url $ "" ! Custom "defer" "true"
 includeJs' :: TS.Text -> Html
 includeJs' url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
 
+-- | Include JavaScript module from @url@ [api]
+moduleSrc :: URL -> Html
+moduleSrc url = HTML.script "" ! src url ! type_ "module"
+
+-- | Include JavaScript module from untyped @url@ [api]
+moduleSrc_ :: TS.Text -> Html
+moduleSrc_ url = HTML.script "" ! HTML.src (Static url) ! type_ "module"
+
 -- | Helper to turn attribute into URL
 urlAttr :: URL.URL -> DOM.Value
 urlAttr url = Static $ TL.toStrict $ render' url
@@ -265,7 +273,7 @@ remClass = removeClass
 mkExpr :: Class -> Expr a
 mkExpr = Cast . lit . static . unClass
 
--- | In JS set element's inline style to @declarations@
+-- | In JS set element's inline style to @declarations@ [api]
 inlineStyle :: Expr tag -> DM () -> M r ()
 inlineStyle element declarations = do
   forM_ (execWriter declarations) $ \(Declaration k v) -> let
@@ -331,8 +339,6 @@ html = to toHtml
 
 -- * Endpoint
 
-getRenderConf = WM.getConf <&> view WM.jsConf
-
 -- | Render JSM to Expr a within the current MonadWeb context.
 evalJSM
   :: forall s m b a. (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
@@ -350,7 +356,7 @@ exec'
   => (Code b -> Expr x) -> JS.M b a -> m WR.Response
 exec' f jsm = do
   code <- evalJSM jsm
-  conf <- getRenderConf
+  conf <- js ask
   return $ WR.js conf $ f code
 
 -- | An anonymous function definition expression is returned
@@ -362,12 +368,8 @@ execCall = exec' f
   where
     f = call0 . Par . AnonFunc Nothing []
 
-noCrawling = do
-  pin "robots.txt" $ return $ Prelude.const $ return $ WR.raw "text/plain"
-    [unindent|
-      User-agent: *
-      Disallow: /
-      |]
+noCrawling :: API m a => m URL
+noCrawling = pin "robots.txt" $ return $ Prelude.const $ return $ WR.noRobots
 
 -- * Serving static assets
 

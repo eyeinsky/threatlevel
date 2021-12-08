@@ -19,12 +19,16 @@ import DOM.Event
 import XML
 import SVG hiding (onload, id)
 
+getAttribute :: Expr b -> Expr a -> Expr c
 getAttribute k e = call1 (e !. "getAttribute") k
+
+setAttribute :: Expr b -> Expr b -> Expr a -> Expr c
 setAttribute k v e = call (e !. "setAttribute") [k, v]
 
 requestAnimationFrame :: Expr a -> Expr b
 requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 
+documentWrite :: Expr b -> Expr c
 documentWrite what = call1 (document !. "write") what
 
 onLoad f = do
@@ -96,7 +100,10 @@ valueSelf v f = case v of
   Static a -> f a
   Dynamic a -> Cast a
 
+docCall' :: TS.Text -> Expr b -> Expr c
 docCall' f a = call1 (document !. f) a
+
+docCall :: ToExpr a => TS.Text -> a -> Expr c
 docCall f a = docCall' f (lit a)
 
 --
@@ -203,20 +210,25 @@ xhrJs rc meth uri data_ args = do
     bare $ call1 (ex "eval") $ funcText + argsText
   xhrRaw meth uri data_ wrap
 
+responseText :: Expr a -> Expr b
 responseText resp = resp !. "target" !. "responseText"
 
+xhrGet :: Conf -> Expr a -> [Expr d] -> M r ()
 xhrGet rc uri args = xhrJs rc "GET" uri Undefined args
+
+xhrPost :: Conf -> Expr a -> Expr c -> [Expr d] -> M r ()
 xhrPost rc uri data_ args = xhrJs rc "POST" uri data_ args
 
 -- ** DOM/Event
 
--- focus :: Expr Tag -> Expr M r ()
+focus :: Expr a -> Expr c
 focus e = call0 (e !. "focus")
 
--- blur :: Expr Tag -> M r ()
+blur :: Expr a -> Expr c
 blur e = call0 (e !. "blur")
 
 -- | Get char from keyboard event
+eventKey :: Expr a1 -> M a2 ()
 eventKey event = do -- from: http://unixpapa.com/js/key.html
    retrn $ let
          which = event !. "which" -- :: Expr J.Number
@@ -236,7 +248,10 @@ mkEventListener :: Event e => TS.Text -> Expr Tag -> e -> [Expr b] -> Expr c
 mkEventListener a el et li = call (el !. a) (etStr : li)
   where etStr = lit $ eventString et
 
+addEventListener :: Event e => Expr Tag -> e -> Expr b -> Expr c
 addEventListener el et handler = mkEventListener "addEventListener" el et [handler]
+
+removeEventListener :: Event e => Expr Tag -> e -> Expr b -> Expr c
 removeEventListener el et handler = mkEventListener "removeEventListener" el et [handler]
 
 alert :: Expr a -> Expr b

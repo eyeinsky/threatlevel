@@ -247,19 +247,19 @@ blockExpr = fmap (AnonFunc Nothing []) . mkCode
 
 -- * Typed functions
 
-newf, async, generator :: Function f => f -> M r (Expr (Type f))
+newf, async, generator :: Function f => f -> M r (Expr (JS.Type f))
 newf = let_ <=< func AnonFunc
 async = let_ <=< func Async
 generator = let_ <=< func Generator
 
-newf' :: Function f => TS.Text -> f -> M r (Expr (Type f))
+newf' :: Function f => TS.Text -> f -> M r (Expr (JS.Type f))
 newf' n = new' n <=< func AnonFunc
 
-fn :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+fn :: (Function f, Back (Expr (JS.Type f))) => f -> M r (Convert (Expr (JS.Type f)))
 fn f = newf f <&> convert []
 fn' n f = newf' n f <&> convert []
 
-async_ :: (Function f, Back (Expr (Type f))) => f -> M r (Convert (Expr (Type f)))
+async_ :: (Function f, Back (Expr (JS.Type f))) => f -> M r (Convert (Expr (JS.Type f)))
 async_ f = async f <&> convert []
 
 -- * Modules

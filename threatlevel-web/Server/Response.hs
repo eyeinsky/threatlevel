@@ -97,6 +97,13 @@ redirect' code url = rawText (toEnum code) headers ""
 
 redirectRaw' code url = rawText (toEnum code) [Hdr.header Hdr.Location url] ""
 
+noRobots :: Response
+noRobots = raw "text/plain"
+  [unindent|
+    User-agent: *
+    Disallow: /
+    |]
+
 -- ** Raw
 
 rawBl :: WT.Status -> [Hdr.Header] -> BL.ByteString -> Response

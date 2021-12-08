@@ -1,13 +1,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module JS.Syntax.Render (Conf(..), unargs) where
 
-import Prelude
-import Data.Default
-import Data.String (IsString)
+import Common.Prelude hiding ((<+>))
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
-import Control.Monad.Identity
-import Data.Functor
 
 import Render hiding (Conf)
 import qualified Render
@@ -22,8 +18,6 @@ data Conf
 
 instance Default Conf where
   def = Indent 2
-
-type RenderJS a = (Render a, Render.Conf a ~ Conf)
 
 instance Render (Code a) where
   type Conf (Code a) = Conf
@@ -196,7 +190,7 @@ prefix word a = pure word <+> pure " " <+> renderM a
 
 function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
 function kw mbName as code = mseq
-  [ pure $ kw <> TL.fromStrict (maybe "" getName mbName)
+  [ pure $ kw <> TL.fromStrict (maybe "" coerce mbName)
   , unargs as
   , pure " "
   , curlyCode code
@@ -270,6 +264,8 @@ instance Render Literal where
 
 -- * Helpers
 
+type RenderJS a = (Render a, Render.Conf a ~ Conf)
+
 -- | Put printed code in curly braces, code in braces is indented.
 curlyCode :: RenderJS a => [a] -> Reader (Render.Conf a) TL.Text
 curlyCode code = Render.curly <$> indented code
@@ -301,6 +297,7 @@ inc m conf = case conf of
 
 -- ** Non-monadic
 
+-- | Create a text of @n@ spaces
 spaces :: Int -> TL.Text
 spaces n = TL.replicate (fromIntegral n) " "
 

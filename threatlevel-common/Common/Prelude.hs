@@ -18,6 +18,8 @@ import Data.Proxy as Export
 import Data.Void as Export
 import Data.List.Fixed as Export
 import Data.Default as Export
+import Data.Kind as Export
+import Data.Coerce as Export
 
 infixr 9 ^
 (^) :: (a -> b) -> (b -> c) -> a -> c

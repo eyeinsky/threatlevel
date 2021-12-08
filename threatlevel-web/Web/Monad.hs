@@ -90,16 +90,19 @@ class Monad m => MonadWeb m where
    cssId :: CSSM.M () -> m Id
    nextId :: m TL.Text
    getState :: m State
-   getConf :: m Conf
    writeRules
      :: ([CSS.Declaration] -> [CSS.Rule]) -> CSSM.DM a -> m ()
 
+cssF :: (Monad m, CSS.SelectorFrom a) => (TL.Text -> a) -> CSSM.CSSM () -> WebT m a
 cssF mk m = WebT $ do
   name <- mk <$> next cssState
   tell (mempty & cssCode .~ CSSM.rulesFor name m)
   return name
 
+css' :: Monad m => CSSM.CSSM () -> WebT m Class
 css' = cssF (Class . Static . TL.toStrict)
+
+cssId' :: Monad m => CSSM.CSSM () -> WebT m Id
 cssId' = cssF (Id . Static . TL.toStrict)
 
 -- | Main instance
@@ -119,7 +122,6 @@ instance (Monad m) => MonadWeb (WebT m) where
    cssId = cssF (Id . Static . TL.toStrict)
    nextId = WebT $ next cssState
    getState = WebT get
-   getConf = WebT ask
 
    writeRules g dm = WebT $ do
      let ds = execWriter dm :: [CSS.Declaration]

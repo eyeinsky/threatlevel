@@ -2,7 +2,7 @@ module JS.DSL
   ( module Export
 
   -- * JS.Syntax
-  , JS.Syntax.Conf
+  , JS.Syntax.Conf(..)
   , Statement(BareExpr, TryCatchFinally)
   , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await, Assign)
   , Attr(..)

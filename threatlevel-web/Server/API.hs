@@ -148,6 +148,7 @@ renderDyn pp dt url = url & URL.segments <>~ fromJust (unparseTexts pp dt)
 
 -- * API
 
+type API :: (Type -> Type) -> Type -> Constraint
 type API m r = (MonadState State m, MonadReader URL m, MonadWriter [(Segment, T r)] m)
 
 currentUrl :: MonadReader URL m => m URL
@@ -157,8 +158,7 @@ api :: API m r => InT r -> m URL
 api m = next >>= flip pin m
 
 xhrPost' m = do
-  c <- lift W.getConf
-  let rc = c^.W.jsConf
+  rc <- W.js ask
   url :: URL <- api m
   lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ ->
     xhrPost rc (JS.lit $ render' url) data_ []

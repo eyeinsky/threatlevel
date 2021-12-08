@@ -82,7 +82,7 @@ data Expr a where
    New       :: Expr a -> Expr b
 
 type FormalArgs = [Name]
-data Name = Name { getName :: TS.Text }
+newtype Name = Name TS.Text
 
 data PossiblyComputedName
   = Computed (Expr ())

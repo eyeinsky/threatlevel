@@ -10,10 +10,8 @@ import qualified Data.Text.Lazy as TL
 import qualified Network.Wreq as Wreq
 import qualified Network.HTTP.Types as Wai
 
-import JS -- todo: add to X?
 import qualified DOM
 import qualified HTML
-import Web.Endpoint -- todo: add to X?
 import X
 
 -- * Google auth
@@ -80,8 +78,7 @@ verifyToken id callback = do
     let mbtokeninfo = r ^? Wreq.responseBody . Aeson._JSON :: Maybe Tokeninfo
     callback $ mbtokeninfo
 
-  c <- lift X.getConf
-  let rc = c^.X.jsConf
+  rc <- js ask
   doSignIn <- lift $ js $ do
 
     doGoogleSignIn <- let_ Undefined
