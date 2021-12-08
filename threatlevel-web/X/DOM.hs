@@ -6,6 +6,6 @@ module X.DOM
 import DOM
 
 import JS
-import Web.Response
+import Server.Response
 
 redirect to = DOM.location !. "href" .= lit (renderURL to)

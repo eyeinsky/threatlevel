@@ -35,7 +35,6 @@ import JS.Event as Export
 import DOM.Event as Export
 
 import URL as Export hiding (base)
-import Web.Endpoint as Export hiding (State, Writer, (/), M)
 
 import DOM as Export hiding (
   -- used in CSS
@@ -51,19 +50,24 @@ import JS as Export hiding (
   dir, for, run, Conf, String, State
   )
 
-import Web.Response as Export hiding (
-  -- TODO: describe why I hide these
-  text, error, page, js, body, code, Raw)
-
 import X.Wai as Export
 
 import Web.Browser as Export
 
 import Web.CSS as Export
 
-import Server as Export (getRequestBody)
-
-import Server.Hot as Export
+import Server as Export hiding
+  -- used in Prelude
+  ( error
+  -- used in HTML
+  , text, body, code, Raw
+  -- used in Web.Monad
+  , js
+  -- used in Server.API
+  , State, Writer, (/)
+  -- used in JS
+  , M
+  )
 
 import qualified Prelude
 import qualified Data.Text as TS
@@ -96,7 +100,7 @@ import qualified HTML
 import qualified JS.Event
 import qualified DOM
 import qualified Web.Monad as WM
-import qualified Web.Response as WR
+import qualified Server.Response as WR
 
 -- * DOM.Event
 

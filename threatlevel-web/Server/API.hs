@@ -1,4 +1,4 @@
-module Web.Endpoint where
+module Server.API where
 
 import X.Prelude hiding (Reader, Writer, State, fail)
 import Control.Monad.Except
@@ -14,7 +14,7 @@ import Identifiers (identifierSource)
 import qualified JS
 import DOM
 
-import qualified Web.Response as Re
+import qualified Server.Response as Re
 import qualified Network.Wai as Wai
 import qualified Trie as Tr
 
@@ -166,8 +166,6 @@ xhrPost' m = do
 -- | Add segment with api endpoint and return its full url
 pin :: API m r => Segment -> InT r -> m URL
 pin name m = name / T m *> nextFullWith name
-
-page = api . return . (\response _ -> return response) . Re.page
 
 next :: MonadState State m => m Segment
 next = get >>= \(State (x : xs) ws) -> put (State xs ws) *> return x

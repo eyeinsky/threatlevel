@@ -1,4 +1,4 @@
-module Web.Response where
+module Server.Response where
 
 import qualified Prelude as P
 import X.Prelude
@@ -78,7 +78,9 @@ text :: TL.Text -> Response
 text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
   where hs = [Hdr.utf8text "plain"]
 
+js :: JS.Syntax.Conf -> JS.Expr a -> Response
 js conf code = resp200 $ JS conf code
+
 json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response

@@ -65,14 +65,12 @@ library:
   - HTTP.Response
   - HTTP.Response.InlineFile
   - HTTP
-  - Warp_Helpers
+
   - SVG
   - SVG.CSS
   - HTML
   - Web.CSS
-  - Web.Endpoint
   - Web.Monad
-  - Web.Response
   - XML
   - XML.Core
 
@@ -88,9 +86,14 @@ library:
   - PWA
   - WebSockets
 
-  # pre-X
-  - Static
-  - Hot
+  # Server
+  - Server
+  - Server.Run
+  - Server.Static
+  - Server.API
+  - Server.Response
+  - Server.Hot
+  - Server.Wai
 
   - X
   - X.Prelude

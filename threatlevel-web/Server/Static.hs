@@ -1,4 +1,4 @@
-module Static where
+module Server.Static where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
@@ -16,8 +16,8 @@ import Data.FileEmbed
 
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
-import qualified Web.Response as WR
-import qualified Web.Endpoint as WE
+import qualified Server.Response as WR
+import qualified Server.API as WE
 
 import X.Prelude as P
 import X

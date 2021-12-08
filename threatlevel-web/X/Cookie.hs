@@ -7,7 +7,7 @@ import Data.Time
 import URL (Path, render')
 import HTTP.Common (ToPayload(..))
 import qualified HTTP.Header as H
-import Web.Response
+import Server.Response
 
 -- * Abstract cookie
 

@@ -4,8 +4,9 @@ import qualified Network.Wai.Handler.WarpTLS as Warp
 import Rapid
 
 import Common.Prelude
-import Server
-
+import qualified Server.API as API
+import Server.Run
+import Server.Wai
 
 mkHot :: Ord k => k -> IO () -> (IO (), IO ())
 mkHot name what = let

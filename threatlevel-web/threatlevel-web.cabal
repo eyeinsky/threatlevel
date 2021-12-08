@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.5.
 --
 -- see: https://github.com/sol/hpack
 
@@ -20,14 +20,11 @@ library
       HTTP.Response
       HTTP.Response.InlineFile
       HTTP
-      Warp_Helpers
       SVG
       SVG.CSS
       HTML
       Web.CSS
-      Web.Endpoint
       Web.Monad
-      Web.Response
       XML
       XML.Core
       Sessions
@@ -39,8 +36,13 @@ library
       DOM
       PWA
       WebSockets
-      Static
-      Hot
+      Server
+      Server.Run
+      Server.Static
+      Server.API
+      Server.Response
+      Server.Hot
+      Server.Wai
       X
       X.Prelude
       X.Cookie
