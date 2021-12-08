@@ -143,3 +143,10 @@ instance Exclamatable (XMLM ns c) Attribute where
   (!) e c = e !- c
 instance Exclamatable (XMLM ns c -> XMLM ns c) Attribute where
   (!) e c = e !- c
+
+-- * Helpers
+
+customTag :: MonadWriter [XML ns AttributeSet c] m => Value -> XMLM ns c -> m ()
+customTag name mcontent = let
+    contents' = execWriter mcontent
+  in tell [tag name & contents .~ contents']

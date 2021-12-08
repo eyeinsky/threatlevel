@@ -27,3 +27,17 @@ hotHttp = mkHotPrim Nothing
 
 hotHttps :: Warp.TLSSettings -> HotType k r (IO (), IO (), IO ())
 hotHttps tls = mkHotPrim (Just tls)
+
+hotHttpsIO
+  :: (Ord k, API.Confy r)
+  => String -> String -> k -> IO (SiteTypePrim r (IO (), IO (), IO ()))
+hotHttpsIO cert key name = do
+  maybeTls <- tlsSettingsEnvIO cert key
+  case maybeTls of
+    Just tls ->
+      return $ \mc ms siteRoot settings env site ->
+        mkHotPrim (Just tls) name mc ms siteRoot settings env site
+    _ ->
+      return $ \_ _ _ _ _ _ -> let
+          action = putStrLn "Certificate and key not found"
+        in (action, action, action)
