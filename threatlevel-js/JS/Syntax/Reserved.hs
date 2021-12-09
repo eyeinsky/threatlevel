@@ -1,6 +1,8 @@
 module JS.Syntax.Reserved where
 
+import Common.Prelude
 import Data.Text
+import Identifiers
 
 -- * Reserved by ECMA
 
@@ -43,3 +45,6 @@ ecma6 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "default", "extends", "finally", "package", "private", "continue", "debugger",
    "function", "arguments", "interface", "protected", "implements", "instanceof"
    ]
+
+validIdentifiers :: [Text]
+validIdentifiers = identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)

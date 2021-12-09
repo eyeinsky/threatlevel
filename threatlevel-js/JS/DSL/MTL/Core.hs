@@ -33,9 +33,7 @@ data State = State
 makeFields ''State
 
 instance Default State where
-  def = State idents mempty S.empty
-    where
-      idents = I.identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)
+  def = State validIdentifiers mempty S.empty
 
 type M r = WriterT (Syntax.Code r) (StateT State (Reader Env))
 
