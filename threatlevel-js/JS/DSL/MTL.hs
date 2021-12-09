@@ -156,22 +156,22 @@ type ClassBodyM = forall r. WriterT [ClassBodyPart] (M r) ()
 -- ** Class declaration
 
 class_ :: Name -> ClassBodyM -> M r (Expr b)
-class_ name bodyParts = do
-  bodyParts' <- execWriterT bodyParts
-  write $ Class name Nothing bodyParts'
-  return $ EName name
+class_ name bodyParts = classExtends name Nothing bodyParts
 
 newClass :: ClassBodyM -> M r (Expr b)
 newClass bodyParts = do
   name <- next
   class_ name bodyParts
 
-extends :: Name -> ClassBodyM -> M r (Expr b)
-extends what bodyParts = do
+classExtends :: Name -> Maybe Name -> ClassBodyM -> M r (Expr b)
+classExtends name what bodyParts = do
+  let uppercaseFirst :: TS.Text -> TS.Text
+      uppercaseFirst text = case TS.splitAt 1 text of
+        (c, hars) -> TS.toUpper c <> hars
+      name' = name & coerced %~ uppercaseFirst :: Name
   bodyParts' <- execWriterT bodyParts
-  name <- next
-  write $ Class name (Just what) bodyParts'
-  return $ EName name
+  write $ Class name' what bodyParts'
+  return $ EName name'
 
 -- ** Method and field helpers
 
