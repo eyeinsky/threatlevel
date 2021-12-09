@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module JS.Syntax.Render (Conf(..), unargs) where
 
-import Common.Prelude hiding ((<+>))
+import Common.Prelude as P hiding ((<+>))
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
 
@@ -30,7 +30,7 @@ instance Render (Code a) where
 
 instance Render (Statement a) where
   type Conf (Statement a) = Conf
-  renderM stm = (<+> pure ";") $ case stm of
+  renderM stm = case stm of
     Var name -> var name
     VarDef name exp -> var name =: renderM exp
     BareExpr expr -> renderM expr
@@ -164,7 +164,7 @@ instance Render ClassBodyPart where
   type Conf ClassBodyPart = Conf
   renderM = \case
     ClassBodyMethod methodType body ->
-      renderM methodType <+> pure " " <+> curlyCode body
+      renderM methodType <+> curlyCode body
     ClassBodyField fieldType value ->
       renderM fieldType <+> pure " " <+> renderM value
 
@@ -268,21 +268,23 @@ type RenderJS a = (Render a, Render.Conf a ~ Conf)
 
 -- | Put printed code in curly braces, code in braces is indented.
 curlyCode :: RenderJS a => [a] -> Reader (Render.Conf a) TL.Text
-curlyCode code = Render.curly <$> indented code
+curlyCode code = mseq [pure " {", indented code, pure "}"]
 
 -- | Render & indent code
 indented :: RenderJS a => [a] -> Reader Conf TL.Text
 indented code = ask >>= \case
   Indent n -> do
     stms :: [Text] <- withReader (inc 2) $ uncode code
-    return $ "\n" <> mconcat (map (<> "\n") stms) <> spaces n
-    where
-  Minify -> uncode code <&> mconcat
+    return $ "\n" <> mconcat (map (<> ";\n") stms) <> spaces n
+  Minify -> uncode code <&> map (<> ";") ^ mconcat
 
+-- | Render list to list of texts
 uncode :: RenderJS a => [a] -> Reader (Render.Conf a) [Text]
-uncode code = ask >>= \case
-  Indent n -> mapM renderM code <&> map (spaces n <>)
-  Minify -> mapM renderM code
+uncode code = do
+  indenter <- ask <&> \case
+    Indent n -> map (spaces n <>)
+    Minify -> P.id
+  indenter <$> mapM renderM code
 
 -- | Newline
 nl :: Reader Conf Text
