@@ -27,7 +27,7 @@ renderURL url = render' url
 
 data AnyResponse where
   HtmlDocument :: HTML.Document -> AnyResponse
-  JS :: JS.Syntax.Conf -> JS.Expr a -> AnyResponse
+  JS :: JS.Syntax.Conf -> JS.M r a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: BL.ByteString -> AnyResponse
 
@@ -54,7 +54,9 @@ instance ToRaw Response where
             where
               html' = HTML.html (HTML.head h >> b)
               tl = "<!DOCTYPE html>" <> render () html'
-          JS conf code -> ([Hdr.javascript], render conf code^.re LL.utf8)
+          JS conf mcode -> let
+            ((_, code),_) = JS.run conf JS.Syntax.validIdentifiers mempty mempty mcode
+            in ([Hdr.javascript], render conf code^.re LL.utf8)
           JSON a -> ([Hdr.json], Aeson.encode a)
           Raw b -> ([], b)
 
@@ -78,7 +80,7 @@ text :: TL.Text -> Response
 text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
   where hs = [Hdr.utf8text "plain"]
 
-js :: JS.Syntax.Conf -> JS.Expr a -> Response
+js :: JS.Syntax.Conf -> JS.M r a -> Response
 js conf code = resp200 $ JS conf code
 
 json a = resp200 $ JSON a

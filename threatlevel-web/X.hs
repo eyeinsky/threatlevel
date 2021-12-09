@@ -99,7 +99,6 @@ import qualified URL
 import qualified HTML
 import qualified JS.Event
 import qualified DOM
-import qualified Web.Monad as WM
 import qualified Server.Response as WR
 
 -- * DOM.Event
@@ -339,34 +338,22 @@ html = to toHtml
 
 -- * Endpoint
 
--- | Render JSM to Expr a within the current MonadWeb context.
-evalJSM
-  :: forall s m b a. (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
-  => JS.M b a -> m (Code b)
-evalJSM jsm = do
-  jsRenderConf <- asks (^.jsConf)
-  stWeb <- WM.getState
-  let
-    JS.State fresh used lib = stWeb^.WM.jsState
-    ((_, code :: Code b), _) = JS.run jsRenderConf fresh used lib jsm
-  return code
-
 exec'
   :: (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
-  => (Code b -> Expr x) -> JS.M b a -> m WR.Response
+  => (Code b -> M b a) -> JS.M b a -> m WR.Response
 exec' f jsm = do
-  code <- evalJSM jsm
+  code :: Code b <- js $ mkCode jsm
   conf <- js ask
   return $ WR.js conf $ f code
 
 -- | An anonymous function definition expression is returned
 exec = exec' f
   where
-    f = Par . AnonFunc Nothing []
+    f = bare . Par . AnonFunc Nothing []
 
 execCall = exec' f
   where
-    f = call0 . Par . AnonFunc Nothing []
+    f = bare . call0 . Par . AnonFunc Nothing []
 
 noCrawling :: API m a => m URL
 noCrawling = pin "robots.txt" $ return $ Prelude.const $ return $ WR.noRobots
