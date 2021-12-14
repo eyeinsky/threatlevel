@@ -113,15 +113,6 @@ import qualified Server.Response as WR
 
 -- * DOM.Event
 
--- | Create inline on-event attribute
-on :: JS.Event.Event e => e -> Expr a -> Attribute
-on event handler = On event handler
-  where
-    -- JS.Syntax.EName (JS.Syntax.Name handler') = handler
-    -- ^ todo: find a generic way to get the name, even for literal
-    -- expressions.
-{-# DEPRECATED on "Use `On` instead, or better yet add it with addEventListener." #-}
-
 onEvent
   :: (JS.Event.Event e, Function h) => e -> Expr a -> h
   -> M r (Expr b) -- (Expr (JS.Type h))
@@ -190,11 +181,6 @@ stylesheet url = link ! rel "stylesheet" ! type_ "text/css" ! href url
 
 stylesheet' :: TS.Text -> Html
 stylesheet' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
-
-includeCss = stylesheet :: URL.URL -> Html
-{-# DEPRECATED includeCss "Use `stylesheet` instead." #-}
-includeCss' = stylesheet' :: TS.Text -> Html
-{-# DEPRECATED includeCss' "Use `stylesheet'` instead." #-}
 
 includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
