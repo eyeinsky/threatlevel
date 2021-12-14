@@ -36,6 +36,7 @@ library
       DOM
       PWA
       WebSockets
+      WebAPIs.DOM
       Server
       Server.Run
       Server.Static

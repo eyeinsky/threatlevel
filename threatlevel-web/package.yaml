@@ -85,6 +85,7 @@ library:
   - DOM
   - PWA
   - WebSockets
+  - WebAPIs.DOM
 
   # Server
   - Server

@@ -69,6 +69,8 @@ import Server as Export hiding
   , M
   )
 
+import WebAPIs.DOM as Export
+
 import qualified Prelude
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
