@@ -3,7 +3,7 @@ module CSS.TH
   , prop
   ) where
 
-import Prelude
+import Common.Prelude
 import Language.Haskell.TH
 import Data.Text.Multiline
 import qualified Data.Text as TS
@@ -51,15 +51,6 @@ allProperties = filter (('@' /=) . head) $ words "align-content align-items alig
 prep :: [String] -> [Either String String]
 prep = map toEither
 
-kebab2camel :: String -> String
-kebab2camel xs = case xs of
-  '-' : x' : xs'
-    | isAlpha x' -> toUpper x' : kebab2camel xs'
-    | otherwise -> err
-  '-' : [] -> err
-  x' : xs' -> x' : kebab2camel xs'
-  _ -> []
-
 toEither :: String -> Either String String
 toEither c = if isFun c
   then Right (reverse $ dropWhile (`elem` "()") $ reverse c)
@@ -68,9 +59,6 @@ toEither c = if isFun c
     isFun str
       | last str == ')' = True
       | otherwise = False
-
-err :: a
-err = error "CSS.TH: This shouldn't ever happen"
 
 pseudoClasses :: [Either String String]
 pseudoClasses = prep pseudoClasses'

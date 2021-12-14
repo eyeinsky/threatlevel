@@ -3,7 +3,7 @@ module X.Prelude
   , module Export
   ) where
 
-import Prelude as Export hiding
+import Common.Prelude as Export hiding
   ( div, rem, (/), log, const, span -- Prelude
   , (^) -- GHC.Real
   , fail
@@ -54,13 +54,6 @@ infixr 0 >>=$
 
 infixr 0 =<<$
 (=<<$) = (=<<)
-
-kebab2camel :: TL.Text -> TL.Text
-kebab2camel t = TL.concat $ x : map capitalise xs
-  where
-    x : xs = TL.splitOn "-" t
-    capitalise t = let (a, b) = TL.splitAt 1 t
-       in TL.toUpper a <> b
 
 split :: Eq a => [a] -> [a] -> [[a]] -- from MissingH
 split _ [] = []

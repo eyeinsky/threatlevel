@@ -4,9 +4,23 @@ module X
   , module Export
   ) where
 
-import HTML as Export hiding (
+import X.Prelude as Export hiding
+  ( get, split, last, set
+  -- used in HTML
+  , option, aside, pre, max, min, head
+  , un, State, Writer, eq
+  -- used in JS
+  , forOf, break, not
+  -- used in CSS
+  , first
+  , state
+  , (<+>) )
+
+import HTML as Export hiding
+  -- used in Prelude
+  ( id
   -- redefined here
-  href, src, for, favicon, html, action, style
+  , href, src, for, favicon, html, action, style
   -- used in URL
   , param,
   -- used in CSS
@@ -47,7 +61,7 @@ import DOM as Export hiding (
 
 import JS as Export hiding (
   -- todo: describe these
-  dir, for, run, Conf, String, State
+  dir, for, run, Conf, String, State, concat
   )
 
 import X.Wai as Export
@@ -61,8 +75,6 @@ import Server as Export hiding
   ( error
   -- used in HTML
   , text, body, code, Raw
-  -- used in Web.Monad
-  , js
   -- used in Server.API
   , State, Writer, (/)
   -- used in JS
@@ -79,16 +91,12 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Time
 
-import Control.Monad.Reader
-import Control.Monad.Writer
 import Control.Concurrent
 
 import qualified Web.Cookie as Wai
 import qualified Network.Wai as Wai
 import qualified Network.HTTP.Types as Wai
 import qualified Network.Wai.Handler.Warp as Warp
-
-import System.IO as IO
 
 import qualified HTTP.Response as HR
 
@@ -278,7 +286,7 @@ mkExpr = Cast . lit . static . unClass
 inlineStyle :: Expr tag -> DM () -> M r ()
 inlineStyle element declarations = do
   forM_ (execWriter declarations) $ \(Declaration k v) -> let
-    property = TL.toStrict $ P.kebab2camel $ TL.fromStrict k
+    property = P.tsKebab2camel k
     in element !. "style" !. property .= lit (render' v)
 
 -- * JS + HTML + URL
@@ -322,7 +330,7 @@ exec'
 exec' f jsm = do
   code :: Code b <- js $ mkCode jsm
   conf <- js ask
-  return $ WR.js conf $ f code
+  return $ WR.resp200 $ JS conf (f code)
 
 -- | An anonymous function definition expression is returned
 exec = exec' f

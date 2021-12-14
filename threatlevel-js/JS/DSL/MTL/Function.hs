@@ -1,8 +1,6 @@
 module JS.DSL.MTL.Function where
 
-import Prelude
-import Data.Functor
-import Data.Default
+import Common.Prelude
 import Control.Monad.State hiding (State)
 import Control.Monad.Reader
 

@@ -80,9 +80,6 @@ text :: TL.Text -> Response
 text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
   where hs = [Hdr.utf8text "plain"]
 
-js :: JS.Syntax.Conf -> JS.M r a -> Response
-js conf code = resp200 $ JS conf code
-
 json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response

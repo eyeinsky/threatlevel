@@ -1,7 +1,6 @@
 module IndexedDB.IDB where
 
-import X.Prelude hiding (Index)
-import X hiding (head, get, Request)
+import X hiding (head, get, Request, Index)
 import JS
 
 

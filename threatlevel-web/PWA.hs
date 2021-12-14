@@ -2,8 +2,7 @@ module PWA where
 
 import qualified Data.Text.Lazy as TL
 
-import X.Prelude hiding (put)
-import X as DOM hiding (url)
+import X as DOM hiding (url, put)
 import qualified JS.BuiltIns.Full as JS
 
 

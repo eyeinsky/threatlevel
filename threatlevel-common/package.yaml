@@ -10,6 +10,7 @@ dependencies:
 - fixedlist
 - lens
 - template-haskell
+- text
 
 library:
   source-dirs:
@@ -40,6 +41,7 @@ default-extensions:
 - FlexibleInstances
 - FunctionalDependencies
 - GADTs
+- ImportQualifiedPost
 - InstanceSigs
 - KindSignatures
 - LambdaCase

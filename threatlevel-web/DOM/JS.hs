@@ -263,7 +263,7 @@ mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
 mkAttrCommon e _ attr = case attr of
   On event expr ->
      bare $ addEventListener (Cast e) event expr
-  Boolean k v -> e !. tsKebab k .= lit v
+  Boolean k v -> e !. tsKebab2camel k .= lit v
   _ -> error "mkAttrCommon: Should be handled elsewhere"
 
 instance RenderJSM (HTML Both) where
@@ -290,8 +290,8 @@ instance RenderJSM (HTML Both) where
     where
       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
       mkAttr e k attr = case attr of
-        Data _ v -> e !. "dataset" !. tsKebab k .= lit v
-        Custom _ v -> e !. tsKebab k .= lit v
+        Data _ v -> e !. "dataset" !. tsKebab2camel k .= lit v
+        Custom _ v -> e !. tsKebab2camel k .= lit v
         _ -> mkAttrCommon e k attr
 
 createHtmls :: Html -> JS.M r (Expr DocumentFragment)
@@ -349,7 +349,3 @@ deleteCookie :: Expr String -> JS.M r ()
 deleteCookie name = do
   document !. "cookie" .= value
   where value = name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-
--- | Convert strict text kebab-case to camelCase
-tsKebab :: TS.Text -> TS.Text
-tsKebab k = TL.toStrict $ kebab2camel $ TL.fromStrict k
