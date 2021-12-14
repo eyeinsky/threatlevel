@@ -311,6 +311,8 @@ instance ToHtml Html where toHtml a = a
 
 -- ** Front-end
 
+instance ToHtml (Expr Tag) where
+  toHtml a = HTML.dyn a
 instance ToHtml (Expr DocumentFragment) where
   toHtml a = HTML.dyn a
 instance ToHtml (Expr String) where
