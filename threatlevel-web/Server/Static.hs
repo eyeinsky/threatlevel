@@ -16,16 +16,16 @@ import Data.FileEmbed
 
 import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
-import qualified Server.Response as WR
-import qualified Server.API as WE
+import Server.Response as R
+import Server.API
 
+import Network.Wai
 import X.Prelude as P
 import X
 
-
 -- ** File
 
-diskFile :: MonadIO m => FilePath -> m (Either IOException Response)
+diskFile :: MonadIO m => FilePath -> m (Either IOException R.Response)
 diskFile path = do
   either <- liftIO $ try $ BL.readFile path
   return $ rawBl (toEnum 200) [pathContentType path] <$> either
@@ -38,16 +38,16 @@ embeddedFile path = let
     ct = path^.from lazy.to Mime.defaultMimeLookup.TS.utf8.from TS.packed & stringE
   in [| let header = Hdr.header Hdr.ContentType $ct
         in rawBS 200 [header] $(embedFile filePath)
-           :: Response|]
+           :: R.Response|]
 
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
   mime = path^.TS.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
   headers = [Hdr.contentType mime]
-  response = WR.rawBl (toEnum 200) headers (bs^.from strict)
+  response = R.rawBl (toEnum 200) headers (bs^.from strict)
   path' = TS.pack path
-  in (path,) <$> (WE.pin path' $ WE.staticResponse response)
+  in (path,) <$> (pin path' $ staticResponse response)
 
 -- | Generate endpoints for source-embedded files and return the html
 -- to include them.
@@ -65,7 +65,7 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
 -- standard of if .. is even allowed in url paths.
 staticDiskSubtree' mod onError (path :: FilePath) = do
   return $ \(_ :: Request) -> do
-    e <- asks (view WE.dynPath) <&> sanitizePath
+    e <- asks (view dynPath) <&> sanitizePath
     case e of
       Left e -> onError e
       Right subPath -> do
@@ -83,15 +83,15 @@ sanitizePath parts = if any (== "..") parts
 staticDiskSubtree notFound path = staticDiskSubtree' P.id (\_ -> return notFound) path
 
 -- | Serve files from filesystem path using a content adressable hash
-assets :: (API m s, MonadIO m, Confy s) => WR.Response -> FilePath -> m URL
+assets :: (API m s, MonadIO m, Confy s) => R.Response -> FilePath -> m URL
 assets notFound path = do
   hashPin path $ staticDiskSubtree' headerMod (\_ -> return notFound) path
   where
-    headerMod = WR.headers <>~ [HR.cacheForever]
+    headerMod = R.headers <>~ [HR.cacheForever]
     hashPin path what = do
       hash <- liftIO (folderHash path) <&> TS.pack
       liftIO $ print (path, hash)
-      WE.pin hash what
+      pin hash what
 
 folderHash :: String -> IO [Char]
 folderHash path = do
@@ -121,5 +121,5 @@ serveFile filePath = do
   let response = File Wai.status200 [pathContentType filePath] filePath Nothing
   api $ return $ \_ -> return response
 
--- serveFolder :: (API m r) => FilePath -> m URL
--- serveFolder folderPath = todo
+-- serveFolder :: (API m r) => Segment -> FilePath -> m URL
+-- serveFolder name folderPath = pin name $ return $ \req -> todo
