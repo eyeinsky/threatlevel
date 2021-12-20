@@ -158,7 +158,7 @@ api :: API m r => InT r -> m URL
 api m = next >>= flip pin m
 
 xhrPost' m = do
-  rc <- W.js ask
+  rc <- W.js JS.askEnv
   url :: URL <- api m
   lift . W.js . fmap JS.Par . JS.func JS.AnonFunc $ \data_ ->
     xhrPost rc (JS.lit $ render' url) data_ []

@@ -55,7 +55,7 @@ instance ToRaw Response where
               html' = HTML.html (HTML.head h >> b)
               tl = "<!DOCTYPE html>" <> render () html'
           JS conf mcode -> let
-            ((_, code),_) = JS.run conf JS.Syntax.validIdentifiers mempty mempty mcode
+            ((_, code),_) = JS.runEmpty conf mcode
             in ([Hdr.javascript], render conf code^.re LL.utf8)
           JSON a -> ([Hdr.json], Aeson.encode a)
           Raw b -> ([], b)

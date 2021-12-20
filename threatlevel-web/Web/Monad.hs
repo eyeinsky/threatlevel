@@ -109,7 +109,7 @@ instance (Monad m) => MonadWeb (WebT m) where
       state0 <- gets (^.jsState)
       let
         JS.State fresh used lib = state0
-        ((result, code), state1) = JS.run jsRenderConf fresh used lib jsm
+        ((result, code), state1) = JS.run jsRenderConf lib used fresh jsm
       tell $ mempty & jsCode .~ code
       modify' (jsState .~ state1)
       return result
