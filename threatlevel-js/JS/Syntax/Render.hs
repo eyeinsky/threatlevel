@@ -143,7 +143,6 @@ instance Render (Expr a) where
     AnonFunc mbName as code -> function "function " mbName as code
     Generator mbName as code -> function "function* " mbName as code
     Async mbName as code -> function "async function " mbName as code
-    TypedFCall f as -> (par <$> renderM f) <+> (unargs $ args as)
     Ternary b t f -> par <$> mseq [renderM b, pure "?", renderM t, pure ":", renderM f]
     Null -> pure "null"
     Undefined -> pure "undefined"

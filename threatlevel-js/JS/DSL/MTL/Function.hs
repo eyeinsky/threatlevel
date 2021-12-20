@@ -10,12 +10,6 @@ import JS.Syntax hiding (Conf)
 import qualified JS.Syntax as Syntax
 import JS.DSL.MTL.Core
 
-
--- *** Typed
-
-tcall :: (Show a, Args a) => Expr (a, r) -> a -> (Expr r)
-tcall f as = TypedFCall f as
-
 -- * Typed functions
 
 -- | @funcLit@ takes a literal haskell function, feeds it new names
@@ -66,10 +60,6 @@ funcPrim
 funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
    where
      ((args, code), s1) = run env fresh used lib (funcLit fexp)
-
--- | Create function, starting from empty state and reader
-funcPure :: Function f => f -> Expr (Type f)
-funcPure = funcPrim undefined AnonFunc def <&> fst
 
 -- | Create function, getting state and reader from enclosing monad.
 func :: Function f => FuncConstr f -> f -> M parent (Expr (Type f))

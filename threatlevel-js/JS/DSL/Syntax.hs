@@ -66,6 +66,12 @@ infixl 7  %
 not :: Expr Bool -> Expr Bool
 not = Op . OpUnary Not
 
+ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
+ternary = Ternary
+
+undefined_ :: Expr ()
+undefined_ = Undefined
+
 -- * Instances
 
 -- ** Literals

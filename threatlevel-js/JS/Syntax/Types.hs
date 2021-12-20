@@ -59,17 +59,13 @@ data Expr a where
    -- untyped
    FuncCall  :: Expr a -> [Expr b]  -> Expr c -- func(*expr)
 
+   -- * Function expressions
    -- | @function maybeName(name) {code}@
    AnonFunc :: Maybe Name -> [Name] -> Code b -> Expr c
-
    -- | @function *maybeName(name) {code}@
    Generator :: Maybe Name -> [Name] -> Code b -> Expr c
-
    -- | @async function maybeName(names) {code}@
    Async :: Maybe Name -> [Name] -> Code b -> Expr c
-
-   -- TypedFDef  :: Args a => a -> Code b -> Expr c
-   TypedFCall :: (Show a, Args a) => Expr (a, r) -> a -> Expr r
 
    Ternary   :: Expr Bool -> Expr a -> Expr a -> Expr a
    Null      :: Expr a

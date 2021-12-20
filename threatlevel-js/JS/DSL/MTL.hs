@@ -84,9 +84,6 @@ comment text = bare $ ex $ "// " <> text
 
 -- * Control flow
 
-ternary :: Expr Bool -> Expr a -> Expr a -> Expr a
-ternary = Ternary
-
 ifmelse :: Expr Bool -> M r a -> Maybe (M r a) -> M r ()
 ifmelse cond true mFalse = do
    trueCode <- mkCode true
@@ -279,8 +276,3 @@ lib mcode = do
     nameExpr .= f
     modify (library %~ S.insert codeHash)
   return nameExpr
-
--- * Convenience
-
-undefined_ :: Expr ()
-undefined_ = Undefined
