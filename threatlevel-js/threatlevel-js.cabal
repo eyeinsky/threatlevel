@@ -38,6 +38,7 @@ library
   other-modules:
       JS.BuiltIns.Array
       JS.BuiltIns.Promise
+      JS.DSL.Core
       JS.DSL.MTL
       JS.DSL.Syntax
       JS.Syntax.Render

@@ -1,10 +1,13 @@
-module JS.DSL.MTL.Core where
+{-# OPTIONS_GHC -Wno-orphans #-}
+module JS.DSL.MTL.Core
+  ( module JS.DSL.Core
+  , module JS.DSL.MTL.Core
+  ) where
 
 import Prelude
 import Data.Void
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy.IO as TL
-import qualified Data.Set as S
 import qualified Data.HashMap.Strict as HS
 import Control.Monad.Writer
 import Control.Monad.State hiding (State)
@@ -14,26 +17,10 @@ import Control.Lens
 
 import Render
 import qualified Identifiers as I
-import JS.Syntax.Reserved
 import qualified JS.Syntax as Syntax
+import JS.DSL.Core
 
 -- * Monad
-
-type Idents = [TS.Text]
-type Fresh = Idents
-type Used = HS.HashMap TS.Text Idents
-type Lib = S.Set Int
-type Env = Syntax.Conf
-
-data State = State
-  { stateFreshIdentifiers :: Fresh
-  , stateInUseIdentifiers :: Used
-  , stateLibrary :: Lib
-  }
-makeFields ''State
-
-instance Default State where
-  def = State validIdentifiers mempty S.empty
 
 type M r = WriterT (Syntax.Code r) (StateT State (Reader Env))
 
@@ -43,6 +30,9 @@ run env fresh used lib m = m
   & flip runStateT (State fresh used lib)
   & flip runReaderT env
   & runIdentity
+
+getState :: M r State
+getState = undefined
 
 write :: Syntax.Statement r -> M r ()
 write stm = tell [stm]
