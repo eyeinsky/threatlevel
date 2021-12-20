@@ -7,7 +7,7 @@ module JS.DSL.MTL
   ) where
 
 import qualified Prelude as P
-import Common.Prelude as P hiding (break)
+import Common.Prelude as P hiding (break, next)
 import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS

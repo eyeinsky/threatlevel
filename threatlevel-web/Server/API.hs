@@ -1,6 +1,6 @@
 module Server.API where
 
-import X.Prelude hiding (Reader, Writer, State, fail)
+import X.Prelude hiding (Reader, Writer, State, fail, next)
 import Control.Monad.Except
 
 import qualified URL

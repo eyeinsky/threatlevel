@@ -59,9 +59,11 @@ import DOM as Export hiding (
   Document
   )
 
-import JS as Export hiding (
+import JS as Export hiding
   -- todo: describe these
-  dir, for, run, Conf, String, State, concat
+  ( dir, for, run, Conf, String, State, concat
+  -- internal
+  , next
   )
 
 import X.Wai as Export

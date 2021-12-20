@@ -65,6 +65,7 @@ library
       base
     , data-default
     , fixedlist
+    , identifiers
     , lens
     , template-haskell
     , text

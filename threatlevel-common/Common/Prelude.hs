@@ -20,6 +20,7 @@ import Data.List.Fixed as Export
 import Data.Default as Export
 import Data.Kind as Export
 import Data.Coerce as Export
+import Identifiers as Export hiding (Element)
 
 import Data.Text qualified as TS
 import Data.Text.Lazy qualified as TL
