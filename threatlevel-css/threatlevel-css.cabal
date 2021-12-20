@@ -18,6 +18,7 @@ library
       CSS.Monad
       CSS
   other-modules:
+      CSS.Identifiers
       CSS.TH
       Paths_threatlevel_css
   hs-source-dirs:

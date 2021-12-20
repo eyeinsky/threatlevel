@@ -8,7 +8,7 @@ import Identifiers
 
 -- | Source: https://mathiasbynens.be/notes/reserved-keywords
 
-ecma1 :: [Text]
+ecma1 :: [String]
 ecma1 = [ "do", "if", "in", "for", "new", "try", "var", "case", "else", "enum",
    "null", "this", "true", "void", "with", "break", "catch", "class", "const",
    "false", "super", "throw", "while", "delete", "export", "import", "return",
@@ -16,7 +16,7 @@ ecma1 = [ "do", "if", "in", "for", "new", "try", "var", "case", "else", "enum",
    "function"
    ]
 
-ecma2 :: [Text]
+ecma2 :: [String]
 ecma2 = ["do", "if", "in", "for", "int", "new", "try", "var", "byte", "case",
    "char", "else", "enum", "goto", "long", "null", "this", "true", "void", "with",
    "break", "catch", "class", "const", "false", "final", "float", "short",
@@ -27,7 +27,7 @@ ecma2 = ["do", "if", "in", "for", "int", "new", "try", "var", "byte", "case",
    "implements", "instanceof", "synchronized"
    ]
 
-ecma5 :: [Text]
+ecma5 :: [String]
 ecma5 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "enum", "eval", "null", "this", "true", "void", "with", "break", "catch",
    "class", "const", "false", "super", "throw", "while", "yield", "delete",
@@ -37,7 +37,7 @@ ecma5 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "NaN", "Infinity", "undefined"
    ]
 
-ecma6 :: [Text]
+ecma6 :: [String]
 ecma6 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    "enum", "eval", "null", "this", "true", "void", "with", "await", "break",
    "catch", "class", "const", "false", "super", "throw", "while", "yield",
@@ -47,4 +47,7 @@ ecma6 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    ]
 
 validIdentifiers :: [Text]
-validIdentifiers = identifiersFilter (ecma1 <> ecma2 <> ecma5 <> ecma6)
+validIdentifiers = toList $ fmap pack $ orderedFilter reserved $ bigEndian alphabet
+  where
+    alphabet = ['a' .. 'z']
+    reserved = ecma1 <> ecma2 <> ecma5 <> ecma6

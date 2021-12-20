@@ -1,5 +1,6 @@
 module CSS
-  ( module CSS
+  ( module Export
+  , module CSS
   , module CSS.Syntax
   , module CSS.TH
   , type CSSM, type Declarations
@@ -7,6 +8,8 @@ module CSS
   , media, supports
   , DeclM
   ) where
+
+import CSS.Identifiers as Export
 
 import Prelude as P
 import Control.Lens

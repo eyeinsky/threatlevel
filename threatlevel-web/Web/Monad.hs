@@ -19,10 +19,7 @@ newtype AnimationIdentifiers
   = AnimationIdentifiers (Infinite TL.Text)
   deriving newtype (Increment)
 instance Default AnimationIdentifiers where
-  def = AnimationIdentifiers $ fmap TL.fromStrict $ toInfinite $ Idents.identifiersFilter forbidden
-    where
-      forbidden = ["none", "unset", "initial", "inherit"]
-      -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name
+  def = AnimationIdentifiers CSS.identifiersLazy
 
 declareFields [d|
   data State = State
@@ -49,7 +46,7 @@ instance Default Conf where
   def = Conf def
 
 instance Default State where
-  def = State def (toInfinite $ map TL.fromStrict identifierSource) def
+  def = State def CSS.identifiersLazy def
 
 instance Semigroup Writer where
   Writer js css <> Writer js' css' = Writer (js <> js') (css <> css')
