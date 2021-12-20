@@ -61,11 +61,12 @@ pushName :: TS.Text -> M r Syntax.Name
 pushName name = do
   names <- gets (view inUseIdentifiers)
   case HS.lookup name names of
-    Just (s : uffixes) -> do
+    Just (I.Infinite s uffixes) -> do
       modify (inUseIdentifiers %~ HS.insert name uffixes)
       return $ Syntax.Name $ name <> "_" <> s
     _ -> do
-      modify (inUseIdentifiers %~ HS.insert name I.identifierSource)
+      let suffixes = fmap TS.pack $ I.bigEndian ['a' .. 'z']
+      modify (inUseIdentifiers %~ HS.insert name suffixes)
       return $ Syntax.Name name
 
 {- | Evaluate JSM code to @Code r@
