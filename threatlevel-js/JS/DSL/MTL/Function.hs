@@ -1,11 +1,7 @@
 module JS.DSL.MTL.Function where
 
-import Common.Prelude
-import Control.Monad.State hiding (State)
-import Control.Monad.Reader
-
-import JS.Syntax hiding (Conf)
-import qualified JS.Syntax as Syntax
+import Common.Prelude hiding (Type, next)
+import JS.Syntax as Syntax
 import JS.DSL.MTL.Core
 
 -- * Typed functions
@@ -24,7 +20,8 @@ instance Function (M r a) where
 instance Function (Expr a) where
    type Type (Expr a) = a
    type Final (Expr a) = a
-   funcLit e = write (Return $ Cast e) $> []
+   funcLit :: Expr a -> M a [Name]
+   funcLit e = write @a (Return $ Cast e) $> []
 instance (Function b) => Function (Expr a -> b) where
    type Type (Expr a -> b) = a -> Type b
    type Final (Expr a -> b) = Final b
@@ -51,26 +48,27 @@ instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
 -- @Generator@, @Async@
 type FuncConstr a = Maybe Name -> [Name] -> Code (Final a) -> Expr (Type a)
 
--- | Create function from a literal: provide JSM state and reader
-funcPrim
-  :: Function a
-  => Syntax.Conf -> FuncConstr a -> State -> a -> (Expr (Type a), State)
-funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
-   where
-     ((args, code), s1) = run env fresh used lib (funcLit fexp)
-
 -- | Create function, getting state and reader from enclosing monad.
 func :: Function f => FuncConstr f -> f -> M parent (Expr (Type f))
 func constr f = do
-  env <- ask
-  (a, s) <- funcPrim env constr <$> get <*> pure f
-  put s *> pure a
+  env :: Env <- ask
+  (a, new) <- funcPrim env constr <$> getState <*> pure f
+  putState new *> pure a
+  where
+    -- | Create function from a literal: provide JSM state and reader
+    funcPrim
+      :: Function a
+      => Syntax.Conf -> FuncConstr a -> State -> a -> (Expr (Type a), State)
+    funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
+       where
+         ((args, code), s1) = run env lib used fresh (funcLit fexp)
+
 
 -- | Return formal arguments and
 bla :: Function f => f -> M parent ([Name], Code (Final f))
 bla fexp = do
   env <- ask
-  State fresh used lib <- get
-  let ((args, code), newState) = run env fresh used lib (funcLit fexp)
-  put newState
+  State fresh used lib <- getState
+  let ((args, code), new) = run env lib used fresh (funcLit fexp)
+  putState new
   return (args, code)

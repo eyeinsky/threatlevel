@@ -1,9 +1,11 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 module JS.DSL.MTL
   ( module JS.DSL.MTL
-  , M, State(..), run
-  , library, Function, funcPure, func, mkCode, Final, noReturn, next
-  , pr
+  , M
+  , run, runEmpty, State(..), askEnv
+  , mkCode, mkCode_, next
+  , Function, func, Final
+  , library
   ) where
 
 import qualified Prelude as P
@@ -12,17 +14,22 @@ import qualified Data.Set as S
 import qualified Data.Hashable as H
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
+
 import Data.Either
 import Control.Monad.Writer
-import Control.Monad.State hiding (State)
-import Control.Monad.Reader
+
+import qualified Control.Monad.Reader
 
 import Render
 
-import JS.Syntax hiding (Conf, Static)
-import qualified JS.Syntax as Syntax
+import JS.Syntax as Syntax
 import JS.DSL.MTL.Function as JS
 import JS.DSL.MTL.Core as JS
+
+
+runEmpty :: Syntax.Conf -> M r a -> Result r a
+runEmpty env m = run env mempty mempty validIdentifiers m
 
 -- * Variable
 
@@ -30,7 +37,7 @@ import JS.DSL.MTL.Core as JS
 
 bind :: forall a b r. (Name -> Expr a -> Statement r) -> Expr a -> Name -> M r (Expr b)
 bind decl expr name = do
-  write $ decl name expr
+  write @r $ decl name expr
   return $ EName name
 
 newPrim :: (Name -> Expr a -> Statement r) -> Expr a -> M r (Expr a)
@@ -46,8 +53,8 @@ const = newPrim Const
 new' :: TS.Text -> Expr a -> M r (Expr a)
 new' n e = bind Let e =<< pushName n
 
-bare :: Expr a -> M r ()
-bare e  = write $ BareExpr e
+bare :: forall r a. Expr a -> M r ()
+bare e  = write @r $ BareExpr e
 
 block :: M r a -> M r (Expr r)
 block    = let_    <=< blockExpr
@@ -59,8 +66,8 @@ block' n = new' n <=< blockExpr
 
 -- | Shorthands for assignment statement
 infixr 4 .=
-(.=) :: Expr a -> Expr b -> M r ()
-lhs .= rhs = write $ BareExpr $ lhs `Assign` rhs
+(.=) :: forall r a b. Expr a -> Expr b -> M r ()
+lhs .= rhs = write @r $ BareExpr $ lhs `Assign` rhs
 
 -- | @infixr 0@ shorthand for assignment statement -- for combining
 -- with the dollar operator (@$@).
@@ -84,10 +91,10 @@ comment text = bare $ ex $ "// " <> text
 
 -- * Control flow
 
-ifmelse :: Expr Bool -> M r a -> Maybe (M r a) -> M r ()
+ifmelse :: forall r a. Expr Bool -> M r a -> Maybe (M r a) -> M r ()
 ifmelse cond true mFalse = do
-   trueCode <- mkCode true
-   mElseCode <- maybe (return Nothing) (fmap Just . mkCode) mFalse
+   trueCode <- mkCode_ true
+   mElseCode <- maybe (return Nothing) (fmap Just . mkCode_) mFalse
    write $ IfElse cond trueCode mElseCode
 
 ifelse :: Expr Bool -> M r a -> M r a -> M r ()
@@ -96,34 +103,34 @@ ifelse c t e = ifmelse c t (Just e)
 ifonly :: Expr Bool -> M r a -> M r ()
 ifonly c t   = ifmelse c t Nothing
 
-return_ :: Expr a -> M a ()
-return_ e = write $ Return $ Cast e
+return_ :: forall r. Expr r -> M r ()
+return_ e = write @r $ Return $ Cast e
 
 retrn :: Expr a -> M a ()
 retrn = return_
 
-empty :: M a ()
-empty = write Empty
+empty :: forall r. M r ()
+empty = write @r Empty
 
 -- * Try/catch
 
-tryCatch :: M r () -> (Expr n -> M r ()) -> M r ()
+tryCatch :: forall r a . M r () -> (Expr a -> M r ()) -> M r ()
 tryCatch try catch = do
-  try' <- mkCode try
+  try' <- mkCode_ try
   err <- next
-  catch' <- mkCode $ catch (EName err)
+  catch' <- mkCode_ $ catch (EName err)
   write $ TryCatchFinally try' [(err, catch')] Nothing
 
-tryCatchFinally :: M r () -> (Expr n -> M r ()) -> M r () -> M r ()
+tryCatchFinally :: forall r a . M r () -> (Expr a -> M r ()) -> M r () -> M r ()
 tryCatchFinally try catch finally = do
-  try' <- mkCode try
+  try' <- mkCode_ try
   err <- next
-  catch' <- mkCode $ catch (EName err)
-  finally' <- mkCode finally
+  catch' <- mkCode_ $ catch (EName err)
+  finally' <- mkCode_ finally
   write $ TryCatchFinally try' [(err, catch')] (Just finally')
 
-throw :: Expr a -> M r ()
-throw e = write $ Throw e
+throw :: forall r a. Expr a -> M r ()
+throw e = write @r $ Throw e
 
 -- * Swtich
 
@@ -138,13 +145,13 @@ switch e m = do
   let (def, cases') = partitionEithers li
   write $ Switch e cases' (case def of def' : _ -> Just def'; _ -> Nothing)
 
-case_ :: Expr m -> M r a -> SwitchBodyM m r ()
+case_ :: forall r m a . Expr m -> M r a -> SwitchBodyM m r ()
 case_ match code = do
-  code' <- lift $ mkCode (code >> break)
+  code' <- lift $ mkCode_ (code >> break)
   tell $ pure $ Right (match, code')
 
-default_ :: M r a -> SwitchBodyM m r ()
-default_ code = lift (mkCode code) >>= Left ^ pure ^ tell
+default_ :: forall r a m . M r a -> SwitchBodyM m r ()
+default_ code = lift (mkCode_ code) >>= Left ^ pure ^ tell
 
 -- * Class
 
@@ -160,14 +167,14 @@ newClass bodyParts = do
   name <- next
   class_ name bodyParts
 
-classExtends :: Name -> Maybe Name -> ClassBodyM -> M r (Expr b)
+classExtends :: forall r a. Name -> Maybe Name -> ClassBodyM -> M r (Expr a)
 classExtends name what bodyParts = do
   let uppercaseFirst :: TS.Text -> TS.Text
       uppercaseFirst text = case TS.splitAt 1 text of
         (c, hars) -> TS.toUpper c <> hars
       name' = name & coerced %~ uppercaseFirst :: Name
   bodyParts' <- execWriterT bodyParts
-  write $ Class name' what bodyParts'
+  write @r $ Class name' what bodyParts'
   return $ EName name'
 
 -- ** Method and field helpers
@@ -192,37 +199,37 @@ set = methodMaker (\a [b] -> Setter a b)
 
 -- * Loops
 
-for :: Expr r -> M r a -> M r ()
-for cond code = write . f =<< mkCode code
+for :: forall r a. Expr r -> M r a -> M r ()
+for cond code = write @r . f =<< mkCode_ code
    where f = For Empty cond Empty
 
-forIn :: Expr p -> (Expr n -> M r ()) -> M r ()
+forIn :: forall r a b. Expr a -> (Expr b -> M r ()) -> M r ()
 forIn expr mkBlock = do
    name <- next
-   block <- mkCode $ mkBlock (EName name)
-   write $ ForIn name expr block
+   block <- mkCode_ $ mkBlock (EName name)
+   write @r $ ForIn name expr block
 
-forAwait :: Expr p -> (Expr n -> M r ()) -> M r ()
+forAwait :: forall r a b. Expr a -> (Expr b -> M r ()) -> M r ()
 forAwait expr mkBlock = do
    name <- next
-   block <- mkCode $ mkBlock (EName name)
-   write $ ForAwait name expr block
+   block <- mkCode_ $ mkBlock (EName name)
+   write @r $ ForAwait name expr block
 
-forOf :: Expr p -> (Expr n -> M r ()) -> M r ()
+forOf :: forall r a b. Expr a -> (Expr b -> M r ()) -> M r ()
 forOf expr mkBlock = do
    name <- next
-   block <- mkCode $ mkBlock (EName name)
-   write $ ForOf name expr block
+   block <- mkCode_ $ mkBlock (EName name)
+   write @r $ ForOf name expr block
 
-while :: Expr r -> M r a -> M r ()
-while cond code = write . f =<< mkCode code
+while :: forall r a. Expr r -> M r a -> M r ()
+while cond code = write @r . f =<< mkCode_ code
    where f = While cond
 
-break :: M r ()
-break = write $ Break Nothing
+break :: forall r. M r ()
+break = write @r $ Break Nothing
 
-continue :: M r ()
-continue = write $ Continue Nothing
+continue :: forall r. M r ()
+continue = write @r $ Continue Nothing
 
 -- * Async/await
 
@@ -232,14 +239,14 @@ await :: Expr a -> JS.M r (Expr a)
 await = let_ . Syntax.Await
 {-# DEPRECATED await "Use const $ Await instead." #-}
 
--- | Make a promise out of a function through async
+-- -- | Make a promise out of a function through async
 promise :: Function f => f -> JS.M r (Promise b)
 promise f = call0 <$> async f
 
 -- * Unsorted
 
 blockExpr :: M r a -> M r (Expr r)
-blockExpr = fmap (AnonFunc Nothing []) . mkCode
+blockExpr = fmap (AnonFunc Nothing []) . mkCode_
 -- ^ Writes argument 'M r a' to writer and returns a callable name
 
 -- * Typed functions
@@ -265,14 +272,33 @@ lib :: M r (Expr a) -> M r (Expr a)
 lib mcode = do
   env <- ask
   let
-    State fresh used lib = def
-    codeText = render env . snd . fst . run env fresh used lib $ mcode -- fix: take config from somewhere
+    JS.State fresh used lib = def
+    codeText = render env $ resultCode $ run env lib used fresh $ mcode
     codeHash = H.hash codeText
     nameExpr = EName $ Name $ "h" <> TS.replace "-" "_" (TL.toStrict $ tshow codeHash)
 
-  set <- gets (^.library)
+  set <- getLibrary
   when (P.not $ codeHash `S.member` set) $ do
     f <- mcode
     nameExpr .= f
-    modify (library %~ S.insert codeHash)
+    modifyLibrary (S.insert codeHash)
   return nameExpr
+
+-- * Convenience
+
+-- | Runs code in another context with no ability to return
+noReturn :: forall r a. M Void a -> M r ()
+noReturn mcode = do
+  code :: Code Void <- mkCode @r @Void mcode
+  mapM_ (write @r . Syntax.NoReturn) code
+
+-- * Convenience
+
+instance Render (M r a) where
+  type Conf (M r a) = Syntax.Conf
+  renderM m = do
+    env <- Control.Monad.Reader.ask
+    renderM $ resultCode $ runEmpty env $ m
+
+pr :: M r a -> IO ()
+pr = TL.putStrLn . render (Syntax.Indent 2)
