@@ -4,18 +4,18 @@ module Identifiers
    , identifierSource
    , identifiersFilter
    , next
-   , Infinite(..), toInfinite
    , Increment(..)
+   , module Identifiers.Infinite
    ) where
 
 import Prelude
 import Data.Function (on)
 import Data.List (sort, sortBy, nub, groupBy)
 import Control.Monad.State
-
 import qualified Data.Text as T
-
 import Control.Lens
+
+import Identifiers.Infinite
 
 -- * State helper
 
@@ -78,12 +78,6 @@ identifiersFilter li = filterFrom (lengthAlphaSort reserved) $ map T.reverse $ s
 
 -- * Infinite
 
-data Infinite a = Infinite a (Infinite a) deriving Functor
-
-toInfinite :: [a] -> Infinite a
-toInfinite xs' = case xs' of
-  (x : xs) -> Infinite x (toInfinite xs)
-  _ -> error "this should never happen"
 
 -- * Increment
 
