@@ -46,7 +46,10 @@ ecma6 = [ "do", "if", "in", "for", "let", "new", "try", "var", "case", "else",
    ]
 
 validIdentifiers :: Infinite Text
-validIdentifiers = fmap pack $ orderedFilter reserved $ bigEndian alphabet
+validIdentifiers = validIdentifiersFilter []
+
+validIdentifiersFilter :: [String] -> Infinite Text
+validIdentifiersFilter plus = fmap pack $ orderedFilter reserved $ bigEndian alphabet
   where
     alphabet = ['a' .. 'z']
-    reserved = ecma1 <> ecma2 <> ecma5 <> ecma6
+    reserved = plus <> ecma1 <> ecma2 <> ecma5 <> ecma6

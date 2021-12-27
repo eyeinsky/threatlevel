@@ -4,4 +4,4 @@ module JS.Syntax
 
 import JS.Syntax.Types as Export
 import JS.Syntax.Render as Export (Conf(..), unargs)
-import JS.Syntax.Reserved as Export (validIdentifiers)
+import JS.Syntax.Reserved as Export (validIdentifiers, validIdentifiersFilter)
