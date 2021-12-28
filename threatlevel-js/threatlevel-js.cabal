@@ -41,6 +41,8 @@ library
       JS.DSL.Core
       JS.DSL.MTL
       JS.DSL.Polysemy
+      JS.DSL.Polysemy.Core
+      JS.DSL.Polysemy.Function
       JS.DSL.Syntax
       JS.Syntax.AST
       JS.Syntax.Render
