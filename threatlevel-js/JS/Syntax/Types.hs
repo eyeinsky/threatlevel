@@ -75,6 +75,10 @@ data Expr a where
    YieldDelegate :: Expr a -> Expr b
    Await     :: Expr a -> Expr b
 
+   -- * Classes
+   -- | @class extends Other {...}@
+   ClassExpr :: Maybe Name -> [ClassBodyPart] -> Expr r
+   -- | @new returnsClass(...)@
    New       :: Expr a -> Expr b
 
 type FormalArgs = [Name]

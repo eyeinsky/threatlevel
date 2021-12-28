@@ -102,13 +102,7 @@ instance Render (Statement a) where
           in mseq $ nl : cases' <> [def']
       in pre <+> (curly <$> body)
 
-    Class name maybeExtends bodyParts -> mseq
-      [ pure "class "
-      , renderM name
-      , maybe (pure "") (\name -> pure " extends " <+> renderM name) maybeExtends
-      , pure " "
-      , Render.curly <$> indented bodyParts
-      ]
+    Class name maybeExtends bodyParts -> renderClassDef (Just name) maybeExtends bodyParts
 
     NoReturn stm -> renderM stm
 
@@ -155,9 +149,17 @@ instance Render (Expr a) where
     YieldDelegate e -> pure "yield* " <+> renderM e
     Await e -> pure "await " <+> renderM e
 
+    ClassExpr maybeExtends bodyParts -> renderClassDef Nothing maybeExtends bodyParts
     New e -> pure "new " <+> renderM e
 
-    -- TypedFDef _ _ -> todo
+renderClassDef :: Maybe Name -> Maybe Name -> [ClassBodyPart] -> ReaderT Conf Identity Text
+renderClassDef maybeName maybeExtends bodyParts = mseq
+  [ pure "class "
+  , maybe (pure "") (\name -> renderM name <+> pure " ") maybeName
+  , maybe (pure "") (\name -> pure " extends " <+> renderM name) maybeExtends
+  , pure " "
+  , Render.curly <$> indented bodyParts
+  ]
 
 instance Render ClassBodyPart where
   type Conf ClassBodyPart = Conf
