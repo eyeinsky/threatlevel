@@ -161,9 +161,3 @@ instance MonadWriter w m => MonadWriter w (WebT m) where
 
 instance MonadFail m => MonadFail (WebT m) where
   fail _ = undefined
-
--- ** Helpers
-
-newId :: MonadWeb m => m Id
-newId = cssId $ return ()
-{-# DEPRECATED newId "Use `cssId (pure ())` instead." #-}
