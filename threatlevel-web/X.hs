@@ -286,30 +286,6 @@ jsHref url = HTML.href (Dynamic $ Cast url)
 
 -- * HTTP.Request
 
-hasCookie :: TS.Text -> TS.Text -> Wai.Request -> P.Bool
-hasCookie k v = getCookie k ^ maybe False (v ==)
-
-getCookie :: TS.Text -> Wai.Request -> Maybe TS.Text
-getCookie k = requestCookies >=> lookup k
-
-requestCookies :: Wai.Request -> Maybe Wai.CookiesText
-requestCookies = Wai.requestHeaders
-  ^ lookup Wai.hCookie
-  ^ fmap Wai.parseCookiesText
-
-postKvs req = do
-  bs <- getRequestBody req
-  return $ Wai.parseQueryText $ BL.toStrict bs
-
-queryParam' :: TS.Text -> Wai.Request -> Maybe (Maybe TS.Text)
-queryParam' name req = lookup name $ queryText req
-
-queryParam :: TS.Text -> Wai.Request -> Maybe TS.Text
-queryParam name req = join $ queryParam' name req
-
-hasParam :: TS.Text -> Wai.Request -> Bool
-hasParam name req = isJust $ lookup name $ queryText req
-
 -- * HTML
 
 -- ** Back-end
@@ -417,9 +393,6 @@ redirectToHttps url =
     settings = Warp.setPort 80 Warp.defaultSettings
 
 -- * Request
-
-queryText :: Wai.Request -> Wai.QueryText
-queryText = Wai.queryString ^ Wai.queryToQueryText
 
 -- textFormSubmission :: Request -> IO [(Maybe TL.Text, Maybe (Maybe TL.Text))]
 formSubmission :: Wai.Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
