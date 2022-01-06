@@ -1,8 +1,13 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module JS.DSL.Polysemy.Function where
 
-import Common.Prelude hiding (Type, next)
+import Common.Prelude hiding (next)
 import JS.Syntax as Syntax
 import JS.DSL.Polysemy.Core
+
+import Polysemy hiding (Final, run)
+import Polysemy.Writer qualified as Polysemy
+import Polysemy.State qualified as Polysemy
 
 -- * Typed functions
 
@@ -10,21 +15,22 @@ import JS.DSL.Polysemy.Core
 -- used in the function body, and returns the generated names -- to be
 -- used in AST of function definition.
 class Function a where
-   type Type a
-   type Final a
-   funcLit :: a -> M (Final a) [Name]
+   type FunctionType a
+   type ReturnType a
+   funcLit :: a -> M (ReturnType a) [Name]
+
 instance Function (M r a) where
-   type Type (M r a) = r
-   type Final (M r a) = r
+   type FunctionType (M r a) = r
+   type ReturnType (M r a) = r
    funcLit = ($> [])
 instance Function (Expr a) where
-   type Type (Expr a) = a
-   type Final (Expr a) = a
+   type FunctionType (Expr a) = a
+   type ReturnType (Expr a) = a
    funcLit :: Expr a -> M a [Name]
    funcLit e = write @a (Return $ Cast e) $> []
 instance (Function b) => Function (Expr a -> b) where
-   type Type (Expr a -> b) = a -> Type b
-   type Final (Expr a -> b) = Final b
+   type FunctionType (Expr a -> b) = a -> FunctionType b
+   type ReturnType (Expr a -> b) = ReturnType b
    funcLit f = do
       arg <- next
       args <- funcLit (f $ EName $ arg)
@@ -46,10 +52,10 @@ instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
 
 -- | Shorthand for clearer type signature. One of @AnonFunc@,
 -- @Generator@, @Async@
-type FuncConstr f = Maybe Name -> [Name] -> Code (Final f) -> Expr (Type f)
+type FuncConstr f = Maybe Name -> [Name] -> Code (ReturnType f) -> Expr (FunctionType f)
 
 -- | Create function, getting state and reader from enclosing monad.
-func :: forall r f . Function f => FuncConstr f -> f -> M r (Expr (Type f))
+func :: forall r f . Function f => FuncConstr f -> f -> M r (Expr (FunctionType f))
 func constr f = do
   env <- askEnv
   (a, new) <- funcPrim env constr <$> getState <*> pure f
@@ -58,17 +64,53 @@ func constr f = do
     -- | Create function from a literal: provide JSM state and reader
     funcPrim
       :: Function a
-      => Syntax.Conf -> FuncConstr a -> State -> a -> (Expr (Type a), State)
+      => Syntax.Conf -> FuncConstr a -> State -> a -> (Expr (FunctionType a), State)
     funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
        where
          ((args, code), s1) = run env lib used fresh (funcLit fexp)
 
 
 -- | Return formal arguments and
-bla :: forall r f . Function f => f -> M r ([Name], Code (Final f))
-bla fexp = do
-  env <- askEnv
-  State fresh used lib <- getState
-  let ((args, code), new) = run env lib used fresh (funcLit fexp)
-  putState new
-  return (args, code)
+-- bla :: forall r m f . Function f => () -> Poly r m ([Name], Code (ReturnType f))
+-- bla () = do
+--  env <- askEnv
+--  State fresh used lib <- getState
+--  let ((args, code), new) = run env lib used fresh undefined -- (funcLit fexp)
+--  putState new
+  -- return (args, code)
+--  undefined
+
+type C' m =
+  ( Polysemy.State Idents `Member` m
+  )
+
+class Function' f r where
+  type FunctionType' f r :: k
+  funcLit' :: forall m . C' m => f -> Sem m [Name]
+
+instance C' m => Function' (Sem m a) r where
+  type FunctionType' (Sem m a) r = r
+  funcLit' _ = pure []
+
+instance (Function' f r) => Function' (Expr a -> f) r where
+  type FunctionType' (Expr a -> f) r = a -> FunctionType' f r
+  funcLit' :: C' m => (Expr a -> f) -> Sem m [Name]
+  funcLit' f = do
+    arg <- next
+    args <- funcLit' @f @r (f $ EName arg)
+    return (arg : args)
+
+type FunctionSyntax' f r = Maybe Name -> [Name] -> Code () -> Expr (FunctionType' f r)
+
+-- | Create function, getting state and reader from enclosing monad.
+func'
+  :: forall r m f
+   . (Function' f r)
+  => f
+  -> FunctionSyntax' f r
+  -> Poly r m (Expr (FunctionType' f r))
+func' fLit syntax = do
+  let body = funcLit' @f @r @m fLit :: Sem m [Name]
+  args <- body
+  let fSyntax = syntax Nothing args (undefined :: Code ()) :: Expr (FunctionType' f r)
+  return fSyntax
