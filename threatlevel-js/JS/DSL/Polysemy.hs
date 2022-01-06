@@ -6,7 +6,7 @@ module JS.DSL.Polysemy
   , M
   , run, runEmpty, JS.State(..), askEnv
   , mkCode, mkCode_, next
-  , Function, func, Final
+  -- , Function, func
   , library
   ) where
 
@@ -28,12 +28,6 @@ import Render
 import JS.Syntax as Syntax
 import JS.DSL.Polysemy.Function as JS
 import JS.DSL.Polysemy.Core as JS
-
--- import Polysemy hiding (run, Final) -- todo
--- import Polysemy.State -- qualified as Polysemy
--- import Polysemy.Reader -- qualified as Polysemy
--- import Polysemy.Writer -- qualified as Polysemy
--- import Polysemy.Fixpoint -- qualified as Polysemy
 
 
 runEmpty :: Syntax.Conf -> M r a -> Result r a
@@ -263,11 +257,15 @@ blockExpr = fmap (AnonFunc Nothing []) . mkCode_
 
 -- -- * Typed functions
 
-newf :: forall r m f . Function f => f -> Poly r m (Expr (JS.Type f))
 -- newf, async, generator :: forall r m f . Function f => f -> Poly r m (Expr (JS.Type f))
-newf f = do
-  x <- func AnonFunc f
-  let_ @r x -- <=<
+-- newf :: forall r m f . Function f => f -> Poly r m (Expr (JS.Type f))
+-- newf f = do
+  -- x <- func AnonFunc f
+  -- let_ @r x -- <=<
+
+-- test :: forall r m . Poly r m ()
+-- test = do
+--   embed (undefined :: M r ())
 
 -- async = let_ @r <=< func Async
 -- generator = let_ @r <=< func Generator
