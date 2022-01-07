@@ -3,11 +3,11 @@
 -- {-# LANGUAGE NoMonomorphismRestriction #-}
 module JS.DSL.Polysemy
   ( module JS.DSL.Polysemy
-  , M
-  , run, runEmpty, JS.State(..), askEnv
-  , mkCode, mkCode_, next
+  -- , M
+  -- , run, runEmpty, JS.State(..), askEnv
+  -- , mkCode, mkCode_, next
   -- , Function, func
-  , library
+  -- , library
   ) where
 
 import qualified Prelude as P
@@ -30,113 +30,113 @@ import JS.DSL.Polysemy.Function as JS
 import JS.DSL.Polysemy.Core as JS
 
 
-runEmpty :: Syntax.Conf -> M r a -> Result r a
-runEmpty env m = run env mempty mempty validIdentifiers m
+-- runEmpty :: Syntax.Conf -> M r a -> Result r a
+-- runEmpty env m = run env mempty mempty validIdentifiers m
 
--- -- * Variable
+-- -- -- * Variable
 
--- -- ** Declaration
+-- -- -- ** Declaration
 
-bind
-  :: forall r m a b
-   . (Name -> Expr a -> Statement r) -> Expr a -> Name -> Poly r m (Expr b)
-bind decl expr name = do
-  write $ decl name expr
-  return $ EName name
+-- bind
+--   :: forall r m a b
+--    . (Name -> Expr a -> Statement r) -> Expr a -> Name -> Poly r m (Expr b)
+-- bind decl expr name = do
+--   write $ decl name expr
+--   return $ EName name
 
-newPrim
-  :: forall r m a
-   . (Name -> Expr a -> Statement r) -> Expr a -> Poly r m (Expr a)
-newPrim kw e = bind kw e =<< next
+-- newPrim
+--   :: forall r m a
+--    . (Name -> Expr a -> Statement r) -> Expr a -> Poly r m (Expr a)
+-- newPrim kw e = bind kw e =<< next
 
-new, let_, const, var :: forall r m a . Expr a -> Poly r m (Expr a)
-new e = newPrim @r VarDef e
-{-# DEPRECATED new "Use const, let_ or var instead." #-}
-var = new @r
-let_ = newPrim @r Let
-const = newPrim @r Const
+-- new, let_, const, var :: forall r m a . Expr a -> Poly r m (Expr a)
+-- new e = newPrim @r VarDef e
+-- {-# DEPRECATED new "Use const, let_ or var instead." #-}
+-- var = new @r
+-- let_ = newPrim @r Let
+-- const = newPrim @r Const
 
-new' :: forall r m a . TS.Text -> Expr a -> Poly r m (Expr a)
-new' n e = bind @r Let e =<< pushName n
+-- new' :: forall r m a . TS.Text -> Expr a -> Poly r m (Expr a)
+-- new' n e = bind @r Let e =<< pushName n
 
-bare :: forall r m a . Expr a -> Poly r m ()
-bare e  = write @r $ BareExpr e
+-- bare :: forall r m a . Expr a -> Poly r m ()
+-- bare e  = write @r $ BareExpr e
 
-block :: forall r m a . M r a -> Poly r m (Expr r)
-block    = let_ @r <=< blockExpr
+-- block :: forall r m a . M r a -> Poly r m (Expr r)
+-- block    = let_ @r <=< blockExpr
 
-block' :: forall r m a . TS.Text -> M r a -> Poly r m (Expr r)
-block' n = new' @r n <=< blockExpr
+-- block' :: forall r m a . TS.Text -> M r a -> Poly r m (Expr r)
+-- block' n = new' @r n <=< blockExpr
 
--- -- ** Assignment
+-- -- -- ** Assignment
 
--- | Shorthands for assignment statement
-infixr 4 .=
-(.=) :: forall r m a b. Expr a -> Expr b -> Poly r m ()
-lhs .= rhs = write @r $ BareExpr $ lhs `Assign` rhs
+-- -- | Shorthands for assignment statement
+-- infixr 4 .=
+-- (.=) :: forall r m a b. Expr a -> Expr b -> Poly r m ()
+-- lhs .= rhs = write @r $ BareExpr $ lhs `Assign` rhs
 
--- | @infixr 0@ shorthand for assignment statement -- for combining
--- with the dollar operator (@$@).
-(.=$) :: forall r m a b . Expr a -> Expr b -> Poly r m ()
-(.=$) = (.=) @r
-infixr 0 .=$
+-- -- | @infixr 0@ shorthand for assignment statement -- for combining
+-- -- with the dollar operator (@$@).
+-- (.=$) :: forall r m a b . Expr a -> Expr b -> Poly r m ()
+-- (.=$) = (.=) @r
+-- infixr 0 .=$
 
--- | Compound assignments in statement form
-(.+=), (.-=), (.*=) :: forall r m a . Num (Expr a) => Expr a -> Expr a -> Poly r m ()
-a .+= b = (.=) @r a (a + b)
-a .-= b = (.=) @r a (a - b)
-a .*= b = (.=) @r a (a * b)
-(./=) :: forall r m a . Fractional (Expr a) => Expr a -> Expr a -> Poly r m ()
-a ./= b = (.=) @r a (a P./ b)
+-- -- | Compound assignments in statement form
+-- (.+=), (.-=), (.*=) :: forall r m a . Num (Expr a) => Expr a -> Expr a -> Poly r m ()
+-- a .+= b = (.=) @r a (a + b)
+-- a .-= b = (.=) @r a (a - b)
+-- a .*= b = (.=) @r a (a * b)
+-- (./=) :: forall r m a . Fractional (Expr a) => Expr a -> Expr a -> Poly r m ()
+-- a ./= b = (.=) @r a (a P./ b)
 
--- -- * Comment
+-- -- -- * Comment
 
--- -- | Stopgap until syntax for block and single-line comments
-comment :: forall r m . TS.Text -> Poly r m ()
-comment text = bare @r $ ex $ "// " <> text
+-- -- -- | Stopgap until syntax for block and single-line comments
+-- comment :: forall r m . TS.Text -> Poly r m ()
+-- comment text = bare @r $ ex $ "// " <> text
 
--- -- * Control flow
+-- -- -- * Control flow
 
-ifmelse :: forall r m a. Expr Bool -> M r a -> Maybe (M r a) -> Poly r m ()
-ifmelse cond true mFalse = do
-   trueCode <- mkCode_ true
-   mElseCode <- maybe (return Nothing) (fmap Just . mkCode_) mFalse
-   write $ IfElse cond trueCode mElseCode
+-- ifmelse :: forall r m a. Expr Bool -> M r a -> Maybe (M r a) -> Poly r m ()
+-- ifmelse cond true mFalse = do
+--    trueCode <- mkCode_ true
+--    mElseCode <- maybe (return Nothing) (fmap Just . mkCode_) mFalse
+--    write $ IfElse cond trueCode mElseCode
 
-ifelse :: Expr Bool -> M r a -> M r a -> Poly r m ()
-ifelse c t e = ifmelse c t (Just e)
+-- ifelse :: Expr Bool -> M r a -> M r a -> Poly r m ()
+-- ifelse c t e = ifmelse c t (Just e)
 
-ifonly :: Expr Bool -> M r a -> Poly r m ()
-ifonly c t   = ifmelse c t Nothing
+-- ifonly :: Expr Bool -> M r a -> Poly r m ()
+-- ifonly c t   = ifmelse c t Nothing
 
-return_ :: forall r m . Expr r -> Poly r m ()
-return_ e = write @r $ Return $ Cast e
+-- return_ :: forall r m . Expr r -> Poly r m ()
+-- return_ e = write @r $ Return $ Cast e
 
-retrn :: forall r m . Expr r -> Poly r m ()
-retrn = return_
+-- retrn :: forall r m . Expr r -> Poly r m ()
+-- retrn = return_
 
-empty :: forall r m . Poly r m ()
-empty = write @r Empty
+-- empty :: forall r m . Poly r m ()
+-- empty = write @r Empty
 
--- -- * Try/catch
+-- -- -- * Try/catch
 
-tryCatch :: forall r m a . M r () -> (Expr a -> M r ()) -> Poly r m ()
-tryCatch try catch = do
-  try' <- mkCode_ try
-  err <- next
-  catch' <- mkCode_ $ catch (EName err)
-  write $ TryCatchFinally try' [(err, catch')] Nothing
+-- tryCatch :: forall r m a . M r () -> (Expr a -> M r ()) -> Poly r m ()
+-- tryCatch try catch = do
+--   try' <- mkCode_ try
+--   err <- next
+--   catch' <- mkCode_ $ catch (EName err)
+--   write $ TryCatchFinally try' [(err, catch')] Nothing
 
-tryCatchFinally :: forall r m a . M r () -> (Expr a -> M r ()) -> M r () -> Poly r m ()
-tryCatchFinally try catch finally = do
-  try' <- mkCode_ try
-  err <- next
-  catch' <- mkCode_ $ catch (EName err)
-  finally' <- mkCode_ finally
-  write $ TryCatchFinally try' [(err, catch')] (Just finally')
+-- tryCatchFinally :: forall r m a . M r () -> (Expr a -> M r ()) -> M r () -> Poly r m ()
+-- tryCatchFinally try catch finally = do
+--   try' <- mkCode_ try
+--   err <- next
+--   catch' <- mkCode_ $ catch (EName err)
+--   finally' <- mkCode_ finally
+--   write $ TryCatchFinally try' [(err, catch')] (Just finally')
 
-throw :: forall r m a. Expr a -> Poly r m ()
-throw e = write @r $ Throw e
+-- throw :: forall r m a. Expr a -> Poly r m ()
+-- throw e = write @r $ Throw e
 
 -- -- * Swtich
 
@@ -205,45 +205,45 @@ throw e = write @r $ Throw e
 
 -- -- * Loops
 
-for :: forall r m a . Expr r -> M r a -> Poly r m ()
-for cond code = write @r . f =<< mkCode_ code
-   where f = For Empty cond Empty
+-- for :: forall r m a . Expr r -> M r a -> Poly r m ()
+-- for cond code = write @r . f =<< mkCode_ code
+--    where f = For Empty cond Empty
 
-forIn :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
-forIn expr mkBlock = do
-   name <- next
-   block <- mkCode_ $ mkBlock (EName name)
-   write @r $ ForIn name expr block
+-- forIn :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
+-- forIn expr mkBlock = do
+--    name <- next
+--    block <- mkCode_ $ mkBlock (EName name)
+--    write @r $ ForIn name expr block
 
-forAwait :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
-forAwait expr mkBlock = do
-   name <- next
-   block <- mkCode_ $ mkBlock (EName name)
-   write @r $ ForAwait name expr block
+-- forAwait :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
+-- forAwait expr mkBlock = do
+--    name <- next
+--    block <- mkCode_ $ mkBlock (EName name)
+--    write @r $ ForAwait name expr block
 
-forOf :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
-forOf expr mkBlock = do
-   name <- next
-   block <- mkCode_ $ mkBlock (EName name)
-   write @r $ ForOf name expr block
+-- forOf :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
+-- forOf expr mkBlock = do
+--    name <- next
+--    block <- mkCode_ $ mkBlock (EName name)
+--    write @r $ ForOf name expr block
 
-while :: forall r m a . Expr r -> M r a -> Poly r m ()
-while cond code = write @r . f =<< mkCode_ code
-   where f = While cond
+-- while :: forall r m a . Expr r -> M r a -> Poly r m ()
+-- while cond code = write @r . f =<< mkCode_ code
+--    where f = While cond
 
-break :: forall r m . Poly r m ()
-break = write @r $ Break Nothing
+-- break :: forall r m . Poly r m ()
+-- break = write @r $ Break Nothing
 
-continue :: forall r m . Poly r m ()
-continue = write @r $ Continue Nothing
+-- continue :: forall r m . Poly r m ()
+-- continue = write @r $ Continue Nothing
 
 -- -- * Async/await
 
-type Promise = Expr
+-- type Promise = Expr
 
-await :: forall r m a . Expr a -> Poly r m (Expr a)
-await = let_ @r . Syntax.Await
-{-# DEPRECATED await "Use const $ Await instead." #-}
+-- await :: forall r m a . Expr a -> Poly r m (Expr a)
+-- await = let_ @r . Syntax.Await
+-- {-# DEPRECATED await "Use const $ Await instead." #-}
 
 -- -- -- | Make a promise out of a function through async
 -- promise :: forall r m f a . Function f => f -> Poly r m (Promise a)
@@ -251,8 +251,8 @@ await = let_ @r . Syntax.Await
 
 -- -- * Unsorted
 
-blockExpr :: forall r m a . M r a -> Poly r m (Expr r)
-blockExpr = fmap (AnonFunc Nothing []) . mkCode_
+-- blockExpr :: forall r m a . M r a -> Poly r m (Expr r)
+-- blockExpr = fmap (AnonFunc Nothing []) . mkCode_
 -- ^ Writes argument 'M r a' to writer and returns a callable name
 
 -- -- * Typed functions
@@ -301,18 +301,18 @@ blockExpr = fmap (AnonFunc Nothing []) . mkCode_
 -- -- * Convenience
 
 -- -- | Runs code in another context with no ability to return
-noReturn :: forall r m a. M Void a -> Poly r m ()
-noReturn mcode = do
-  code :: Code Void <- mkCode @r @Void mcode
-  mapM_ (write @r . Syntax.NoReturn) code
+-- noReturn :: forall r m a. M Void a -> Poly r m ()
+-- noReturn mcode = do
+--   code :: Code Void <- mkCode @r @Void mcode
+--   mapM_ (write @r . Syntax.NoReturn) code
 
 -- -- * Convenience
 
-instance Render (M r a) where
-  type Conf (M r a) = Syntax.Conf
-  renderM m = do
-    env <- Control.Monad.Reader.ask
-    renderM $ resultCode $ runEmpty env $ m
+-- instance Render (M r a) where
+--   type Conf (M r a) = Syntax.Conf
+--   renderM m = do
+--     env <- Control.Monad.Reader.ask
+--     renderM $ resultCode $ runEmpty env $ m
 
-pr :: M r a -> IO ()
-pr = TL.putStrLn . render (Syntax.Indent 2)
+-- pr :: M r a -> IO ()
+-- pr = TL.putStrLn . render (Syntax.Indent 2)

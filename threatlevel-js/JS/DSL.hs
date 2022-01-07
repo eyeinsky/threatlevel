@@ -12,6 +12,19 @@ module JS.DSL
   ) where
 
 import JS.DSL.Syntax as Export
-import JS.DSL.MTL as Export
--- import JS.DSL.Polysemy as Export
+-- import JS.DSL.MTL as Export
+import JS.DSL.Polysemy as Export
 import JS.Syntax
+
+
+
+
+-- import Common.Prelude
+
+-- bla :: M () ()
+-- bla = do
+--   i <- const @() (1 :: Expr Int)
+--   bare @() $ call (ex "console" !. "log") []
+--   return ()
+
+-- hot = pr @() @() bla
