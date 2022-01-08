@@ -177,3 +177,8 @@ call0 f = FuncCall f []
 
 call1 :: Expr a -> Expr b -> Expr c
 call1 f a = FuncCall f [a]
+
+type FuncConstr a b = Maybe Name -> [Name] -> Code a -> Expr b
+
+-- | Common type for @VarDef@, @Let@ and @Const@
+type VarDecl a b = Name -> Expr a -> Statement b

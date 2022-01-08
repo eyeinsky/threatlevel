@@ -5,6 +5,7 @@ module JS.DSL.Polysemy.Core
 --  , module Export
   , Core.State(..)
   , ask, put
+  , module Polysemy
   ) where
 
 import Common.Prelude hiding (next)
@@ -34,15 +35,20 @@ type Base e =
 type BaseMono e {-a-} = Sem (Base e) {-a-}
 type BaseResult r a = (Lib, (Used, (Idents, (Code r, a))))
 
--- type Poly e r a = Members (Base e) r => Sem r a
 
 -- * Effect
 
+-- @r@: row, only used for DefineFunction to have fbody row the same as the outer
+-- @e@: return type of the current monad expression
+-- @m r@: the Effect
 data JS r e m a where
   GetFreshIdentifier :: JS r e m Name
   GetPrefixedIdentifier :: TS.Text -> JS r e m Name
   EmitStatement :: Statement e -> JS r e m ()
-  DefineFunction :: (Base _e ~ r) => Sem (JS r _e : r) _a -> JS r e m (Code _e)
+  DefineFunction
+    :: (Base _e ~ r)
+    => Name
+    -> Sem (JS r _e : r) _a -> JS r e m (Code _e)
   -- ^ @s@ is the monomorphic rest of the effects under JS that need
   -- to contain Base. It's required because otherwise from final type
   -- @JS e m ()@ (the @s@ omitted) we wouldn't know what the sub-row
@@ -59,11 +65,11 @@ jsToBase
   -- ^ run sub-JS to syntax syntax
   -> Sem (JS r e : r) a -> Sem r a
 jsToBase f = interpret $ \case
-  GetFreshIdentifier -> do
+  GetFreshIdentifier -> do -- next
     Infinite x xs <- get
     put xs
     return $ Name x
-  GetPrefixedIdentifier name -> do
+  GetPrefixedIdentifier name -> do -- pushName
     names :: Used <- get
     case HS.lookup name names of
       Just (Infinite s uffixes) -> do
@@ -73,8 +79,8 @@ jsToBase f = interpret $ \case
         let suffixes = fmap TS.pack $ bigEndian ['a' .. 'z']
         modify @Used (HS.insert name suffixes)
         return $ Name name
-  EmitStatement stm -> tell (pure stm :: Code e)
-  DefineFunction (body :: Sem (JS r _e : r) _a) -> do
+  EmitStatement stm -> tell (pure stm :: Code e) -- write
+  DefineFunction name (body :: Sem (JS r _e : r) _a) -> do
     env :: Syntax.Conf <- ask
     fresh0 :: Idents <- get
     used0 :: Used <- get
@@ -86,6 +92,7 @@ jsToBase f = interpret $ \case
     put @Idents fresh1
     put @Used used1
     put @Lib lib1
+    tell @(Code e) $ pure $ Syntax.BareExpr $ Syntax.AnonFunc (Just name) [] code
     return code
 
 -- | Anything that can run monomorphic base
@@ -93,13 +100,13 @@ type RunBase a = Syntax.Conf -> Lib -> Used -> Idents -> a
 -- | Run monomorphic JS to result
 type RunMono e a = RunBase (Sem (JS (Base e) e : (Base e)) a -> BaseResult e a)
 
--- | Interpret @JS e@ in terms of @Base e@
-runMono :: forall e a . RunMono e a
-runMono env lib used fresh m = m
-  & jsToBase runMono
+-- | Run @JS@: just JS is run in terms of @Base e@)
+run :: forall e a . RunMono e a
+run env lib used fresh m = m
+  & jsToBase run
   & runBase env lib used fresh
 
--- | Run monomorphic
+-- | Run @Base e@
 runBase  :: RunBase (Sem (Base e) a -> (BaseResult e a))
 runBase env lib used fresh m = m
   & runWriter
@@ -111,16 +118,9 @@ runBase env lib used fresh m = m
   & runFinal
   & runIdentity
 
+getCode (lib, (used, (fresh, (code, a)))) = code
+
 -- * Old API defined in terms of JS
-
-write :: forall r s e . Member (JS s e) r => Statement e -> Sem r ()
-write = emitStatement @s
-
-next :: forall r e . Member (JS r e) r => Sem r Name
-next = getFreshIdentifier @r @e
-
-pushName :: forall r e . Member (JS r e) r => TS.Text -> Sem r Name
-pushName = getPrefixedIdentifier @r @e
 
 runBaseMonoToResult :: Syntax.Conf -> Lib -> Used -> Idents -> Sem (Base r) a -> Result r a
 runBaseMonoToResult env lib used fresh m = polysemy2common $ runBase env lib used fresh m

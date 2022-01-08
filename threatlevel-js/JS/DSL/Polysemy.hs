@@ -29,32 +29,37 @@ import JS.Syntax as Syntax
 import JS.DSL.Polysemy.Function as JS
 import JS.DSL.Polysemy.Core as JS
 
+runEmpty :: Syntax.Conf -> Sem (JS (Base e) e : Base e) a -> BaseResult e a
+runEmpty env m = run env mempty mempty validIdentifiers m
 
--- runEmpty :: Syntax.Conf -> M r a -> Result r a
--- runEmpty env m = run env mempty mempty validIdentifiers m
+-- * Variable
 
--- -- -- * Variable
+-- ** Declaration
 
--- -- -- ** Declaration
+type M r e a = Member (JS r e) r => Sem r a
 
--- bind
---   :: forall r m a b
---    . (Name -> Expr a -> Statement r) -> Expr a -> Name -> Poly r m (Expr b)
--- bind decl expr name = do
---   write $ decl name expr
---   return $ EName name
+bind
+  :: forall r e a b
+   . (VarDecl a e) -> Expr a -> Name -> M r e (Expr b)
+bind decl expr name = do
+  emitStatement @r (decl name expr)
+  return (EName name :: Expr b)
 
--- newPrim
---   :: forall r m a
---    . (Name -> Expr a -> Statement r) -> Expr a -> Poly r m (Expr a)
--- newPrim kw e = bind kw e =<< next
+newPrim
+  :: forall r e a
+   . (Name -> Expr a -> Statement e) -> Expr a -> M r e (Expr a)
+newPrim kw e = bind kw e =<< getFreshIdentifier @r @e
 
--- new, let_, const, var :: forall r m a . Expr a -> Poly r m (Expr a)
--- new e = newPrim @r VarDef e
--- {-# DEPRECATED new "Use const, let_ or var instead." #-}
--- var = new @r
--- let_ = newPrim @r Let
--- const = newPrim @r Const
+new, let_, const, var :: forall r e a . Expr a -> M r e (Expr a)
+new = newPrim @r @e VarDef
+{-# DEPRECATED new "Use const, let_ or var instead." #-}
+var = new @r @e
+let_ = newPrim @r @e Let
+const = newPrim @r @e Const
+
+hot = printJS $ do
+  return 1
+
 
 -- new' :: forall r m a . TS.Text -> Expr a -> Poly r m (Expr a)
 -- new' n e = bind @r Let e =<< pushName n
@@ -308,11 +313,13 @@ import JS.DSL.Polysemy.Core as JS
 
 -- -- * Convenience
 
--- instance Render (M r a) where
---   type Conf (M r a) = Syntax.Conf
---   renderM m = do
---     env <- Control.Monad.Reader.ask
---     renderM $ resultCode $ runEmpty env $ m
+instance Render (Sem (JS (Base e) e : (Base e)) a) where
+  type Conf (Sem (JS (Base e) e : (Base e)) a) = Syntax.Conf
+  renderM m = do
+    env <- Control.Monad.Reader.ask
+    renderM $ getCode $ runEmpty env m
 
--- pr :: M r a -> IO ()
--- pr = TL.putStrLn . render (Syntax.Indent 2)
+-- printJS
+--   :: (Render a, Render.Conf a ~ Syntax.Conf)
+--   => Sem (JS (Base e) e : (Base e)) a -> IO ()
+-- printJS = TL.putStrLn . render (Syntax.Indent 2)
