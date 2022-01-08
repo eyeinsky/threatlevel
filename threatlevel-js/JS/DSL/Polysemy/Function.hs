@@ -11,6 +11,10 @@ import Polysemy.State qualified as Polysemy
 
 -- * Typed functions
 
+-- | Shorthand for clearer type signature. One of @AnonFunc@,
+-- @Generator@, @Async@
+type FuncConstr' f = FuncConstr (ReturnType f) (FunctionType f)
+
 -- | @funcLit@ takes a literal haskell function, feeds it new names
 -- used in the function body, and returns the generated names -- to be
 -- used in AST of function definition.
@@ -19,9 +23,6 @@ class Function a where
    type ReturnType a
    funcLit :: Member (JS r e) r => a -> Sem r [Name]
 
--- | Shorthand for clearer type signature. One of @AnonFunc@,
--- @Generator@, @Async@
-type FuncConstr f = Maybe Name -> [Name] -> Code (ReturnType f) -> Expr (FunctionType f)
 
 -- instance Function (M r a) where
 --    type FunctionType (M r a) = r
@@ -58,8 +59,14 @@ type FuncConstr f = Maybe Name -> [Name] -> Code (ReturnType f) -> Expr (Functio
 -- -- | Create function, getting state and reader from enclosing monad.
 func
   :: forall r e f . (Member (JS r e) r, Function f)
-  => FuncConstr f -> f -> Sem r (Expr (FunctionType f))
+  => FuncConstr' f -> f -> Sem r (Expr (FunctionType f))
 func constr f = do
+  let fbody = funcLit @f @r @e f :: Sem r [Name]
+  -- ^ I think the @e@ means both current scope and function need to
+  -- have the same return type?
+
+--  defineFunction fbody
+
 --   env <- askEnv
 --   state <- getState
 --   let (a, new) = funcPrim env constr state f
