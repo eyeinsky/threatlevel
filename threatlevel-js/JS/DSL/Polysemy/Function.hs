@@ -21,7 +21,7 @@ type FuncConstr' f = FuncConstr (ReturnType f) (FunctionType f)
 class Function a where
    type FunctionType a
    type ReturnType a
-   funcLit :: Member (JS r e) r => a -> Sem r [Name]
+   funcLit :: Member (JS r) r => a -> Sem r [Name]
 
 
 -- instance Function (M r a) where
@@ -58,10 +58,10 @@ class Function a where
 
 -- -- | Create function, getting state and reader from enclosing monad.
 func
-  :: forall r e f . (Member (JS r e) r, Function f)
+  :: forall r f . (Member (JS r) r, Function f)
   => FuncConstr' f -> f -> Sem r (Expr (FunctionType f))
 func constr f = do
-  let fbody = funcLit @f @r @e f :: Sem r [Name]
+  let fbody = funcLit @f @r f :: Sem r [Name]
   -- ^ I think the @e@ means both current scope and function need to
   -- have the same return type?
 
