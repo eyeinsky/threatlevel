@@ -28,8 +28,9 @@ import Render
 import JS.Syntax as Syntax
 import JS.DSL.Polysemy.Function as JS
 import JS.DSL.Polysemy.Core as JS
+import JS.DSL.Syntax as JS
 
-runEmpty :: Syntax.Conf -> Sem (JS (Base e) e : Base e) a -> BaseResult e a
+runEmpty :: Syntax.Conf -> Sem (JS Base : Base) a -> BaseResult a
 runEmpty env m = run env mempty mempty validIdentifiers m
 
 -- * Variable
