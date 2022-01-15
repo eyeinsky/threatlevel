@@ -8,6 +8,7 @@ import qualified Data.Text.Lazy as TL
 
 
 type Code a = [Statement a]
+type Code_ = Code ()
 
 data Statement a where
    FuncDefStm :: Name -> [Name] -> Code a -> Statement b
