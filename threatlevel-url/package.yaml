@@ -45,6 +45,7 @@ default-extensions:
   - GADTs
   - GeneralizedNewtypeDeriving
   - InstanceSigs
+  - ImportQualifiedPost
   - KindSignatures
   - MultiParamTypeClasses
   - NamedFieldPuns

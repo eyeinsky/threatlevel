@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.5.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -89,6 +89,7 @@ library
       FunctionalDependencies
       GADTs
       InstanceSigs
+      ImportQualifiedPost
       KindSignatures
       LambdaCase
       MultiParamTypeClasses
@@ -190,6 +191,7 @@ test-suite test
       FunctionalDependencies
       GADTs
       InstanceSigs
+      ImportQualifiedPost
       KindSignatures
       LambdaCase
       MultiParamTypeClasses

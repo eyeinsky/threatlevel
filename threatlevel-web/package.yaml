@@ -138,6 +138,7 @@ default-extensions:
 - FunctionalDependencies
 - GADTs
 - InstanceSigs
+- ImportQualifiedPost
 - KindSignatures
 - LambdaCase
 - MultiParamTypeClasses

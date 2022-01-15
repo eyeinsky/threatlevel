@@ -17,6 +17,7 @@ default-extensions:
 - FunctionalDependencies
 - GADTs
 - GeneralizedNewtypeDeriving
+- ImportQualifiedPost
 - KindSignatures
 - MultiParamTypeClasses
 - NamedFieldPuns
