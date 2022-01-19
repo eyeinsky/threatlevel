@@ -54,7 +54,7 @@ instance Render (Statement a) where
 
     While cond code -> mseq
       [ pure "while"
-      , par <$> renderM cond
+      , renderM cond
       , curlyCode code
       ]
 
@@ -65,7 +65,7 @@ instance Render (Statement a) where
       [ pure "if"
       , par <$> renderM cond
       , curlyCode true
-      , maybe (pure "") (\else_ -> ("else" <>) <$> curlyCode else_) mbElse
+      , maybe (pure "") (\else_ -> (" else" <>) <$> curlyCode else_) mbElse
       ]
     Return expr -> pure "return " <+> renderM expr
     Empty -> pure ""
@@ -76,12 +76,12 @@ instance Render (Statement a) where
       pure "try" <+> curlyCode try
       <+> (mconcat <$> mapM mkCatchBlock catches)
       <+> maybe (pure mempty)
-          (fmap ("finally" <>) . curlyCode) maybeFinally
+          (fmap (" finally" <>) . curlyCode) maybeFinally
       where
         mkCatchBlock
           :: (Name, Code r) -> ReaderT Conf Identity TL.Text
         mkCatchBlock (err, code) = mseq
-          [ pure "catch"
+          [ pure " catch"
           , par <$> renderM err
           , curlyCode code
           ]
@@ -134,9 +134,9 @@ instance Render (Expr a) where
     Lit lit -> renderM lit
     Op opExpr -> renderM opExpr
     FuncCall name exprs -> renderM name <+> unargs exprs
-    AnonFunc mbName as code -> function "function " mbName as code
-    Generator mbName as code -> function "function* " mbName as code
-    Async mbName as code -> function "async function " mbName as code
+    AnonFunc mbName as code -> function "function" mbName as code
+    Generator mbName as code -> function "function*" mbName as code
+    Async mbName as code -> function "async function" mbName as code
     Ternary b t f -> par <$> mseq [renderM b, pure "?", renderM t, pure ":", renderM f]
     Null -> pure "null"
     Undefined -> pure "undefined"
@@ -191,9 +191,8 @@ prefix word a = pure word <+> pure " " <+> renderM a
 
 function :: TL.Text -> Maybe Name -> [Name] -> Code b -> ReaderT Conf Identity TL.Text
 function kw mbName as code = mseq
-  [ pure $ kw <> TL.fromStrict (maybe "" coerce mbName)
+  [ pure $ kw <> TL.fromStrict (maybe "" ((" "<>) . coerce) mbName)
   , unargs as
-  , pure " "
   , curlyCode code
   ]
 
