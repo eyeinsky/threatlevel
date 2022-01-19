@@ -32,7 +32,7 @@ instance Render (Statement a) where
   type Conf (Statement a) = Conf
   renderM stm = case stm of
     Var name -> var name
-    VarDef name exp -> var name =: renderM exp
+    VarDef name exp -> var name `assign` renderM exp
     BareExpr expr -> renderM expr
     For init cond post conts -> mseq
       [ pure "for"
@@ -69,8 +69,8 @@ instance Render (Statement a) where
       ]
     Return expr -> pure "return " <+> renderM expr
     Empty -> pure ""
-    Let name exp -> define "let " name =: renderM exp
-    Const name exp -> define "const " name =: renderM exp
+    Let name exp -> define "let " name `assign` renderM exp
+    Const name exp -> define "const " name `assign` renderM exp
     FuncDefStm name as code -> function "function " (Just name) as code
     TryCatchFinally try catches maybeFinally ->
       pure "try" <+> curlyCode try
@@ -126,7 +126,7 @@ instance Render (Statement a) where
 instance Render (Expr a) where
   type Conf (Expr a) = Conf
   renderM expr = case expr of
-    Assign e1 e2 -> renderM e1 =: renderM e2
+    Assign e1 e2 -> renderM e1 `assign` renderM e2
     EName name -> renderM name
     Arr arrExpr ixExpr -> renderM arrExpr <+> (ang <$> renderM ixExpr)
     In str obj -> renderM str <+> pure " in " <+> renderM obj
@@ -197,8 +197,8 @@ function kw mbName as code = mseq
   , curlyCode code
   ]
 
-(=:) :: (Monoid b, Applicative f, IsString b) => f b -> f b -> f b
-a =: b = a <+> pure " = " <+> b
+assign :: (Monoid b, Applicative f, IsString b) => f b -> f b -> f b
+assign a b = a <+> pure " = " <+> b
 
 unargs :: Render a => [a] -> ReaderT (Render.Conf a) Identity TL.Text
 unargs li = par . uncomma <$> mapM renderM li
