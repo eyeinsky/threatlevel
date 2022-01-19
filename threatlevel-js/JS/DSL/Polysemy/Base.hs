@@ -1,7 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-module JS.DSL.Polysemy.Mono
+module JS.DSL.Polysemy.Base
   ( module JS.DSL.Polysemy.Effect
-  , module JS.DSL.Polysemy.Mono
+  , module JS.DSL.Polysemy.Base
   , module Core
 --  , module Export
   , Core.State(..)
@@ -20,7 +20,7 @@ import Polysemy.Writer
 import Polysemy.Fixpoint
 
 import qualified Control.Monad.Reader
-import Render
+import qualified Render
 
 import JS.Syntax as Syntax
 import JS.DSL.Core hiding (State)
@@ -130,10 +130,10 @@ run env lib used fresh m = m
 runEmpty :: Syntax.Conf -> Sem (JS Base : Base) a -> BaseResult a
 runEmpty env m = run env mempty mempty validIdentifiers m
 
-instance Render (MonoJS a) where
+instance Render.Render (MonoJS a) where
   type Conf (MonoJS a) = Syntax.Conf
   renderM m = do
     env <- Control.Monad.Reader.ask
-    renderM $ baseResultCode $ runEmpty env m
+    Render.renderM $ baseResultCode $ runEmpty env m
 
 -- hot = putStrLn "everything compiles"
