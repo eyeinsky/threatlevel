@@ -39,11 +39,11 @@ sticky scrollContainer elemId extraCss = do
           should = top .> initialTop
       ifelse should
         (ifonly (JS.not is) $ do
-            bare $ menuElem!. "classList" !// "add" $ lit $ static $ unClass cls
+            bare $ menuElem!. "classList" !// "add" $ lit $ static $ coerce cls
             is .= lit True
         )
         (ifonly is $ do
-            bare $ menuElem!. "classList" !// "remove" $ lit $ static $ unClass cls
+            bare $ menuElem!. "classList" !// "remove" $ lit $ static $ coerce cls
             is .= lit False
         )
     bare $ addEventListener (Cast window) Scroll f

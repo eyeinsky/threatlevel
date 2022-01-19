@@ -59,7 +59,7 @@ instance Render (XMLA ns Both) where
       ]
       where
         f attrText = TL.null attrText ? "" $ (" " <> attrText)
-        tag = TL.fromStrict . static $ unTagName n
+        tag = TL.fromStrict . static $ coerce n
         rest = case htmls of
           _ : _ -> let sub = TL.concat (map render' htmls)
             in ">" <> sub <> "</" <> tag <> ">"

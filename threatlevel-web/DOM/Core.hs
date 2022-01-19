@@ -11,9 +11,9 @@ import Render
 import CSS hiding (Value, Id, Tag, Class)
 import qualified CSS
 
-newtype TagName = TagName { unTagName :: Value }
-newtype Id      = Id { unId :: Value }
-newtype Class   = Class { unClass :: Value }
+newtype TagName = TagName Value
+newtype Id      = Id Value
+newtype Class   = Class Value
 
 -- | Stubs
 data Tag

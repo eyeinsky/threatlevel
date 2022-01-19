@@ -16,7 +16,7 @@ import CSS.DSL.Common
 -- * DSL setup
 
 type Conf = Selector
-type State = Infinite TL.Text
+type Names = Infinite TL.Text
 
 declareFields [d|
   data CSSW = CSSW
@@ -35,20 +35,20 @@ instance HasDecls [Declaration] [Declaration] where
 
 type DM = Writer [Declaration]
 
-type CSSM = ReaderT Conf (WriterT CSSW Identity)
+type CSSM = ReaderT Conf (WriterT CSSW Identity) ()
 type M = CSSM
 
 -- | Helper type alias
 type DeclarationsM = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
 
 -- | Full runner for nested CSS
-runCSSM :: Conf -> CSSM () -> [Rule]
+runCSSM :: Conf -> CSSM -> [Rule]
 runCSSM r m = (rule : cssw^.rules)
   where
     ((), cssw) = runWriter $ runReaderT m r
     rule = mkRule r (cssw^.decls)
 
-rulesFor :: SelectorFrom s => s -> CSSM () -> [Rule]
+rulesFor :: SelectorFrom s => s -> CSSM -> [Rule]
 rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 
 -- * For export
@@ -56,7 +56,7 @@ rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 prop :: TS.Text -> Value -> DeclarationsM
 prop k v = tell $ mempty & decls .~ (pure $ Declaration k v)
 
-tellRules :: [Rule] -> CSSM ()
+tellRules :: [Rule] -> CSSM
 tellRules rs = tell $ mempty & rules .~ rs
 
 -- * Pseudo-class and -element
@@ -66,7 +66,7 @@ pseudo f m = do
   selector <- ask
   tellRules' (apply f selector) m :: CSSM ()
 
-combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM () -> CSSM ()
+combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM -> CSSM
 combinator op d m = let
   ss = ssFrom d
   in do
@@ -74,7 +74,7 @@ combinator op d m = let
   tellRules' (Combined op currentSelector ss) m
 
 -- | Tell rules and thread state
-tellRules' :: Conf -> CSSM () -> CSSM ()
+tellRules' :: Conf -> CSSM -> CSSM
 tellRules' r m = tellRules $ runCSSM r m
 
 -- * Keyframe monad
@@ -106,7 +106,7 @@ keyframes' name km = (Word name, keyframesRule)
 
 -- * At-rules
 
-atRule :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
+atRule :: TS.Text -> TS.Text -> CSSM -> CSSM
 atRule name e dm = do
   conf <- ask
   tellRules $ pure $ AtRule name e $ runCSSM conf dm

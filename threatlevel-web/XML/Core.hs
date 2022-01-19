@@ -125,19 +125,19 @@ class Exclamatable e a where
   (!) :: e -> a -> e
 
 instance Exclamatable (XMLM ns c) DOM.Core.Id where
-  (!) e id = e !- Id (DOM.Core.unId id)
+  (!) e id = e !- Id (coerce id)
 instance Exclamatable (XMLM ns c -> XMLM ns c) DOM.Core.Id where
-  (!) e id = e !- Id (DOM.Core.unId id)
+  (!) e id = e !- Id (coerce id)
 
 instance Exclamatable (XMLM ns c) [DOM.Core.Class] where
-  (!) e cs = e !- Class (map DOM.Core.unClass cs)
+  (!) e cs = e !- Class (map coerce cs)
 instance Exclamatable (XMLM ns c -> XMLM ns c) [DOM.Core.Class] where
-  (!) e cs = e !- Class (map DOM.Core.unClass cs)
+  (!) e cs = e !- Class (map coerce cs)
 
 instance Exclamatable (XMLM ns c) DOM.Core.Class where
-  (!) e c = e !- Class [DOM.Core.unClass c]
+  (!) e c = e !- Class [coerce c]
 instance Exclamatable (XMLM ns c -> XMLM ns c) DOM.Core.Class where
-  (!) e c = e !- Class [DOM.Core.unClass c]
+  (!) e c = e !- Class [coerce c]
 
 instance Exclamatable (XMLM ns c) Attribute where
   (!) e c = e !- c

@@ -148,7 +148,7 @@ setInnerHTML e x = innerHTML e .= x
 innerHTML e = e !. "innerHTML"
 
 createElement :: TagName -> Expr Tag
-createElement tn = docCall' "createElement" $ lit $ unTagName tn
+createElement tn = docCall' "createElement" $ lit $ coerce @_ @Value tn
 
 createTextNode :: Expr String -> Expr Tag
 createTextNode txt = docCall' "createTextNode" txt
@@ -334,7 +334,7 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       ns = "http://www.w3.org/2000/svg"
 
       mkElem :: TagName -> Expr Tag
-      mkElem tagName = call (document !. "createElementNS") [ns, lit $ unTagName tagName]
+      mkElem tagName = call (document !. "createElementNS") [ns, lit $ coerce @_ @Value tagName]
 
 attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
 attrsJSM t mkAttr as = do

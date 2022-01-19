@@ -114,9 +114,9 @@ instance Render Rule where
       pure "@keyframes " <+> pure (TL.fromStrict name) <+> blocks'
       where
         blocks' = R.curly . TL.concat <$> mapM renderM blocks
-    AtRule name tl rs -> let
-      query = "@" <>  TL.fromStrict name <> " " <>  TL.fromStrict tl
-      in pure query <+> (R.curly . TL.concat <$> mapM renderM rs)
+    AtRule name rule nested -> let
+      query = "@" <>  TL.fromStrict name <> " " <>  TL.fromStrict rule
+      in pure query <+> (R.curly . TL.unlines <$> mapM renderM nested)
     FontFace ds -> pure "@font-face " <+> curlyRules ds
     where
       curlyRules ds = R.curly <$> (renderM ds)

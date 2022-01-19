@@ -209,7 +209,7 @@ action :: URL.URL -> Attribute
 action url = HTML.action (urlAttr url)
 
 for :: Id -> Attribute
-for id = HTML.for (unId id)
+for id = HTML.for (coerce id)
 
 -- * HTML + Date.Time
 
@@ -249,10 +249,10 @@ instance ToExpr URL.URL where
 -- * JS + CSS
 
 instance ToExpr Id where
-  lit = unId ^ render' ^ lit
+  lit = coerce @_ @DOM.Value ^ render' ^ lit
 
 instance ToExpr Class where
-  lit = unClass ^ render' ^ lit
+  lit = coerce @_ @DOM.Value ^ render' ^ lit
 
 instance ToExpr SimpleSelector where
   lit = lit . render'
@@ -268,7 +268,7 @@ remClass = removeClass
 {-# DEPRECATED remClass "Use `removeClass` instead." #-}
 
 mkExpr :: Class -> Expr a
-mkExpr = Cast . lit . static . unClass
+mkExpr = Cast . lit . static . coerce
 
 -- | In JS set element's inline style to @declarations@ [api]
 inlineStyle :: Expr tag -> DM () -> M r ()
@@ -372,12 +372,12 @@ style decls = Custom "style" (Static $ TL.toStrict $ renderDecls decls)
 -- | Generate id in the MonadWeb, apply styles to it, attach it to the
 -- element and return this
 -- todo: using exclamatable since this could be Html, Html -> Html, HTMLA Both, etc
-styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM () -> m a
+styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM -> m a
 styled elem rules = do
   id <- cssId rules
   return $ elem ! id
 
-styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM () -> m a
+styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM -> m a
 styleds elem rules = do
   class_ <- css rules
   return $ elem ! class_
