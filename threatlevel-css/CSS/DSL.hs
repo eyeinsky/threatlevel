@@ -2,4 +2,5 @@ module CSS.DSL
   ( module Export
   ) where
 
-import CSS.DSL.MTL as Export
+import CSS.DSL.Common as Export
+import CSS.DSL.Polysemy.Effect as Export
