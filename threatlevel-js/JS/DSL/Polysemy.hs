@@ -1,8 +1,11 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
--- {-# LANGUAGE NoMonomorphismRestriction #-}
 module JS.DSL.Polysemy
   ( module JS.DSL.Polysemy
+  , module JS.DSL.Polysemy.Mono
+  , module JS.DSL.Syntax
+  , module Syntax
+
   -- , M
   -- , run, runEmpty, JS.State(..), askEnv
   -- , mkCode, mkCode_, next
@@ -26,125 +29,118 @@ import qualified Control.Monad.Reader
 import Render
 
 import JS.Syntax as Syntax
-import JS.DSL.Polysemy.Function as JS
-import JS.DSL.Polysemy.Core as JS
-import JS.DSL.Syntax as JS
+import JS.DSL.Syntax
+import JS.DSL.Polysemy.Function
+import JS.DSL.Polysemy.Mono
 
-runEmpty :: Syntax.Conf -> Sem (JS Base : Base) a -> BaseResult a
-runEmpty env m = run env mempty mempty validIdentifiers m
+-- @Constraint@
+type Cc :: EffectRow -> EffectRow -> Constraint
+type Cc s r = (Member (JS s) r, r ~ (JS s : s))
+
+-- @Type@ with explicit @r@
+type Csr :: EffectRow -> EffectRow -> Type -> Type
+type Csr s r a = Cc s r => Sem r a -- :: Type
+
+-- with @forall r@
+type C :: EffectRow -> Type -> Type
+type C s a = forall r . (Member (JS s) r, r ~ (JS s : s)) => Sem r a
 
 -- * Variable
 
 -- ** Declaration
 
-type M r e a = Member (JS r e) r => Sem r a
-
 bind
-  :: forall r e a b
-   . (VarDecl a e) -> Expr a -> Name -> M r e (Expr b)
-bind decl expr name = do
-  emitStatement @r (decl name expr)
-  return (EName name :: Expr b)
+  :: forall s a . (VarDecl a ()) -> Expr a -> Name -> C s (Expr a)
+bind syntax expr name = do
+  emitStatement $ syntax name expr
+  return (EName name)
 
-newPrim
-  :: forall r e a
-   . (Name -> Expr a -> Statement e) -> Expr a -> M r e (Expr a)
-newPrim kw e = bind kw e =<< getFreshIdentifier @r @e
+declare
+  :: forall s a
+   . (VarDecl a ()) -> Expr a -> C s (Expr a)
+declare syntax expr = bind @s syntax expr =<< getFreshIdentifier @s
 
-new, let_, const, var :: forall r e a . Expr a -> M r e (Expr a)
-new = newPrim @r @e VarDef
-{-# DEPRECATED new "Use const, let_ or var instead." #-}
-var = new @r @e
-let_ = newPrim @r @e Let
-const = newPrim @r @e Const
+let_, const, var :: forall s a . Expr a -> C s (Expr a)
+var = declare @s Syntax.VarDef
+let_ = declare @s Syntax.Let
+const = declare @s Syntax.Const
 
-hot = printJS $ do
-  return 1
+bare :: forall s a . Expr a -> C s ()
+bare e = emitStatement $ BareExpr e
 
-
--- new' :: forall r m a . TS.Text -> Expr a -> Poly r m (Expr a)
--- new' n e = bind @r Let e =<< pushName n
-
--- bare :: forall r m a . Expr a -> Poly r m ()
--- bare e  = write @r $ BareExpr e
-
--- block :: forall r m a . M r a -> Poly r m (Expr r)
--- block    = let_ @r <=< blockExpr
-
--- block' :: forall r m a . TS.Text -> M r a -> Poly r m (Expr r)
--- block' n = new' @r n <=< blockExpr
-
--- -- -- ** Assignment
+-- ** Assignment
 
 -- -- | Shorthands for assignment statement
--- infixr 4 .=
--- (.=) :: forall r m a b. Expr a -> Expr b -> Poly r m ()
--- lhs .= rhs = write @r $ BareExpr $ lhs `Assign` rhs
+infixr 4 .=
+(.=) :: forall s a b. Expr a -> Expr b -> C s ()
+lhs .= rhs = emitStatement @s $ BareExpr $ lhs `Assign` rhs
 
--- -- | @infixr 0@ shorthand for assignment statement -- for combining
--- -- with the dollar operator (@$@).
--- (.=$) :: forall r m a b . Expr a -> Expr b -> Poly r m ()
--- (.=$) = (.=) @r
--- infixr 0 .=$
+-- | @infixr 0@ shorthand for assignment statement -- for combining
+-- with the dollar operator (@$@).
+(.=$) :: forall s a b . Expr a -> Expr b -> C s ()
+(.=$) = (.=) @s
+infixr 0 .=$
 
--- -- | Compound assignments in statement form
--- (.+=), (.-=), (.*=) :: forall r m a . Num (Expr a) => Expr a -> Expr a -> Poly r m ()
--- a .+= b = (.=) @r a (a + b)
--- a .-= b = (.=) @r a (a - b)
--- a .*= b = (.=) @r a (a * b)
--- (./=) :: forall r m a . Fractional (Expr a) => Expr a -> Expr a -> Poly r m ()
--- a ./= b = (.=) @r a (a P./ b)
+-- | Compound assignments in statement form
+(.+=), (.-=), (.*=), (./=) :: Expr b -> Expr b -> C s ()
+a .+= b = (.=) a (a + b)
+a .-= b = (.=) a (a - b)
+a .*= b = (.=) a (a * b)
+a ./= b = (.=) a (a P./ b)
 
--- -- -- * Comment
+-- * Comment
 
--- -- -- | Stopgap until syntax for block and single-line comments
--- comment :: forall r m . TS.Text -> Poly r m ()
--- comment text = bare @r $ ex $ "// " <> text
+-- | Stopgap until syntax for block and single-line comments
+comment :: forall s . TS.Text -> C s ()
+comment text = bare @s $ ex $ "// " <> text
 
--- -- -- * Control flow
+-- * Control flow
 
--- ifmelse :: forall r m a. Expr Bool -> M r a -> Maybe (M r a) -> Poly r m ()
--- ifmelse cond true mFalse = do
---    trueCode <- mkCode_ true
---    mElseCode <- maybe (return Nothing) (fmap Just . mkCode_) mFalse
---    write $ IfElse cond trueCode mElseCode
+ifMaybeElse
+  :: forall s r
+   . (Cc s r)
+  => Expr Bool -> Sem r () -> Maybe (Sem r ()) -> Sem r ()
+ifMaybeElse cond true maybeFalse = emitStatement =<<$ IfElse cond
+  <$> generateCode true
+  <*> traverse generateCode maybeFalse
 
--- ifelse :: Expr Bool -> M r a -> M r a -> Poly r m ()
--- ifelse c t e = ifmelse c t (Just e)
+ifelse :: Expr Bool -> C s () -> C s () -> C s ()
+ifelse c t e = ifMaybeElse c t (Just e)
 
--- ifonly :: Expr Bool -> M r a -> Poly r m ()
--- ifonly c t   = ifmelse c t Nothing
+ifonly :: Expr Bool -> C s () -> C s ()
+ifonly c t = ifMaybeElse c t Nothing
 
--- return_ :: forall r m . Expr r -> Poly r m ()
--- return_ e = write @r $ Return $ Cast e
+return_ :: forall s a . Expr a -> C s ()
+return_ e = emitStatement $ Return $ Cast e
 
--- retrn :: forall r m . Expr r -> Poly r m ()
--- retrn = return_
+retrn :: forall s a . Expr a -> C s ()
+retrn = return_
+{-# DEPRECATED retrn "Use return_ instead" #-}
 
--- empty :: forall r m . Poly r m ()
--- empty = write @r Empty
+empty :: C s ()
+empty = emitStatement Empty
 
--- -- -- * Try/catch
+-- * Try/catch
 
--- tryCatch :: forall r m a . M r () -> (Expr a -> M r ()) -> Poly r m ()
--- tryCatch try catch = do
---   try' <- mkCode_ try
---   err <- next
---   catch' <- mkCode_ $ catch (EName err)
---   write $ TryCatchFinally try' [(err, catch')] Nothing
+tryCatch :: forall s a . C s () -> (Expr a -> C s ()) -> C s ()
+tryCatch try catch = do
+  try' <- generateCode try
+  err <- getFreshIdentifier @s
+  catch' <- generateCode $ catch (EName err)
+  emitStatement $ TryCatchFinally try' [(err, catch')] Nothing
 
--- tryCatchFinally :: forall r m a . M r () -> (Expr a -> M r ()) -> M r () -> Poly r m ()
--- tryCatchFinally try catch finally = do
---   try' <- mkCode_ try
---   err <- next
---   catch' <- mkCode_ $ catch (EName err)
---   finally' <- mkCode_ finally
---   write $ TryCatchFinally try' [(err, catch')] (Just finally')
+tryCatchFinally :: forall s a . C s () -> (Expr a -> C s ()) -> C s () -> C s ()
+tryCatchFinally try catch finally = do
+  try' <- generateCode try
+  err <- getFreshIdentifier @s
+  catch' <- generateCode $ catch (EName err)
+  finally' <- generateCode finally
+  emitStatement $ TryCatchFinally try' [(err, catch')] (Just finally')
 
--- throw :: forall r m a. Expr a -> Poly r m ()
--- throw e = write @r $ Throw e
+throw :: forall s a. Expr a -> C s ()
+throw e = emitStatement @s $ Throw e
 
--- -- * Swtich
+-- * Swtich
 
 -- -- m = match type
 -- -- r = code block return type
@@ -159,11 +155,11 @@ hot = printJS $ do
 
 -- case_ :: forall r m a . Expr m -> M r a -> SwitchBodyM m r ()
 -- case_ match code = do
---   code' <- lift $ mkCode_ (code >> break)
+--   code' <- lift $ generateCode (code >> break)
 --   tell $ pure $ Right (match, code')
 
 -- default_ :: forall r a m . M r a -> SwitchBodyM m r ()
--- default_ code = lift (mkCode_ code) >>= Left ^ pure ^ tell
+-- default_ code = lift (generateCode code) >>= Left ^ pure ^ tell
 
 -- -- * Class
 
@@ -209,41 +205,36 @@ hot = printJS $ do
 -- staticGet = methodMaker (\a _ -> StaticGetter a)
 -- set = methodMaker (\a [b] -> Setter a b)
 
--- -- * Loops
+-- * Loops
 
--- for :: forall r m a . Expr r -> M r a -> Poly r m ()
--- for cond code = write @r . f =<< mkCode_ code
---    where f = For Empty cond Empty
+break :: C s ()
+break = emitStatement $ Break Nothing
 
--- forIn :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
--- forIn expr mkBlock = do
---    name <- next
---    block <- mkCode_ $ mkBlock (EName name)
---    write @r $ ForIn name expr block
+continue :: C s ()
+continue = emitStatement $ Continue Nothing
 
--- forAwait :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
--- forAwait expr mkBlock = do
---    name <- next
---    block <- mkCode_ $ mkBlock (EName name)
---    write @r $ ForAwait name expr block
+for :: forall s . Expr Bool -> C s () -> C s ()
+for cond code = emitStatement . f =<< generateCode code
+   where f = For Empty cond Empty
+{-# DEPRECATED for "Use while instead. for needs a more percise implementation" #-}
 
--- forOf :: forall r m a b. Expr a -> (Expr b -> M r ()) -> Poly r m ()
--- forOf expr mkBlock = do
---    name <- next
---    block <- mkCode_ $ mkBlock (EName name)
---    write @r $ ForOf name expr block
+while :: forall s . Expr Bool -> C s () -> C s ()
+while cond code = emitStatement . While cond =<< generateCode code
 
--- while :: forall r m a . Expr r -> M r a -> Poly r m ()
--- while cond code = write @r . f =<< mkCode_ code
---    where f = While cond
+mkForSyntax
+  :: forall s a
+   . (Name -> Expr a -> Code () -> Statement ())
+  -> Expr a -> (Expr a -> C s ()) -> C s ()
+mkForSyntax syntax expr mkBlock = do
+   name <- getFreshIdentifier @s
+   block <- generateCode $ mkBlock (EName name)
+   emitStatement $ syntax name expr block
+forIn, forAwait, forOf :: forall s a . Expr a -> (Expr a -> C s ()) -> C s ()
+forIn = mkForSyntax ForIn
+forAwait = mkForSyntax ForAwait
+forOf = mkForSyntax ForOf
 
--- break :: forall r m . Poly r m ()
--- break = write @r $ Break Nothing
-
--- continue :: forall r m . Poly r m ()
--- continue = write @r $ Continue Nothing
-
--- -- * Async/await
+-- * Async/await
 
 -- type Promise = Expr
 
@@ -251,33 +242,24 @@ hot = printJS $ do
 -- await = let_ @r . Syntax.Await
 -- {-# DEPRECATED await "Use const $ Await instead." #-}
 
--- -- -- | Make a promise out of a function through async
--- promise :: forall r m f a . Function f => f -> Poly r m (Promise a)
--- promise f = call0 <$> async f
+-- | Make a promise from function through @async@
+promise
+  :: forall f s a
+   . (Function f, Row f ~ (JS s : s))
+  => f -> C s (Expr a)
+promise f = call0 <$> async f
 
--- -- * Unsorted
+-- * Typed functions
 
--- blockExpr :: forall r m a . M r a -> Poly r m (Expr r)
--- blockExpr = fmap (AnonFunc Nothing []) . mkCode_
--- ^ Writes argument 'M r a' to writer and returns a callable name
+func, newf, async, generator
+  :: forall s f
+   . (Function f, Row f ~ (JS s : s))
+  => f -> C s (Expr (ApplyType f))
 
--- -- * Typed functions
-
--- newf, async, generator :: forall r m f . Function f => f -> Poly r m (Expr (JS.Type f))
--- newf :: forall r m f . Function f => f -> Poly r m (Expr (JS.Type f))
--- newf f = do
-  -- x <- func AnonFunc f
-  -- let_ @r x -- <=<
-
--- test :: forall r m . Poly r m ()
--- test = do
---   embed (undefined :: M r ())
-
--- async = let_ @r <=< func Async
--- generator = let_ @r <=< func Generator
-
--- newf' :: Function f => TS.Text -> f -> M r (Expr (JS.Type f))
--- newf' n = new' n <=< func AnonFunc
+func f = let_ =<< getSyntax AnonFunc f
+newf = func
+async f = let_ =<< getSyntax Async f
+generator f = let_ =<< getSyntax Generator f
 
 -- fn :: (Function f, Back (Expr (JS.Type f))) => f -> M r (Convert (Expr (JS.Type f)))
 -- fn f = newf f <&> convert []
@@ -314,13 +296,63 @@ hot = printJS $ do
 
 -- -- * Convenience
 
-instance Render (Sem (JS (Base e) e : (Base e)) a) where
-  type Conf (Sem (JS (Base e) e : (Base e)) a) = Syntax.Conf
-  renderM m = do
-    env <- Control.Monad.Reader.ask
-    renderM $ getCode $ runEmpty env m
+printJS :: MonoJS a -> IO ()
+printJS = TL.putStrLn . render (Syntax.Indent 2)
 
--- printJS
---   :: (Render a, Render.Conf a ~ Syntax.Conf)
---   => Sem (JS (Base e) e : (Base e)) a -> IO ()
--- printJS = TL.putStrLn . render (Syntax.Indent 2)
+test :: C s ()
+test = void $ do
+  _ <- bind Syntax.VarDef Null "a"
+  _ <- bind Syntax.Let Undefined "a"
+  _ <- bind Syntax.Const Null "a"
+
+  a <- var "a"
+  b <- let_ "b"
+  c <- const "c"
+
+  a .= b
+
+  comment "jee"
+
+  ifelse (lit True) (do
+    d <- let_ "d"
+    b .= d)
+    (do
+    e <- let_ "e"
+    c .= e)
+
+  return_ $ lit 1
+
+  tryCatchFinally
+    (throw $ lit "error")
+    (\e -> a .= e)
+    (throw $ lit "finally")
+
+  while (lit 2 .> 1) $ do
+    bare $ call1 (ex "console" !. "log") a
+
+  forIn (lit 1) $ \x -> do
+    bare $ call1 (ex "console" !. "log") x
+
+  JS.DSL.Polysemy.forOf (lit 1) $ \x -> do
+    bare $ call1 (ex "console" !. "log") x
+
+  log <- newf $ \a b -> do
+    bare $ call1 (ex "console" !. "log") a
+    bare $ call1 (ex "console" !. "log") b
+    logAsync <- async $ \e ->
+      bare $ call1 (ex "console" !. "log") e
+    return_ logAsync
+
+  logGen <- generator $ \e ->
+    bare $ call1 (ex "console" !. "log") e
+
+  bare $ call1 log 1
+  bare $ call1 logGen 1
+
+  a .+= b
+  a ./= b
+
+  retrn $ lit 1
+  return ()
+
+hot = printJS test
