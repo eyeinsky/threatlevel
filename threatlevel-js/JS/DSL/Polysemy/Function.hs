@@ -2,44 +2,65 @@
 module JS.DSL.Polysemy.Function where
 
 import Common.Prelude hiding (next)
-import JS.Syntax as Syntax
-import JS.DSL.Polysemy.Core
+import Polysemy
 
-import Polysemy hiding (Final, run)
-import Polysemy.Writer qualified as Polysemy
-import Polysemy.State qualified as Polysemy
+import JS.Syntax as Syntax
+import JS.DSL.Polysemy.Effect
 
 -- * Typed functions
 
 -- | Shorthand for clearer type signature. One of @AnonFunc@,
 -- @Generator@, @Async@
-type FuncConstr' f = FuncConstr (ReturnType f) (FunctionType f)
+-- type FunctionSyntax f = FuncConstr (ReturnType f) (FunctionType f)
+
+-- type FunctionType a
+-- type ReturnType a
+
+-- * Function
 
 -- | @funcLit@ takes a literal haskell function, feeds it new names
 -- used in the function body, and returns the generated names -- to be
 -- used in AST of function definition.
-class Function a where
-   type FunctionType a
-   type ReturnType a
-   funcLit :: Member (JS r) r => a -> Sem r [Name]
+class Function f where
+  type Row (f :: Type) :: EffectRow
+  type Return (f :: Type) :: Type
+  type ApplyType (f :: Type) :: Type
+  funcLit
+    :: Member (JS s) (Row f)
+    => f -> Sem (Row f) ([Name], Sem (Row f) (Return f))
 
+instance Function (Sem r a) where
+  type Row (Sem r a) = r
+  type Return (Sem r a) = a
+  type ApplyType (Sem r a) = a
+  funcLit fbody = do
+    return ([], fbody)
 
--- instance Function (M r a) where
---    type FunctionType (M r a) = r
---    type ReturnType (M r a) = r
---    funcLit = ($> [])
--- instance Function (Expr a) where
---    type FunctionType (Expr a) = a
---    type ReturnType (Expr a) = a
---    funcLit :: Expr a -> M a [Name]
---    funcLit e = write @a (Return $ Cast e) $> []
--- instance (Function b) => Function (Expr a -> b) where
---    type FunctionType (Expr a -> b) = a -> FunctionType b
---    type ReturnType (Expr a -> b) = ReturnType b
---    funcLit f = do
---       arg <- next
---       args <- funcLit (f $ EName $ arg)
---       return (arg : args)
+instance
+  ( Function f, Row f ~ (JS s : s)
+  ) => Function (Expr a -> f) where
+
+  type Row (Expr a -> f) = Row f
+  type Return (Expr a -> f) = Return f
+  type ApplyType (Expr a -> f) = a -> ApplyType f
+
+  funcLit f = do
+    arg <- getFreshIdentifier @s
+    let f' = f (EName arg) :: f
+    (args, fbody) <- funcLit @f @s f'
+    return (arg : args, fbody)
+
+-- | Saturate function @f@ to arguments and body (@fbody@)
+getSyntax
+  :: forall f s r
+   . (Function f, Row f ~ r, Member (JS s) r, r ~ (JS s : s))
+  => (FuncConstr () (ApplyType f))
+  -> f -> Sem r (Expr (ApplyType f))
+getSyntax constr f = do
+  (args, fbody :: Sem r (Return f)) <- funcLit @f @s f
+  code_ :: Code_ <- generateCode fbody
+  let fexpr = constr Nothing args code_ :: Expr (ApplyType f)
+  return fexpr
 
 -- -- | The convert/back combo turns typed function expressions to actual
 -- -- haskell function calls.
@@ -57,11 +78,11 @@ class Function a where
 
 
 -- -- | Create function, getting state and reader from enclosing monad.
-func
-  :: forall r f . (Member (JS r) r, Function f)
-  => FuncConstr' f -> f -> Sem r (Expr (FunctionType f))
-func constr f = do
-  let fbody = funcLit @f @r f :: Sem r [Name]
+-- func
+--   :: forall r f . (Member (JS r) r, Function f)
+--   => FuncConstr' f -> f -> Sem r (Expr (FunctionType f))
+-- func constr f = do
+--   let fbody = funcLit @f @r f :: Sem r [Name]
   -- ^ I think the @e@ means both current scope and function need to
   -- have the same return type?
 
@@ -79,7 +100,7 @@ func constr f = do
 --     funcPrim env constr (State fresh used lib) fexp = (constr Nothing args code, s1)
 --        where
 --          ((args, code), s1) = run env lib used fresh (funcLit fexp)
-  undefined
+--  undefined
 
 -- | Return formal arguments and
 -- bla :: forall r m f . Function f => () -> Poly r m ([Name], Code (ReturnType f))
