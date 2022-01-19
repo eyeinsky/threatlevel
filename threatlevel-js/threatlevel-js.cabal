@@ -41,9 +41,9 @@ library
       JS.DSL.Core
       JS.DSL.MTL
       JS.DSL.Polysemy
+      JS.DSL.Polysemy.Base
       JS.DSL.Polysemy.Effect
       JS.DSL.Polysemy.Function
-      JS.DSL.Polysemy.Mono
       JS.DSL.Syntax
       JS.Syntax.AST
       JS.Syntax.Render

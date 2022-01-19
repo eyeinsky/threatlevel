@@ -2,7 +2,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 module JS.DSL.Polysemy
   ( module JS.DSL.Polysemy
-  , module JS.DSL.Polysemy.Mono
+  , module JS.DSL.Polysemy.Base
   , module JS.DSL.Syntax
   , module Syntax
 
@@ -31,7 +31,7 @@ import Render
 import JS.Syntax as Syntax
 import JS.DSL.Syntax
 import JS.DSL.Polysemy.Function
-import JS.DSL.Polysemy.Mono
+import JS.DSL.Polysemy.Base
 
 -- @Constraint@
 type Cc :: EffectRow -> EffectRow -> Constraint
