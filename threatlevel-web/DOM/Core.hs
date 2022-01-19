@@ -8,8 +8,8 @@ import qualified Data.Text.Lazy as TL
 
 import JS
 import Render
-import JS.Syntax (Conf(..))
-import CSS hiding (Value)
+import CSS hiding (Value, Id, Tag, Class)
+import qualified CSS
 
 newtype TagName = TagName { unTagName :: Value }
 newtype Id      = Id { unId :: Value }
@@ -45,13 +45,15 @@ data Value
   | Dynamic (JS.Expr ())
 makeClassyPrisms ''Value
 
+value2either :: Value -> Either TS.Text (Expr ())
 value2either v = case v of
   Static a -> Left a
   Dynamic a -> Right a
 
+static :: Value -> TS.Text
 static v = case v of
   Static s -> s
-  Dynamic a -> error $ show $ render Minify a
+  Dynamic a -> error $ show $ render JS.Minify a
 
 -- * Instances
 
@@ -81,18 +83,21 @@ deriving instance Show Class
 -- ** SimpleSelectorFrom
 
 instance SimpleSelectorFrom TagName where
-  ssFrom a = SimpleSelector (Just $ static $ coerce a) Nothing [] [] []
+  ssFrom a = SimpleSelector (Just tag) Nothing [] [] []
+    where tag = CSS.Tag $ static $ coerce a :: CSS.Tag
 instance SimpleSelectorFrom [Class] where
-  ssFrom a = SimpleSelector Nothing Nothing (map (static . coerce) a) [] []
+  ssFrom a = SimpleSelector Nothing Nothing cs [] []
+    where cs = map (CSS.Class . static . coerce) a
 instance SimpleSelectorFrom Class where
   ssFrom a = ssFrom [a]
 instance SimpleSelectorFrom Id where
-  ssFrom a = SimpleSelector Nothing (Just $ static $ coerce a) [] [] []
+  ssFrom a = SimpleSelector Nothing (Just id) [] [] []
+    where id = coerce $ static $ coerce a
 
 -- ** RenderJSM
 
 class RenderJSM a where
-  renderJSM :: a -> JS.M r (JS.Expr Tag)
+  renderJSM :: JS m => a -> m (JS.Expr Tag)
 
 class (Render a, RenderJSM a) => Both a
 instance (Render a, RenderJSM a) => Both a

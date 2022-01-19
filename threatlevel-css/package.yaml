@@ -23,7 +23,7 @@ library:
   - .
   exposed-modules:
   - CSS.Syntax
-  - CSS.Monad
+  - CSS.DSL
   - CSS
   ghc-options:
   - -Wall

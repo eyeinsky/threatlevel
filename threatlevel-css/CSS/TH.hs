@@ -7,21 +7,43 @@ import Common.Prelude
 import Language.Haskell.TH
 import Data.Text.Multiline
 import qualified Data.Text as TS
-import Data.Char
 import Data.List
-import Data.Maybe
 
 import Common.TH
 
 import CSS.Syntax
-import CSS.Monad
+import CSS.DSL
+
+-- * Helpers
+
+pseudoClassPlain :: TS.Text -> CSSM () -> CSSM ()
+pseudoClassPlain name = pseudo (pseudoPlain PseudoClass name)
+
+pseudoClassArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
+pseudoClassArgumented name arg = pseudo (pseudoArgd PseudoClass name arg)
+
+pseudoElementPlain :: TS.Text -> CSSM () -> CSSM ()
+pseudoElementPlain name = pseudo (pseudoPlain PseudoElement name)
+
+pseudoElementArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
+pseudoElementArgumented name arg = pseudo (pseudoArgd PseudoElement name arg)
+
+pseudoPlain
+  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text
+  -> SimpleSelector -> SimpleSelector
+pseudoPlain dc t s = s & pseudos %~ (dc t Nothing:)
+
+pseudoArgd
+  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text -> TS.Text
+  -> SimpleSelector -> SimpleSelector
+pseudoArgd dc t a s = s & pseudos %~ (dc t (Just a):)
 
 -- * TH-generators
 
 declareCssProperty :: String -> DecsQ
 declareCssProperty propName = let
   name = camelName propName
-  in declareFn name [t| Value -> Declarations |] [| prop $(stringE propName) |]
+  in declareFn name [t| Value -> DeclarationsM |] [| prop $(stringE propName) |]
 
 declarePseudoClass :: Either String String -> DecsQ
 declarePseudoClass e = case e of

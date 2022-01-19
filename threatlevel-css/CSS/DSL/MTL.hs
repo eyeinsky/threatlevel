@@ -1,4 +1,4 @@
-module CSS.Monad where
+module CSS.DSL.MTL where
 
 import Prelude
 import qualified Data.Text as TS
@@ -11,6 +11,7 @@ import Control.Monad.Reader
 import Identifiers as Idents
 
 import CSS.Syntax
+import CSS.DSL.Common
 
 -- * DSL setup
 
@@ -38,7 +39,7 @@ type CSSM = ReaderT Conf (WriterT CSSW Identity)
 type M = CSSM
 
 -- | Helper type alias
-type Declarations = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
+type DeclarationsM = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
 
 -- | Full runner for nested CSS
 runCSSM :: Conf -> CSSM () -> [Rule]
@@ -52,62 +53,18 @@ rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 
 -- * For export
 
-rule :: SelectorFrom a => a -> DM () -> CSSM ()
-rule s ds = tellRules $ pure $ mkRule (selFrom s) (execWriter ds)
-
-prop :: TS.Text -> Value -> Declarations
-prop k v = tellDecls $ pure $ Declaration k v
-
+prop :: TS.Text -> Value -> DeclarationsM
+prop k v = tell $ mempty & decls .~ (pure $ Declaration k v)
 
 tellRules :: [Rule] -> CSSM ()
 tellRules rs = tell $ mempty & rules .~ rs
 
-tellRule :: Rule -> CSSM ()
-tellRule =  tellRules . pure
-
-tellDecls :: [Declaration] -> Declarations
-tellDecls ds = tell $ mempty & decls .~ ds
-
-apply :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
-apply f s = go s
-  where
-    go :: Selector -> Selector
-    go s = case s of
-      Simple ss -> Simple (f ss)
-      Combined op s ss -> Combined op s (f ss)
-
 -- * Pseudo-class and -element
 
-pseudoClassPlain :: TS.Text -> CSSM () -> CSSM ()
-pseudoClassPlain name = pseudo' (pseudoPlain PseudoClass name)
-
-pseudoClassArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
-pseudoClassArgumented name arg = pseudo' (pseudoArgd PseudoClass name arg)
-
-pseudoElementPlain :: TS.Text -> CSSM () -> CSSM ()
-pseudoElementPlain name = pseudo' (pseudoPlain PseudoElement name)
-
-pseudoElementArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
-pseudoElementArgumented name arg = pseudo' (pseudoArgd PseudoElement name arg)
-
-pseudo' :: (SimpleSelector -> SimpleSelector) -> CSSM () -> CSSM ()
-pseudo' f m = do
+pseudo :: (SimpleSelector -> SimpleSelector) -> CSSM () -> CSSM ()
+pseudo f m = do
   selector <- ask
   tellRules' (apply f selector) m :: CSSM ()
-
-pseudo :: TS.Text -> CSSM () -> CSSM ()
-pseudo = pseudoClassPlain
-{-# DEPRECATED pseudo "Use the TH-generated classes instead." #-}
-
-pseudoPlain
-  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text
-  -> SimpleSelector -> SimpleSelector
-pseudoPlain dc t s = s & pseudos %~ (dc t Nothing:)
-
-pseudoArgd
-  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text -> TS.Text
-  -> SimpleSelector -> SimpleSelector
-pseudoArgd dc t a s = s & pseudos %~ (dc t (Just a):)
 
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM () -> CSSM ()
 combinator op d m = let
@@ -143,19 +100,19 @@ type KM = Writer [KeyframeBlock]
 keyframe :: Double -> DeclM () -> KM ()
 keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
-keyframes' :: TL.Text -> KM () -> (Value, Rule)
+keyframes' :: TS.Text -> KM () -> (Value, Rule)
 keyframes' name km = (Word name, keyframesRule)
   where keyframesRule = Keyframes name $ execWriter km
 
 -- * At-rules
 
-atRule :: TL.Text -> TL.Text -> CSSM () -> CSSM ()
+atRule :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
 atRule name e dm = do
   conf <- ask
-  tellRule $ AtRule name e $ runCSSM conf dm
+  tellRules $ pure $ AtRule name e $ runCSSM conf dm
 
-media :: TL.Text -> CSSM () -> CSSM ()
+media :: TS.Text -> CSSM () -> CSSM ()
 media = atRule "media"
 
-supports :: TL.Text -> CSSM () -> CSSM ()
+supports :: TS.Text -> CSSM () -> CSSM ()
 supports = atRule "supports"

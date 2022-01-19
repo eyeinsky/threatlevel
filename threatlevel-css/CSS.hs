@@ -3,7 +3,7 @@ module CSS
   , module CSS
   , module CSS.Syntax
   , module CSS.TH
-  , type CSSM, type Declarations
+  , type CSSM
   , keyframes', keyframe
   , media, supports
   , DeclM
@@ -19,7 +19,7 @@ import Render
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
-import CSS.Monad
+import CSS.DSL
 import CSS.TH
 
 -- | TH-generate all properties with @prop@
@@ -34,8 +34,8 @@ $(
 -- | TH-generate all pseoudo-elements
 concat <$> mapM declarePseudoElement pseudoElements
 
-alpha a = rgba 0 0 0 a
-
+descendant, child, sibling, generalSibling
+  :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
 descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
@@ -64,14 +64,14 @@ setBoxSizing = rulesFor (tagSelector "html") (boxSizing "border-box") <> rulesFo
   where
     inherit = boxSizing "inherit"
 
-centerContent :: Declarations
+centerContent :: DeclarationsM
 centerContent = do
   display "flex"
   flexFlow "column nowrap"
   justifyContent "center"
   alignItems "center"
 
-flexbox :: Value -> Declarations
+flexbox :: Value -> DeclarationsM
 flexbox how = do
   display "flex"
   flexFlow how
@@ -79,12 +79,12 @@ flexbox how = do
 important :: Value
 important = "!important"
 
-square :: Value -> Declarations
+square :: Value -> DeclarationsM
 square n = do
   width n
   height n
 
-circle :: Value -> Declarations
+circle :: Value -> DeclarationsM
 circle n = do
   square n
   borderRadius $ prc 50

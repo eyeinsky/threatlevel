@@ -15,10 +15,14 @@ build-type:     Simple
 library
   exposed-modules:
       CSS.Syntax
-      CSS.Monad
+      CSS.DSL
       CSS
   other-modules:
+      CSS.DSL.Common
+      CSS.DSL.MTL
       CSS.Identifiers
+      CSS.Syntax.AST
+      CSS.Syntax.Render
       CSS.TH
       Paths_threatlevel_css
   hs-source-dirs:

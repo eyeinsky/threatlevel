@@ -48,13 +48,6 @@ neq = (/=)
 todoMsg :: String -> a
 todoMsg msg = trace msg (error msg)
 
--- Control.Monad
-infixr 0 >>=$
-(>>=$) = (>>=)
-
-infixr 0 =<<$
-(=<<$) = (=<<)
-
 split :: Eq a => [a] -> [a] -> [[a]] -- from MissingH
 split _ [] = []
 split delim str = let

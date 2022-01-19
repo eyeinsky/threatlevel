@@ -39,6 +39,15 @@ infix 1 ?
 (?) :: Bool -> p -> p -> p
 (?) bool = if bool then (\a _ -> a) else (\_ a -> a)
 
+-- Control.Monad
+(>>=$) :: Monad m => m a -> (a -> m b) -> m b
+infixr 0 >>=$
+(>>=$) = (>>=)
+
+(=<<$) :: Monad m => (a -> m b) -> m a -> m b
+infixr 0 =<<$
+(=<<$) = (=<<)
+
 -- * String, Text, Text.Lazy
 
 kebab2camel :: String -> String

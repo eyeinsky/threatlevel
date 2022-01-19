@@ -64,5 +64,5 @@ tshow = TL.pack . show
 f :: (TS.Text -> TS.Text) -> TL.Text -> TL.Text
 f g = TL.fromStrict . g . TL.toStrict
 
--- f' :: (TS.Text -> TS.Text) -> TL.Text -> TL.Text
+f' :: ([TS.Text] -> TS.Text) -> [TL.Text] -> TL.Text
 f' g = TL.fromStrict . g . map TL.toStrict

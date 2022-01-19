@@ -106,7 +106,7 @@ import qualified Prelude as P
 import X.Prelude as P
 import JS hiding (String)
 
-import CSS.Monad (DM)
+import CSS.DSL (DM)
 import qualified URL
 import qualified HTML
 import qualified JS.Event
