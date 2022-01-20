@@ -12,7 +12,6 @@
         render = f ../render {};
         identifiers = f ../identifiers {};
         multiline = f ../multiline {};
-        threatlevel-browser = f ../threatlevel-browser {};
         threatlevel-url = f ../threatlevel-url {};
         threatlevel-common = f ../threatlevel-common {};
         threatlevel-js = f ../threatlevel-js {};

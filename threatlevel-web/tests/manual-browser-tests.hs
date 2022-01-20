@@ -47,7 +47,6 @@ makeClassyPrisms ''MultiDC
 declareFields [d|
   data RunConf = RunConf
     { runConfDynPath :: [Segment]
-    , runConfBrowser :: Browser
     }
   |]
 

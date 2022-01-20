@@ -6,7 +6,6 @@ LOCAL_DEPS=$(cat <<END
 - identifiers
 - multiline
 - render
-- threatlevel-browser
 - threatlevel-common
 - threatlevel-css
 - threatlevel-js

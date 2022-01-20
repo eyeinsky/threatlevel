@@ -149,7 +149,6 @@ library
     , template-haskell
     , text
     , text-format
-    , threatlevel-browser
     , threatlevel-common
     , threatlevel-css
     , threatlevel-js
@@ -250,7 +249,6 @@ test-suite test
     , template-haskell
     , text
     , text-format
-    , threatlevel-browser
     , threatlevel-common
     , threatlevel-css
     , threatlevel-js

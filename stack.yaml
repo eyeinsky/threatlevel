@@ -5,7 +5,6 @@ packages:
 - multiline
 - render
 - threatlevel-common
-- threatlevel-browser
 - threatlevel-url
 - threatlevel-css
 - threatlevel-js

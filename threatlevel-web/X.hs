@@ -68,8 +68,6 @@ import JS as Export hiding
 
 import X.Wai as Export
 
-import Web.Browser as Export
-
 import Web.CSS as Export
 
 import Server as Export hiding

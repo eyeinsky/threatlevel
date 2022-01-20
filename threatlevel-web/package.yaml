@@ -51,7 +51,6 @@ dependencies:
 - websockets
 - wai-websockets
 - threatlevel-common
-- threatlevel-browser
 - threatlevel-url
 - threatlevel-css
 - threatlevel-js
