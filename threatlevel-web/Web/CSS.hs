@@ -8,7 +8,7 @@ reset :: MonadWeb m => m ()
 reset = do
   cssRule (tagSelector "html") (boxSizing "border-box")
   cssRule (tagSelector "ul") (listStyle "none")
-  cssRule anyTag $ do
+  cssRule Any $ do
     boxSizing "inherit"
     zero
   where

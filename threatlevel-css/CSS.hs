@@ -41,12 +41,6 @@ child = combinator Child
 sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
 
-anyTag :: Selector
-anyTag = selFrom $ tagSelector "*"
-
-anyChild :: CSSM () -> CSSM ()
-anyChild = child (tagSelector "*")
-
 renderDecls :: DeclM a -> Text
 renderDecls dm = render () $ view decls $ execDeclM dm
 

@@ -49,7 +49,9 @@ instance Render Comment where
 -- * Selector
 
 instance Render Tag where
-  renderM = pure . TL.fromStrict . coerce @_ @TS.Text
+  renderM = \case
+    Tag name -> pure $ TL.fromStrict name
+    Any -> pure "*"
 
 instance Render Class where
   renderM = pure . TL.fromStrict . ("." <>) . coerce @_ @TS.Text

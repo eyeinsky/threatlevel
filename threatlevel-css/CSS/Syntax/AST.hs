@@ -47,7 +47,7 @@ data Comment = Comment TS.Text
 
 -- * Selector
 
-newtype Tag = Tag TS.Text
+data Tag = Tag TS.Text | Any
 newtype Id = Id TS.Text
 newtype Class = Class TS.Text
 
