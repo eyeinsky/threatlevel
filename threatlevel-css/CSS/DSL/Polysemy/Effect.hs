@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module CSS.DSL.Polysemy.Effect where
 
 import Common.Prelude
@@ -8,9 +9,11 @@ import Polysemy.Internal
 import CSS.Syntax
 import CSS.DSL.Common
 
-data CSS m a where
-  GetFreshClass :: CSS m Class
-  EmitRules :: Selector -> Declarations -> CSS m ()
-  EmitDeclarations :: Declarations -> CSS m ()
+data CSS s :: Effect where
+  GetFreshClass :: CSS s m Class
+  EmitRules :: Selector -> Declarations -> CSS s m ()
+  EmitDeclarations :: Declarations -> CSS s m ()
+  WithDerivedSelector
+    :: (Selector -> Selector) -> Sem (CSS s : s) _a -> CSS s m ()
 
 makeSem ''CSS

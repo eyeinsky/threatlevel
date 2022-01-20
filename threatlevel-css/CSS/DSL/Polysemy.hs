@@ -17,3 +17,8 @@ class_ ds = do
   c <- getFreshClass
   emitRules (selFrom c) ds
   return c
+
+hover :: Member CSS r => Sem r a -> Sem r b
+hover m = do
+--  ask
+  undefined
