@@ -8,17 +8,52 @@ import Polysemy
 import qualified Data.Text as TS
 
 import CSS.Syntax
+import CSS.DSL.Common as Export
 import CSS.DSL.Polysemy.Effect as Export
-import CSS.DSL.Polysemy.Base as Export
 
 
-class_ :: Member CSS r => Declarations -> Sem r Class
-class_ ds = do
-  c <- getFreshClass
-  emitRules (selFrom c) ds
+-- | Generate a class, bind declarations @m@ to it
+css :: forall s r a . Has s r CSS => Sem r a -> Sem r Class
+css m = do
+  c <- getFreshClass @s
+  emitFor @s (selFrom c) m
   return c
 
-hover :: Member CSS r => Sem r a -> Sem r b
-hover m = do
---  ask
-  undefined
+-- | Emit declaration @k: v@ for current selector
+prop :: forall s r . Has s r CSS => TS.Text -> Value -> Sem r ()
+prop property value = do
+  selector <- getSelector @s
+  emitRules @s $ pure $ mkRule selector (pure $ Declaration property value)
+
+combinator
+  :: forall s r a . (Has s r CSS, SimpleSelectorFrom a)
+  => SOp -> a -> Sem r () -> Sem r ()
+combinator op slike m = do
+  selector <- getSelector @s
+  emitFor (Combined op selector (ssFrom slike)) m
+
+-- * Derived
+
+type CSSF = forall s r . Has s r CSS => Sem r () -> Sem r ()
+type CSSM = forall s r . Has s r CSS => Sem r ()
+
+emitForMod
+  :: forall s r . Has s r CSS
+  => (Selector -> Selector) -> Sem r () -> Sem r ()
+emitForMod mod m = getSelector @s >>= mod ^ flip emitFor m
+
+atRule
+  :: forall s r . Has s r CSS
+  => TS.Text -> TS.Text -> Sem r () -> Sem r ()
+atRule ruleName rule m = do
+  s <- getSelector @s
+  rules <- execDsl_ @s m
+  emitRules @s $ pure $ AtRule ruleName rule rules
+
+-- * Compat
+
+cssRule
+  :: forall s r a
+   . (Has s r CSS, SelectorFrom a)
+  => a -> Sem r () -> Sem r ()
+cssRule slike = emitFor (selFrom slike)
