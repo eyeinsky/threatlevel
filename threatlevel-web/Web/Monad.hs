@@ -9,9 +9,10 @@ import X.Prelude as P hiding (State, Writer)
 import Identifiers as Idents
 
 import qualified CSS as CSS
+import qualified CSS.Identifiers as CSS
 import qualified CSS.DSL as CSSM
-import qualified JS
-import DOM
+import qualified JS.DSL as JS
+-- import DOM
 
 -- ** WebT
 

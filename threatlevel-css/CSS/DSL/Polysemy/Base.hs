@@ -108,3 +108,47 @@ instance Render.Render (MonoCSS a) where
 rulesFor :: SelectorFrom a => a -> MonoCSS a -> [OuterRule]
 rulesFor slike m = rs
   where (_, (rs, _)) = run (selFrom slike) identifiers m
+
+-- * Monomorphic with @Base' = Prop : Base@
+
+type Base' = Prop : Base
+type MonoCSS' = Sem (CSS Base' : Base')
+
+propToBase
+  :: forall r a . (Members Base r)
+  => Sem (Prop : r) a -> Sem r a
+propToBase = interpret $ \case
+  Prop property value -> do
+    selector <- getSelectorBase @r
+    tell @Rules $ pure $ mkRule selector (pure $ Declaration property value)
+
+run' :: RunBase (MonoCSS' a -> BaseResult a)
+run' r s m = m
+  & cssToBase run'
+  & propToBase
+  & runBase r s
+
+instance Render.Render (MonoCSS' a) where
+  type Conf (MonoCSS' a) = CSS.Syntax.Conf
+  renderM m = Render.renderM rs
+    where (_, (rs, _)) = run' (selFrom Any) identifiers m :: BaseResult a
+
+-- * Monomorphic plain @Prop@
+
+propToWriter :: Member (Writer Declarations) r => Sem (Prop : r) a -> Sem r a
+propToWriter = interpret $ \case
+  Prop property value ->
+    tell @Declarations $ pure $ Declaration property value
+
+type MonoProp = Sem [Prop, Writer Declarations]
+
+runProp :: MonoProp a -> (Declarations, a)
+runProp ds = ds
+  & propToWriter
+  & runWriter
+  & Polysemy.run
+
+instance Render.Render (MonoProp a) where
+  type Conf (MonoProp a) = CSS.Syntax.Conf
+  renderM m = Render.renderM ds
+    where (ds, _) = runProp m
