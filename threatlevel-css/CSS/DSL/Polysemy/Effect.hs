@@ -9,11 +9,24 @@ import Polysemy.Internal
 import CSS.Syntax
 import CSS.DSL.Common
 
-data CSS s :: Effect where
+
+data CSS (s :: EffectRow) :: Effect where
   GetFreshClass :: CSS s m Class
-  EmitRules :: Selector -> Declarations -> CSS s m ()
-  EmitDeclarations :: Declarations -> CSS s m ()
-  WithDerivedSelector
-    :: (Selector -> Selector) -> Sem (CSS s : s) _a -> CSS s m ()
+  GetSelector :: CSS s m Selector
+  EmitFor :: Selector -> Sem (CSS s : s) a -> CSS s m a
+  EmitRules :: Rules -> CSS s m ()
+
+  ExecDsl :: Sem (CSS s : s) a -> CSS s m (Rules, a)
 
 makeSem ''CSS
+
+
+type Has :: EffectRow -> EffectRow -> (EffectRow -> Effect) -> Constraint
+type Has s r f = (Member (f s) r, r ~ (f s : s))
+
+-- * Helpers
+
+execDsl_
+  :: forall s r a . Has s r CSS
+  => Sem (CSS s : s) a -> Sem (CSS s : s) Rules
+execDsl_ m = execDsl m <&> fst
