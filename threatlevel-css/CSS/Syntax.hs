@@ -1,6 +1,7 @@
 module CSS.Syntax
   ( module CSS.Syntax
   , module CSS.Syntax.AST
+  , module CSS.Syntax.Render
   ) where
 
 import Common.Prelude
@@ -8,7 +9,7 @@ import Data.Word
 import qualified Data.Text as TS
 
 import CSS.Syntax.AST
-import CSS.Syntax.Render ()
+import CSS.Syntax.Render
 
 
 -- | Conversion from something to Selector

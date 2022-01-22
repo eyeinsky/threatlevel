@@ -15,7 +15,6 @@ import CSS.DSL.Common
 
 -- * DSL setup
 
-type Conf = Selector
 type Names = Infinite TL.Text
 
 declareFields [d|
@@ -35,14 +34,14 @@ instance HasDecls [Declaration] [Declaration] where
 
 type DM = Writer [Declaration]
 
-type CSSM = ReaderT Conf (WriterT CSSW Identity) ()
+type CSSM = ReaderT Selector (WriterT CSSW Identity) ()
 type M = CSSM
 
 -- | Helper type alias
 type DeclarationsM = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
 
 -- | Full runner for nested CSS
-runCSSM :: Conf -> CSSM -> [Rule]
+runCSSM :: Selector -> CSSM -> [Rule]
 runCSSM r m = (rule : cssw^.rules)
   where
     ((), cssw) = runWriter $ runReaderT m r
@@ -61,10 +60,10 @@ tellRules rs = tell $ mempty & rules .~ rs
 
 -- * Pseudo-class and -element
 
-pseudo :: (SimpleSelector -> SimpleSelector) -> CSSM () -> CSSM ()
+pseudo :: (SimpleSelector -> SimpleSelector) -> CSSM -> CSSM
 pseudo f m = do
   selector <- ask
-  tellRules' (apply f selector) m :: CSSM ()
+  tellRules' (apply f selector) m :: CSSM
 
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM -> CSSM
 combinator op d m = let
@@ -74,7 +73,7 @@ combinator op d m = let
   tellRules' (Combined op currentSelector ss) m
 
 -- | Tell rules and thread state
-tellRules' :: Conf -> CSSM -> CSSM
+tellRules' :: Selector -> CSSM -> CSSM
 tellRules' r m = tellRules $ runCSSM r m
 
 -- * Keyframe monad
