@@ -9,14 +9,18 @@ import Polysemy.Internal
 import CSS.Syntax
 import CSS.DSL.Common
 
+data Prop :: Effect where
+  Prop :: TS.Text -> Value -> Prop m ()
+
+makeSem ''Prop
 
 data CSS (s :: EffectRow) :: Effect where
   GetFreshClass :: CSS s m Class
   GetSelector :: CSS s m Selector
   EmitFor :: Selector -> Sem (CSS s : s) a -> CSS s m a
-  EmitRules :: Rules -> CSS s m ()
+  EmitRules :: OuterRules -> CSS s m ()
 
-  ExecDsl :: Sem (CSS s : s) a -> CSS s m (Rules, a)
+  ExecDsl :: Sem (CSS s : s) a -> CSS s m (OuterRules, a)
 
 makeSem ''CSS
 
@@ -28,5 +32,5 @@ type Has s r f = (Member (f s) r, r ~ (f s : s))
 
 execDsl_
   :: forall s r a . Has s r CSS
-  => Sem (CSS s : s) a -> Sem (CSS s : s) Rules
+  => Sem (CSS s : s) a -> Sem (CSS s : s) OuterRules
 execDsl_ m = execDsl m <&> fst

@@ -58,11 +58,6 @@ tellRules rs = tell $ mempty & rules .~ rs
 
 -- * Pseudo-class and -element
 
-withDerivedSelector :: (Selector -> Selector) -> CSSM -> CSSM
-withDerivedSelector mod m = do
-  selector <- ask
-  tellRules' (mod selector) m :: CSSM
-
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM -> CSSM
 combinator op d m = let
   ss = ssFrom d
@@ -109,13 +104,8 @@ atRule name e dm = do
   conf <- ask
   tellRules $ pure $ AtRule name e $ runCSSM conf dm
 
-media :: TS.Text -> CSSM -> CSSM
-media = atRule "media"
+-- * Compat (CSS.TH, Web.*)
 
-supports :: TS.Text -> CSSM -> CSSM
-supports = atRule "supports"
-
--- | Helper for CSS.TH
 type CSSF = CSSM -> CSSM
 
 combine :: (Selector -> Selector) -> CSSF

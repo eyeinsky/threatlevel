@@ -19,12 +19,6 @@ css m = do
   emitFor @s (selFrom c) m
   return c
 
--- | Emit declaration @k: v@ for current selector
-prop :: forall s r . Has s r CSS => TS.Text -> Value -> Sem r ()
-prop property value = do
-  selector <- getSelector @s
-  emitRules @s $ pure $ mkRule selector (pure $ Declaration property value)
-
 combinator
   :: forall s r a . (Has s r CSS, SimpleSelectorFrom a)
   => SOp -> a -> Sem r () -> Sem r ()
@@ -36,11 +30,12 @@ combinator op slike m = do
 
 type CSSF = forall s r . Has s r CSS => Sem r () -> Sem r ()
 type CSSM = forall s r . Has s r CSS => Sem r ()
+type PolyProp = forall r . Member Prop r => Sem r ()
 
-emitForMod
+combine
   :: forall s r . Has s r CSS
   => (Selector -> Selector) -> Sem r () -> Sem r ()
-emitForMod mod m = getSelector @s >>= mod ^ flip emitFor m
+combine mod m = getSelector @s >>= mod ^ flip emitFor m
 
 atRule
   :: forall s r . Has s r CSS

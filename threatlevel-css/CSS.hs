@@ -1,10 +1,9 @@
 module CSS
   ( module CSS
   , module CSS.Syntax
+  , module CSS.DSL
   , module CSS.TH
-  , type CSSM
-  , keyframes', keyframe
-  , media, supports
+--  , keyframes', keyframe
   ) where
 
 import Common.Prelude as P
@@ -34,13 +33,6 @@ sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
 
 -- * Useful styles
-
-resetCSS :: [OuterRule]
-resetCSS = rulesFor (Tag "body") no <> rulesFor (Tag "div") no
-   where
-      no = do
-        prop "padding" $ px 0
-        prop "margin" $ px 0
 
 centerContent :: PolyProp
 centerContent = do
