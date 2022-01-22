@@ -60,9 +60,6 @@ flexbox how = do
   display "flex"
   flexFlow how
 
-important :: Value
-important = "!important"
-
 square :: Value -> DeclarationsM
 square n = do
   width n

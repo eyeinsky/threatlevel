@@ -44,6 +44,7 @@ instance Render Value where
 
     Url tl -> pure $ "url(\"" <>  TL.fromStrict tl <> "\")"
     Compound l -> TL.intercalate " " <$> mapM renderM (D.toList l)
+    Important -> pure "!important"
     where
       hex a = TL.pack $ showHex a ""
       p = R.tshow

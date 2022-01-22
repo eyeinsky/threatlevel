@@ -82,3 +82,6 @@ alpha a = rgba 0 0 0 a
 
 str :: TS.Text -> Value
 str = Word
+
+important :: Value
+important = Important

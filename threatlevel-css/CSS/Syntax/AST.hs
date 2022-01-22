@@ -31,8 +31,8 @@ data Value
   | ColorHSLA Double Double Double Double
 
   | Url TS.Text
-
   | Compound (D.DList Value)
+  | Important
 
 instance Semigroup Value where
   Compound xs <> Compound ys = Compound (xs <> ys)
