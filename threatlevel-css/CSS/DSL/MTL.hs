@@ -1,4 +1,7 @@
-module CSS.DSL.MTL where
+module CSS.DSL.MTL
+  ( module CSS.DSL.MTL
+  , module CSS.DSL.Common
+  ) where
 
 import Prelude
 import qualified Data.Text as TS
@@ -32,8 +35,6 @@ instance Monoid CSSW where
 instance HasDecls [Declaration] [Declaration] where
   decls = id
 
-type DM = Writer [Declaration]
-
 type CSSM = ReaderT Selector (WriterT CSSW Identity) ()
 type M = CSSM
 
@@ -60,10 +61,10 @@ tellRules rs = tell $ mempty & rules .~ rs
 
 -- * Pseudo-class and -element
 
-pseudo :: (SimpleSelector -> SimpleSelector) -> CSSM -> CSSM
-pseudo f m = do
+withDerivedSelector :: (Selector -> Selector) -> CSSM -> CSSM
+withDerivedSelector mod m = do
   selector <- ask
-  tellRules' (apply f selector) m :: CSSM
+  tellRules' (mod selector) m :: CSSM
 
 combinator :: SimpleSelectorFrom a => SOp -> a -> CSSM -> CSSM
 combinator op d m = let
@@ -110,8 +111,11 @@ atRule name e dm = do
   conf <- ask
   tellRules $ pure $ AtRule name e $ runCSSM conf dm
 
-media :: TS.Text -> CSSM () -> CSSM ()
+media :: TS.Text -> CSSM -> CSSM
 media = atRule "media"
 
-supports :: TS.Text -> CSSM () -> CSSM ()
+supports :: TS.Text -> CSSM -> CSSM
 supports = atRule "supports"
+
+-- | Helper for CSS.TH
+type CSSF = CSSM -> CSSM

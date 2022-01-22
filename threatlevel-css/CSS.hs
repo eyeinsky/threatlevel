@@ -1,6 +1,5 @@
 module CSS
-  ( module Export
-  , module CSS
+  ( module CSS
   , module CSS.Syntax
   , module CSS.TH
   , type CSSM
@@ -9,18 +8,14 @@ module CSS
   , DeclM
   ) where
 
-import CSS.Identifiers as Export
-
-import Prelude as P
-import Control.Lens
-
-import Render
+import Common.Prelude as P
 
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
 import CSS.DSL
 import CSS.TH
+import Render
 
 -- | TH-generate all properties with @prop@
 concat <$> mapM declareCssProperty allProperties
@@ -35,7 +30,7 @@ $(
 concat <$> mapM declarePseudoElement pseudoElements
 
 descendant, child, sibling, generalSibling
-  :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
+  :: SimpleSelectorFrom a => a -> CSSF
 descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
@@ -52,11 +47,6 @@ resetCSS = rulesFor (tagSelector "body") no <> rulesFor (tagSelector "div") no
       no = do
         prop "padding" $ px 0
         prop "margin" $ px 0
-
-setBoxSizing :: [Rule]
-setBoxSizing = rulesFor (tagSelector "html") (boxSizing "border-box") <> rulesFor anyTag inherit
-  where
-    inherit = boxSizing "inherit"
 
 centerContent :: DeclarationsM
 centerContent = do

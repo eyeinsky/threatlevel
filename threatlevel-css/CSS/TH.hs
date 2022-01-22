@@ -16,27 +16,21 @@ import CSS.DSL
 
 -- * Helpers
 
-pseudoClassPlain :: TS.Text -> CSSM () -> CSSM ()
-pseudoClassPlain name = pseudo (pseudoPlain PseudoClass name)
+pseudoClassPlain :: TS.Text -> CSSF
+pseudoClassPlain name =
+  withDerivedSelector (mkSelectorMod pseudos PseudoClass name)
 
-pseudoClassArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
-pseudoClassArgumented name arg = pseudo (pseudoArgd PseudoClass name arg)
+pseudoClassArgumented :: TS.Text -> TS.Text -> CSSF
+pseudoClassArgumented name arg =
+  withDerivedSelector (mkSelectorModArg pseudos PseudoClass name arg)
 
-pseudoElementPlain :: TS.Text -> CSSM () -> CSSM ()
-pseudoElementPlain name = pseudo (pseudoPlain PseudoElement name)
+pseudoElementPlain :: TS.Text -> CSSF
+pseudoElementPlain name =
+  withDerivedSelector (mkSelectorMod pseudos PseudoElement name)
 
-pseudoElementArgumented :: TS.Text -> TS.Text -> CSSM () -> CSSM ()
-pseudoElementArgumented name arg = pseudo (pseudoArgd PseudoElement name arg)
-
-pseudoPlain
-  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text
-  -> SimpleSelector -> SimpleSelector
-pseudoPlain dc t s = s & pseudos %~ (dc t Nothing:)
-
-pseudoArgd
-  :: (TS.Text -> Maybe TS.Text -> Pseudo) -> TS.Text -> TS.Text
-  -> SimpleSelector -> SimpleSelector
-pseudoArgd dc t a s = s & pseudos %~ (dc t (Just a):)
+pseudoElementArgumented :: TS.Text -> TS.Text -> CSSF
+pseudoElementArgumented name arg =
+  withDerivedSelector (mkSelectorModArg pseudos PseudoElement name arg)
 
 -- * TH-generators
 
@@ -48,16 +42,16 @@ declareCssProperty propName = let
 declarePseudoClass :: Either String String -> DecsQ
 declarePseudoClass e = case e of
   Left name -> let name' = camelName name
-   in declareFn name' [t| CSSM () -> CSSM () |] [| pseudoClassPlain $(stringE name) |]
+   in declareFn name' [t| CSSF |] [| pseudoClassPlain $(stringE name) |]
   Right name -> let name' = camelName name
-   in declareFn name' [t| TS.Text -> CSSM () -> CSSM () |] [| pseudoClassArgumented $(stringE name) |]
+   in declareFn name' [t| TS.Text -> CSSF |] [| pseudoClassArgumented $(stringE name) |]
 
 declarePseudoElement :: Either String String -> DecsQ
 declarePseudoElement e = case e of
   Left name -> let name' = camelName name
-    in declareFn name' [t| CSSM () -> CSSM () |] [| pseudoElementPlain $(stringE name) |]
+    in declareFn name' [t| CSSF |] [| pseudoElementPlain $(stringE name) |]
   Right name -> let name' = camelName name
-    in declareFn name' [t| TS.Text -> CSSM () -> CSSM () |] [| pseudoElementArgumented $(stringE name) |]
+    in declareFn name' [t| TS.Text -> CSSF |] [| pseudoElementArgumented $(stringE name) |]
 
 -- | Turn "some-prop-name" into "somePropName", but as already a TH pattern, i.e a lhs of a function definition.
 camelName :: String -> Name
