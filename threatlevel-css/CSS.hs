@@ -5,17 +5,15 @@ module CSS
   , type CSSM
   , keyframes', keyframe
   , media, supports
-  , DeclM
   ) where
 
 import Common.Prelude as P
-
+import Data.Text qualified as TS
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
 import CSS.DSL
 import CSS.TH
-import Render
 
 -- | TH-generate all properties with @prop@
 concat <$> mapM declareCssProperty allProperties
@@ -36,36 +34,33 @@ child = combinator Child
 sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
 
-renderDecls :: DeclM a -> Text
-renderDecls dm = render () $ view decls $ execDeclM dm
-
 -- * Useful styles
 
 resetCSS :: [Rule]
-resetCSS = rulesFor (tagSelector "body") no <> rulesFor (tagSelector "div") no
+resetCSS = rulesFor (Tag "body") no <> rulesFor (Tag "div") no
    where
       no = do
         prop "padding" $ px 0
         prop "margin" $ px 0
 
-centerContent :: DeclarationsM
+centerContent :: PolyProp
 centerContent = do
   display "flex"
   flexFlow "column nowrap"
   justifyContent "center"
   alignItems "center"
 
-flexbox :: Value -> DeclarationsM
+flexbox :: Value -> PolyProp
 flexbox how = do
   display "flex"
   flexFlow how
 
-square :: Value -> DeclarationsM
+square :: Value -> PolyProp
 square n = do
   width n
   height n
 
-circle :: Value -> DeclarationsM
+circle :: Value -> PolyProp
 circle n = do
   square n
   borderRadius $ prc 50
