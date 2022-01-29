@@ -120,7 +120,7 @@ propToBase
 propToBase = interpret $ \case
   Prop property value -> do
     selector <- getSelectorBase @r
-    tell @Rules $ pure $ mkRule selector (pure $ Declaration property value)
+    tell @OuterRules $ pure $ Plain $ mkRule selector (pure $ Declaration property value)
 
 run' :: RunBase (MonoCSS' a -> BaseResult a)
 run' r s m = m
