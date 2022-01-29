@@ -66,6 +66,7 @@ library
       SVG.Elements
       SVG.TH
       Trie
+      Web.DSL
       WebStorage
       X.Template.Common
       XML.Render
