@@ -20,7 +20,6 @@ library
   other-modules:
       CSS.DSL.Common
       CSS.DSL.MTL
-      CSS.DSL.Polysemy
       CSS.DSL.Polysemy.Base
       CSS.DSL.Polysemy.Effect
       CSS.Identifiers
