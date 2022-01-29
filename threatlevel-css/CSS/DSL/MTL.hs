@@ -12,6 +12,7 @@ import Control.Monad.Writer
 import Control.Monad.Reader
 
 import Identifiers as Idents
+import Render
 
 import CSS.Syntax
 import CSS.DSL.Common
@@ -39,7 +40,7 @@ type CSSM = ReaderT Selector (WriterT CSSW Identity) ()
 type M = CSSM
 
 -- | Helper type alias
-type DeclarationsM = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
+type PolyProp = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
 
 -- | Full runner for nested CSS
 runCSSM :: Selector -> CSSM -> [Rule]
@@ -53,7 +54,7 @@ rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 
 -- * For export
 
-prop :: TS.Text -> Value -> DeclarationsM
+prop :: TS.Text -> Value -> PolyProp
 prop k v = tell $ mempty & decls .~ (pure $ Declaration k v)
 
 tellRules :: [Rule] -> CSSM
@@ -89,15 +90,16 @@ instance Semigroup DeclW where
 instance Monoid DeclW where
   mempty = DeclW mempty
 
-type DeclM = Writer DeclW
-execDeclM :: DeclM a ->  DeclW
-execDeclM dm = execWriter dm
+type MonoProp = Writer DeclW
+instance Render (MonoProp a) where
+  type Conf (MonoProp a) = CSS.Syntax.Conf
+  renderM m = renderM $ view decls $ execWriter m
 
 -- * Keyframes
 
 type KM = Writer [KeyframeBlock]
 
-keyframe :: Double -> DeclM () -> KM ()
+keyframe :: Double -> MonoProp () -> KM ()
 keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
 keyframes' :: TS.Text -> KM () -> (Value, Rule)

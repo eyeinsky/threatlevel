@@ -363,7 +363,7 @@ decls = decls
 {-# DEPRECATED decls "Use `style` instead." #-}
 
 style :: DeclM a -> Attribute
-style decls = Custom "style" (Static $ TL.toStrict $ renderDecls decls)
+style decls = Custom "style" (Static $ TL.toStrict $ render Minify decls)
 
 -- * Html + CSS + MonadWeb
 

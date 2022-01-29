@@ -37,7 +37,7 @@ pseudoElementArgumented name arg =
 declareCssProperty :: String -> DecsQ
 declareCssProperty propName = let
   name = camelName propName
-  in declareFn name [t| Value -> DeclarationsM |] [| prop $(stringE propName) |]
+  in declareFn name [t| Value -> PolyProp |] [| prop $(stringE propName) |]
 
 declarePseudoClass :: Either String String -> DecsQ
 declarePseudoClass e = case e of
