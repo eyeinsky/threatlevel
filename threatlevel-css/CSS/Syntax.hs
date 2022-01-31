@@ -2,6 +2,7 @@ module CSS.Syntax
   ( module CSS.Syntax
   , module CSS.Syntax.AST
   , module CSS.Syntax.Render
+  , module CSS.Identifiers
   ) where
 
 import Common.Prelude
@@ -10,6 +11,7 @@ import qualified Data.Text as TS
 
 import CSS.Syntax.AST
 import CSS.Syntax.Render
+import CSS.Identifiers
 
 
 -- | Conversion from something to Selector
