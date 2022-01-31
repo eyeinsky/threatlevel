@@ -21,7 +21,12 @@ instance Render Value where
   type Conf Value = Conf
   renderM a = case a of
     Word a -> pure $ TL.fromStrict a
-    String _ -> renderM (Comment "long strings unimplemented")
+    String ts -> let
+      tl = ts
+        & TL.fromStrict
+        & TL.replace "\\" "\\\\"
+        & TL.replace "\"" "\\\""
+      in pure $ R.surround "\"" "\"" tl
 
     Percent a -> pure $ R.tshow a <> "%"
     Em a -> pure $ p a <> "em"
