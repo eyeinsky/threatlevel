@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module JS.Syntax.Render (Conf(..), unargs) where
 
-import Common.Prelude as P hiding ((<+>))
+import Common.Prelude as P hiding ((<+>), assign)
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Reader
 

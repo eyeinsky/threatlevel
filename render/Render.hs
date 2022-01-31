@@ -1,4 +1,7 @@
-module Render where
+module Render
+  ( module Render
+  , module Control.Monad.Reader
+  ) where
 
 import Prelude
 import qualified Data.Text as TS
@@ -7,7 +10,7 @@ import qualified Data.Text.Lazy.IO as TLIO
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad ()
-import Control.Monad.Reader (Reader, runReader)
+import Control.Monad.Reader
 
 -- * Monad
 
@@ -42,6 +45,9 @@ a <+> b = (<>) <$> a <*> b
 
 sur :: TL.Text -> TL.Text -> TL.Text -> TL.Text
 sur begin end cont = begin <> cont <> end
+
+surround :: TL.Text -> TL.Text -> TL.Text -> TL.Text
+surround = sur
 
 par :: TL.Text -> TL.Text
 par = sur "(" ")"
