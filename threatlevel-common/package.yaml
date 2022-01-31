@@ -9,6 +9,7 @@ dependencies:
 - data-default
 - fixedlist
 - lens
+- polysemy
 - template-haskell
 - text
 - identifiers
@@ -20,6 +21,7 @@ library:
   - Common.TH
   - Common.Lens
   - Common.Prelude
+  - Common.Polysemy
   ghc-options:
   - -Wall
   - -Wno-name-shadowing
