@@ -15,7 +15,7 @@ import Render as R hiding (Conf)
 import qualified Render
 
 
-data Conf = Pretty | Minify
+data Conf = Pretty Int | Minify
 
 instance Render Value where
   type Conf Value = Conf
@@ -86,17 +86,30 @@ instance Render Pseudo where
 instance Render SimpleSelector where
   type Conf SimpleSelector = Conf
   renderM (SimpleSelector maybeTag maybeId cs ps _)
-    = maybe (pure "") renderM maybeTag
-    <+> maybe (pure "") renderM maybeId
-    <+> (mconcat <$> mapM renderM cs)
-    <+> (mconcat <$> mapM renderM ps)
+    = do
+    text <- maybe (pure "") renderM maybeTag
+      <+> maybe (pure "") renderM maybeId
+      <+> (mconcat <$> mapM renderM cs)
+      <+> (mconcat <$> mapM renderM ps)
+    choice id (R.surround "" " ") text
 
 instance Render Declaration where
   type Conf Declaration = Conf
-  renderM (Declaration p v) = R.mseq [pure $ TL.fromStrict p, pure ":", renderM v]
+  renderM (Declaration p v) = R.mseq
+    [ pure $ TL.fromStrict p
+    , pure ":"
+    , choice_ "" " "
+    , renderM v ]
+
 instance Render [Declaration] where
   type Conf [Declaration] = Conf
-  renderM ds = TL.concat . map (<> ";") <$> mapM renderM ds
+  renderM ds = do
+    lines <- mapM renderM ds
+    indent $ do
+      spaces <- getSpaces
+      newline <- getNewline
+      lines' <- choice (map (<> ";")) (map (R.surround (newline <> spaces) ";")) lines
+      return $ TL.concat lines' <> newline
 
 instance Render SOp where
   type Conf SOp = Conf
@@ -110,7 +123,11 @@ instance Render Selector where
   type Conf Selector = Conf
   renderM s = case s of
     Simple ss -> renderM ss
-    Combined op s s' -> renderM s <+> renderM op <+> renderM s'
+    Combined op s s' ->
+      renderM s
+      <+> renderM op
+      <+> pure " "
+      <+> renderM s'
 
 instance Render KeyframeSelector where
   type Conf KeyframeSelector = Conf
@@ -125,8 +142,9 @@ instance Render KeyframeBlock where
 
 instance Render Rules where
   type Conf Rules = Conf
-  renderM li = TL.unlines <$> mapM renderM (filter (not . isEmpty) li)
+  renderM li = mapM renderM li' <&> TL.concat
     where
+      li' = filter (not . isEmpty) li
       isEmpty r = case r of
         Qualified _ ds -> null ds
         Keyframes _ _ -> False
@@ -135,19 +153,68 @@ instance Render Rules where
 
 instance Render Rule where
   type Conf Rule = Conf
-  renderM r = case r of
-    Qualified p ds -> renderM p <+> curlyRules ds
-    Keyframes name blocks ->
-      pure "@keyframes " <+> pure (TL.fromStrict name) <+> blocks'
-      where
-        blocks' = R.curly . TL.concat <$> mapM renderM blocks
-    AtRule name rule nested -> let
-      query = "@" <>  TL.fromStrict name <> " " <>  TL.fromStrict rule
-      in pure query <+> (R.curly . TL.unlines <$> mapM renderM nested)
-    FontFace ds -> pure "@font-face " <+> curlyRules ds
+  renderM r = do
+    spaces <- getSpaces
+    choice_ "" spaces <+> case r of
+      Qualified p ds -> do
+        spaces <- getSpaces
+        newline <- getNewline
+        ds' <- renderM ds
+        renderM p <+> pure (R.surround "{" (spaces <> "}" <> newline) ds')
+      Keyframes name blocks ->
+        pure "@keyframes " <+> pure (TL.fromStrict name) <+> blocks'
+        where
+          blocks' = R.curly . TL.concat <$> mapM renderM blocks
+      AtRule name rule nestedRules -> let
+        name' = "@" <>  TL.fromStrict name
+        rule' = if rule == ""
+          then " "
+          else R.surround " " " " $ TL.fromStrict rule
+        in do
+        nestedRules' <- indent $ mapM renderM nestedRules
+        spaces <- getSpaces
+        newline <- getNewline
+        return $
+          name'
+          <> rule'
+          <> R.surround ("{" <> newline) (spaces <> "}") (TL.concat nestedRules')
+      FontFace ds -> pure "@font-face " <+> curlyRules ds
     where
       curlyRules ds = R.curly <$> (renderM ds)
 
 instance Render Prelude where
   type Conf Prelude = Conf
   renderM (Selectors ss) = TL.intercalate "," <$> mapM renderM ss
+
+-- * Helpers
+
+choice
+  :: (a -> b)
+  -> (a -> b)
+  -> a -> Reader Conf b
+choice minify pretty m = ask >>= \case
+  Minify -> return $ minify m
+  Pretty _ -> return $ pretty m
+
+choice_ :: a -> a -> Reader Conf a
+choice_ minify pretty = ask >>= \case
+  Minify -> pure minify
+  Pretty _ -> pure pretty
+
+indent :: Reader Conf a -> Reader Conf a
+indent m = local (inc 4) m
+
+inc :: Int -> Conf -> Conf
+inc m = \case
+  Minify -> Minify
+  Pretty n -> Pretty $ n + m
+
+getSpaces :: Reader Conf Render.Text
+getSpaces = ask >>= \case
+  Minify -> pure ""
+  Pretty n -> pure $ TL.replicate (fromIntegral n) " "
+
+getNewline :: Reader Conf Render.Text
+getNewline = ask >>= \case
+  Minify -> pure ""
+  Pretty{} -> pure "\n"
