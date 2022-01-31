@@ -17,6 +17,7 @@ library
       Common.TH
       Common.Lens
       Common.Prelude
+      Common.Polysemy
   other-modules:
       Paths_threatlevel_common
   hs-source-dirs:
@@ -67,6 +68,7 @@ library
     , fixedlist
     , identifiers
     , lens
+    , polysemy
     , template-haskell
     , text
   default-language: Haskell2010
