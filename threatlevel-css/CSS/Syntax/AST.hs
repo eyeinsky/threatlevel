@@ -76,34 +76,42 @@ data SimpleSelector = SimpleSelector
   }
 makeFields ''SimpleSelector
 
-data Declaration = Declaration TS.Text Value
-
 data Selector where
   Simple :: SimpleSelector -> Selector
   Combined :: SOp -> Selector -> SimpleSelector -> Selector
 
 data SOp = Descendant | Child | Sibling | GeneralSibling
 
+data Prelude = Selectors [Selector]
+
+-- * Declaration
+
+data Declaration = Declaration TS.Text Value
+type Declarations = [Declaration]
+
+-- * Rule
+
+data Rule = Rule Prelude [Declaration]
+
+mkRule :: Selector -> [Declaration] -> OuterRule
+mkRule s ds = Plain $ Rule (Selectors [s]) ds
+
+-- * Keyframes
+
 data KeyframeBlock
   = KeyframeBlock KeyframeSelector [Declaration]
 
 data KeyframeSelector = From | To | KPercent Double
 
-type Rules = [Rule]
-type Declarations = [Declaration]
+-- * Outer rules
 
-data Rule where
-  Qualified :: Prelude -> [Declaration] -> Rule
-  Keyframes :: TS.Text -> [KeyframeBlock] -> Rule
-  AtRule :: TS.Text -> TS.Text -> Rules -> Rule
-  FontFace :: [Declaration] -> Rule
+data OuterRule where
+  Plain :: Rule -> OuterRule
+  Keyframes :: TS.Text -> [KeyframeBlock] -> OuterRule
+  AtRule :: TS.Text -> TS.Text -> OuterRules -> OuterRule
+  FontFace :: [Declaration] -> OuterRule
 
-data Prelude = Selectors [Selector]
-
--- * Helpers
-
-mkRule :: Selector -> [Declaration] -> Rule
-mkRule s ds = Qualified (Selectors [s]) ds
+type OuterRules = [OuterRule]
 
 -- * Instances
 
@@ -129,6 +137,7 @@ deriving instance Show Tag
 deriving instance Show Id
 deriving instance Show Class
 deriving instance Show Rule
+deriving instance Show OuterRule
 deriving instance Show KeyframeBlock
 deriving instance Show KeyframeSelector
 deriving instance Show Prelude

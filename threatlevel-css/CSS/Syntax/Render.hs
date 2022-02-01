@@ -129,6 +129,14 @@ instance Render Selector where
       <+> pure " "
       <+> renderM s'
 
+instance Render Rule where
+  type Conf Rule = Conf
+  renderM (Rule p ds) = do
+    spaces <- getSpaces
+    newline <- getNewline
+    ds' <- renderM ds
+    renderM p <+> pure (R.surround "{" (spaces <> "}" <> newline) ds')
+
 instance Render KeyframeSelector where
   type Conf KeyframeSelector = Conf
   renderM ks = pure $ case ks of
@@ -140,27 +148,23 @@ instance Render KeyframeBlock where
   type Conf KeyframeBlock = Conf
   renderM (KeyframeBlock s ds) = renderM s <+> (R.curly <$> renderM ds)
 
-instance Render Rules where
-  type Conf Rules = Conf
+instance Render OuterRules where
+  type Conf OuterRules = Conf
   renderM li = mapM renderM li' <&> TL.concat
     where
       li' = filter (not . isEmpty) li
       isEmpty r = case r of
-        Qualified _ ds -> null ds
+        Plain (Rule _ ds) -> null ds
         Keyframes _ _ -> False
         AtRule _ _ rs -> null rs
         FontFace rs -> null rs
 
-instance Render Rule where
-  type Conf Rule = Conf
+instance Render OuterRule where
+  type Conf OuterRule = Conf
   renderM r = do
     spaces <- getSpaces
     choice_ "" spaces <+> case r of
-      Qualified p ds -> do
-        spaces <- getSpaces
-        newline <- getNewline
-        ds' <- renderM ds
-        renderM p <+> pure (R.surround "{" (spaces <> "}" <> newline) ds')
+      Plain rule -> renderM rule
       Keyframes name blocks ->
         pure "@keyframes " <+> pure (TL.fromStrict name) <+> blocks'
         where
