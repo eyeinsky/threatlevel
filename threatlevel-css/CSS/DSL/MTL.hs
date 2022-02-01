@@ -23,7 +23,7 @@ type Names = Infinite TL.Text
 
 declareFields [d|
   data CSSW = CSSW
-    { cSSWRules :: [Rule]
+    { cSSWRules :: [OuterRule]
     , cSSWDecls :: [Declaration]
     }
   |]
@@ -43,13 +43,13 @@ type M = CSSM
 type PolyProp = forall m w. (HasDecls w [Declaration], MonadWriter w m) => m ()
 
 -- | Full runner for nested CSS
-runCSSM :: Selector -> CSSM -> [Rule]
+runCSSM :: Selector -> CSSM -> [OuterRule]
 runCSSM r m = (rule : cssw^.rules)
   where
     ((), cssw) = runWriter $ runReaderT m r
     rule = mkRule r (cssw^.decls)
 
-rulesFor :: SelectorFrom s => s -> CSSM -> [Rule]
+rulesFor :: SelectorFrom s => s -> CSSM -> [OuterRule]
 rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 
 -- * For export
@@ -57,7 +57,7 @@ rulesFor selectorLike m = runCSSM (selFrom selectorLike) m
 prop :: TS.Text -> Value -> PolyProp
 prop k v = tell $ mempty & decls .~ (pure $ Declaration k v)
 
-tellRules :: [Rule] -> CSSM
+tellRules :: [OuterRule] -> CSSM
 tellRules rs = tell $ mempty & rules .~ rs
 
 -- * Pseudo-class and -element
@@ -102,7 +102,7 @@ type KM = Writer [KeyframeBlock]
 keyframe :: Double -> MonoProp () -> KM ()
 keyframe n dm = tell $ pure $ KeyframeBlock (KPercent n) (execWriter dm^.decls)
 
-keyframes' :: TS.Text -> KM () -> (Value, Rule)
+keyframes' :: TS.Text -> KM () -> (Value, OuterRule)
 keyframes' name km = (Word name, keyframesRule)
   where keyframesRule = Keyframes name $ execWriter km
 
