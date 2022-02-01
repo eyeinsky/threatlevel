@@ -7,7 +7,7 @@ import Control.Monad.Reader
 
 import Render hiding (Conf)
 import qualified Render
-import JS.Syntax.Types
+import JS.Syntax.AST
 
 -- * Print AST to JavaScript
 

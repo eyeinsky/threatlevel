@@ -41,9 +41,9 @@ library
       JS.DSL.Core
       JS.DSL.MTL
       JS.DSL.Syntax
+      JS.Syntax.AST
       JS.Syntax.Render
       JS.Syntax.Reserved
-      JS.Syntax.Types
       Paths_threatlevel_js
   hs-source-dirs:
       ./

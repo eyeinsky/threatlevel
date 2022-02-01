@@ -1,4 +1,4 @@
-module JS.Syntax.Types where
+module JS.Syntax.AST where
 
 import Prelude
 import Data.Void
