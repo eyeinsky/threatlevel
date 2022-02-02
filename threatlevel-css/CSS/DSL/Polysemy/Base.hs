@@ -1,12 +1,11 @@
-
 module CSS.DSL.Polysemy.Base where
 
 import Common.Prelude
+import Common.Polysemy hiding (run)
 import qualified Data.Text as TS
 import Data.DList as DList
 
-import Polysemy hiding (run)
-import qualified Polysemy
+import Polysemy qualified
 import Polysemy.State
 import Polysemy.Reader
 import Polysemy.Writer
@@ -15,21 +14,30 @@ import CSS.Syntax
 import CSS.DSL.Polysemy.Effect
 import qualified Render
 
--- * Polymorphic @Base@
+-- * @CSS@ to @Base@
 
 type Names = Infinite TS.Text
 
+type Base' rest = Append Base rest
 type Base =
-  [ Writer Rules
+  [ Writer OuterRules
   , State Names
   , Reader Selector
   ]
 
-getFreshClassBase :: Members Base r => Sem r TS.Text
+getFreshClassBase :: Members Base r => Sem r Class
 getFreshClassBase = do
   Infinite x xs <- get
   put xs
-  return x
+  return $ Class x
+
+-- | Generate a class, bind declarations @m@ to it
+cssBase :: Members Base r => m a -> Sem r Class
+cssBase m = do
+  c <- getFreshClassBase
+--  emitForBase undefined (selFrom c) m
+  undefined
+--  return $ c
 
 getSelectorBase :: Members Base r => Sem r Selector
 getSelectorBase = ask @Selector
@@ -52,7 +60,7 @@ runDslBase
   :: forall r b a
    . Members Base b
   => (forall _a . RunBase (Sem r _a -> BaseResult _a))
-  -> Sem r a -> Sem b (Rules, a)
+  -> Sem r a -> Sem b (OuterRules, a)
 runDslBase f m = do
   s <- getSelectorBase @b
   fresh0 <- get @Names
@@ -60,78 +68,70 @@ runDslBase f m = do
   put @Names fresh1
   return (rs, a)
 
--- * interpret @CSS@ to @Base@
+cssToBase :: (Members Base r) => Sem (CSS : r) a -> Sem r a
+cssToBase = interpretH $ \case
+  Css m -> do
+    class_ <- pureT =<< getFreshClassBase
+    runTSimple m $> class_
+    undefined
+  GetFreshClass -> pureT =<< getFreshClassBase
+  GetSelector -> pureT =<< getSelectorBase
+  EmitFor s m -> pureT =<< emitForBase' s m
+  EmitRules rs -> pureT =<< tell rs
+  ExecDsl m -> let f = undefined in pureT =<< runDslBase f m
 
-cssToBase
-  :: forall r b a
-   . (Members Base b, r ~ (CSS b : b))
-  => (forall _a . RunBase (Sem r _a -> BaseResult _a))
-  -> Sem (CSS b : b) a -> Sem b a
-cssToBase f = interpret $ \case
-  GetFreshClass -> Class <$> getFreshClassBase
-  GetSelector -> getSelectorBase
-  EmitFor s m -> emitForBase f s m
-  EmitRules rs -> tell rs
-  ExecDsl m -> runDslBase f m
+  where
+    emitForBase' s m = let f = undefined in emitForBase f s m
 
--- * Monomorphic @Base@
-
-type MonoCSS = Sem (CSS Base : Base)
 type RunBase a = Selector -> Names -> a
-type BaseResult a = (Names, (Rules, a))
+type BaseResult a = (Names, (OuterRules, a))
 
 -- | Run monomorphic @Base@
-runBase :: RunBase (Sem Base a -> BaseResult a)
+runBase :: RunBase (Sem (Base' r) a -> Sem r (BaseResult a))
 runBase r s m = m
   & runWriter @Rules
   & runState s
   & runReader r
-  & Polysemy.run
 
--- | Run monomorphic @CSS@
-run :: RunBase (MonoCSS a -> BaseResult a)
-run r s m = m
-  & cssToBase run
-  & runBase r s
+-- * @Prop@ to @Base@
+
+propToBase :: (Members Base r) => Sem (Prop : r) a -> Sem r a
+propToBase = interpret $ \case
+  Prop property value -> do
+    selector <- getSelectorBase
+    let rule = Plain $ mkRule selector (pure $ Declaration property value)
+    tell @OuterRules $ pure rule
+
+type MonoCSS' rest = Sem (CSS : Prop : Append Base rest)
+type MonoCSS = Sem (CSS : Prop : Base)
+
+-- * Interpret @CSS@ to @Base@
+
+run :: RunBase (MonoCSS' r a -> Sem r (BaseResult a))
+run r s = cssToBase ^ propToBase ^ runBase r s
 
 -- | Run monomorphic @CSS@ from empty start
-runFresh :: MonoCSS a -> BaseResult a
+runFresh :: MonoCSS' r a -> Sem r (BaseResult a)
 runFresh m = run (selFrom Any) identifiers m
+
+getRules :: forall a . RunBase (MonoCSS a -> OuterRules)
+getRules r s m = rs
+  where
+    (_, (rs, _)) = Polysemy.run $ run r s m :: BaseResult a
+
+getRulesFresh :: forall a . MonoCSS a -> OuterRules
+getRulesFresh m = rs
+  where
+    (_, (rs, _)) = Polysemy.run $ runFresh m :: BaseResult a
 
 instance Render.Render (MonoCSS a) where
   type Conf (MonoCSS a) = CSS.Syntax.Conf
-  renderM m = Render.renderM rs
-    where (_, (rs, _)) = runFresh m :: BaseResult a
+  renderM = Render.renderM . getRulesFresh
 
 -- * Compat
 
-rulesFor :: SelectorFrom a => a -> MonoCSS a -> [OuterRule]
-rulesFor slike m = rs
-  where (_, (rs, _)) = run (selFrom slike) identifiers m
-
--- * Monomorphic with @Base' = Prop : Base@
-
-type Base' = Prop : Base
-type MonoCSS' = Sem (CSS Base' : Base')
-
-propToBase
-  :: forall r a . (Members Base r)
-  => Sem (Prop : r) a -> Sem r a
-propToBase = interpret $ \case
-  Prop property value -> do
-    selector <- getSelectorBase @r
-    tell @OuterRules $ pure $ Plain $ mkRule selector (pure $ Declaration property value)
-
-run' :: RunBase (MonoCSS' a -> BaseResult a)
-run' r s m = m
-  & cssToBase run'
-  & propToBase
-  & runBase r s
-
-instance Render.Render (MonoCSS' a) where
-  type Conf (MonoCSS' a) = CSS.Syntax.Conf
-  renderM m = Render.renderM rs
-    where (_, (rs, _)) = run' (selFrom Any) identifiers m :: BaseResult a
+rulesFor :: SelectorFrom a => a -> MonoCSS a -> OuterRules
+rulesFor slike m = getRules (selFrom slike) identifiers m
 
 -- * Monomorphic plain @Prop@
 
@@ -140,15 +140,13 @@ propToWriter = interpret $ \case
   Prop property value ->
     tell @Declarations $ pure $ Declaration property value
 
-type MonoProp = Sem [Prop, Writer Declarations]
+type MonoProp' r = Sem (Prop : Writer Declarations : r)
+type MonoProp = MonoProp' '[]
 
-runProp :: MonoProp a -> (Declarations, a)
-runProp ds = ds
-  & propToWriter
-  & runWriter
-  & Polysemy.run
+runProp :: MonoProp' r a -> Sem r (Declarations, a)
+runProp = propToWriter ^ runWriter
 
 instance Render.Render (MonoProp a) where
   type Conf (MonoProp a) = CSS.Syntax.Conf
   renderM m = Render.renderM ds
-    where (ds, _) = runProp m
+    where (ds, _) = Polysemy.run $ runProp m
