@@ -11,12 +11,11 @@ import Polysemy.Reader
 import Polysemy.Writer
 
 import CSS.Syntax
+import CSS.DSL.Common
 import CSS.DSL.Polysemy.Effect
 import qualified Render
 
 -- * @CSS@ to @Base@
-
-type Names = Infinite TS.Text
 
 type Base' rest = Append Base rest
 type Base =
@@ -83,8 +82,8 @@ cssToBase = interpretH $ \case
   where
     emitForBase' s m = let f = undefined in emitForBase f s m
 
-type RunBase a = Selector -> Names -> a
-type BaseResult a = (Names, (OuterRules, a))
+
+-- ** Monomorphic
 
 -- | Run monomorphic @Base@
 runBase :: RunBase (Sem (Base' r) a -> Sem r (BaseResult a))
