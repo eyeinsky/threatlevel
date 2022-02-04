@@ -5,21 +5,17 @@ module CSS.DSL.MTL
 
 import Prelude
 import qualified Data.Text as TS
-import qualified Data.Text.Lazy as TL
 import Control.Monad.RWS
 import Control.Lens
 import Control.Monad.Writer
 import Control.Monad.Reader
 
-import Identifiers as Idents
 import Render
 
 import CSS.Syntax
 import CSS.DSL.Common
 
 -- * DSL setup
-
-type Names = Infinite TL.Text
 
 declareFields [d|
   data CSSW = CSSW
