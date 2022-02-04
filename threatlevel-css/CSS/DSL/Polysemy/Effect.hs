@@ -39,7 +39,6 @@ atRule
   :: forall r . Member CSS r
   => TS.Text -> TS.Text -> Sem r () -> Sem r ()
 atRule ruleName rule m = do
-  s <- getSelector
   rules <- execDsl m <&> fst
   emitRules $ pure $ AtRule ruleName rule rules
 
