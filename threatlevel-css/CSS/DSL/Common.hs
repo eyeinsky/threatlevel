@@ -4,6 +4,15 @@ import Common.Prelude
 import qualified Data.Text as TS
 import CSS.Syntax
 
+
+type Names = Infinite TS.Text
+
+type RunBase a = Selector -> Names -> a
+type BaseResult a = (Names, (OuterRules, a))
+getRules_ :: BaseResult a -> OuterRules
+getRules_ (_, (rs, _)) = rs
+
+
 -- | Turn function on @SimpleSelector@ to function on @Selector@
 toSS :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector
 toSS f = \case
