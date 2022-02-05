@@ -8,7 +8,6 @@ module CSS
   ) where
 
 import Common.Prelude as P
-import Data.Text qualified as TS
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
@@ -36,7 +35,7 @@ generalSibling = combinator GeneralSibling
 
 -- * Useful styles
 
-resetCSS :: [Rule]
+resetCSS :: [OuterRule]
 resetCSS = rulesFor (Tag "body") no <> rulesFor (Tag "div") no
    where
       no = do
