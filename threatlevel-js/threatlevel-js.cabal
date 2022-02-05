@@ -16,6 +16,7 @@ library
   exposed-modules:
       JS.Syntax
       JS.DSL
+      JS.DSL.Syntax
       JS.DSL.MTL.Core
       JS.DSL.MTL.Function
       JS.Derive
