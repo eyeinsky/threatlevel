@@ -18,19 +18,19 @@ import CSS.DSL
 
 pseudoClassPlain :: TS.Text -> CSSF
 pseudoClassPlain name =
-  withDerivedSelector (mkSelectorMod pseudos PseudoClass name)
+  combine (mkSelectorMod pseudos PseudoClass name)
 
 pseudoClassArgumented :: TS.Text -> TS.Text -> CSSF
 pseudoClassArgumented name arg =
-  withDerivedSelector (mkSelectorModArg pseudos PseudoClass name arg)
+  combine (mkSelectorModArg pseudos PseudoClass name arg)
 
 pseudoElementPlain :: TS.Text -> CSSF
 pseudoElementPlain name =
-  withDerivedSelector (mkSelectorMod pseudos PseudoElement name)
+  combine (mkSelectorMod pseudos PseudoElement name)
 
 pseudoElementArgumented :: TS.Text -> TS.Text -> CSSF
 pseudoElementArgumented name arg =
-  withDerivedSelector (mkSelectorModArg pseudos PseudoElement name arg)
+  combine (mkSelectorModArg pseudos PseudoElement name arg)
 
 -- * TH-generators
 

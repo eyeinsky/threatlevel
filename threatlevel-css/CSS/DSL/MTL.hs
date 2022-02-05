@@ -117,3 +117,8 @@ supports = atRule "supports"
 
 -- | Helper for CSS.TH
 type CSSF = CSSM -> CSSM
+
+combine :: (Selector -> Selector) -> CSSF
+combine mod m = do
+  selector <- ask
+  tellRules' (mod selector) m :: CSSM
