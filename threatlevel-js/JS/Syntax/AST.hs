@@ -84,6 +84,7 @@ data Expr a where
 
 type FormalArgs = [Name]
 newtype Name = Name TS.Text
+  deriving stock Show
 
 data PossiblyComputedName
   = Computed (Expr ())

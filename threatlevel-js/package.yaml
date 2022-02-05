@@ -29,6 +29,7 @@ library:
   # JavaScript syntax, DSL and meta
   - JS.Syntax
   - JS.DSL
+  - JS.DSL.Syntax
   - JS.DSL.MTL.Core
   - JS.DSL.MTL.Function
   - JS.Derive
