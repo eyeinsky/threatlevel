@@ -40,6 +40,9 @@ f1Test = do
       bare $ call1 (ex "console" !. "log") x
     return a
 
+  h <- f2 AnonFunc $ \(a :: Expr a) (b :: Expr b) -> do
+    stm $ BareExpr $ call (ex "console" !. "log") [1, 2]
+
   stm $ BareExpr $ call g [1, 2]
 
 f1Main :: IO ()
