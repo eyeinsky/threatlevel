@@ -18,7 +18,7 @@ import JS.DSL.Core
 
 -- * Effect
 
-class Monad m => JS m where
+class (Monad m) => JS m where
   stm :: Syntax.Statement () -> m ()
   freshName :: m Name
   bind :: (Name -> Expr a -> Statement ()) -> Expr a -> m (Expr a)
@@ -27,6 +27,8 @@ class Monad m => JS m where
   f1 :: forall f . (C1 f, MonadFor f ~ m) => f -> m (Expr ())
 
   f2 :: forall f . (C2 f m) => FuncConstr () (FunctionType f m) -> f -> m (Expr (FunctionType f m))
+
+  f3 :: forall f . (C3 f m) => f -> m RetUntyped
 
 execSub_ :: JS m => m a -> m Code_
 execSub_ m = execSub m <&> snd
@@ -71,17 +73,14 @@ instance JS MonoJS where
     let ((a, w), s) = run env lib0 used0 fresh0 m
     put s $> (a, w)
 
-  f1 f = do
-    (names, body) <- c1 f []
-    let f = AnonFunc Nothing names body
-    fname <- bind Let f
-    return fname
-
-  f2 syntax f = do
-    (names, body) <- coerce <$> c2 f []
-    let f = syntax Nothing names body
-    fname <- bind Let f
-    return fname
+  f1 f = bind Let . uncurry (AnonFunc Nothing) =<< c1 f []
+  f2 syntax f = bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
+  -- f3 f = do
+  --   c3 f
+    -- g <- c3 f
+    -- let args = toStrings g
+    --     body = undefined
+    -- bind Let $ syntax Nothing args [Empty]
 
 -- * Render
 
@@ -155,3 +154,127 @@ instance Back (Expr b) => Back (Expr (a -> b)) where
   convert args f arg = convert (Cast arg : args) (Cast f :: Expr b)
 instance {-# OVERLAPPABLE #-} (Expr a ~ Convert (Expr a)) => Back (Expr a) where
   convert args f = call f $ reverse args
+
+{- * 3. Use marked base case
+
+-}
+
+-- testf :: a -> b -> c -> d -> Identity Int
+testf :: Monad m => a -> b -> c -> d -> m ()
+testf a b c d = return undefined
+
+testAnyGProxy :: Monad m => G (a -> b -> c -> d -> m ())
+testAnyGProxy = anyGProxy (fproxy testf)
+
+-- testArity :: Int
+-- testArity = arity testf
+
+data Some (f :: k -> Type) where
+  Some :: f a -> Some f
+
+
+-- class AnyG f where
+--   anyG :: G (ToG f)
+-- instance (AnyG b, ToG (a -> b) ~ f) => AnyG f where
+--   anyG = Rec (anyG :: G (ToG f))
+-- instance {-# OVERLAPPABLE #-} AnyG a where
+--   anyG = End
+
+-- toG :: Proxy f -> G f -> Some G
+-- toG _ g = case g of
+--   Rec some -> undefined
+--   Rec some -> undefined
+
+
+-- * G class
+
+data G :: Type -> Type where
+  GRec :: G b -> G (a -> b)
+  GEnd :: G a
+
+class AnyG f where
+  anyG :: G f
+  anyGProxy :: Proxy f -> G f
+instance {-# OVERLAPPING #-} AnyG b => AnyG (a -> b) where
+  anyG = GRec anyG
+  anyGProxy _ = GRec (anyGProxy Proxy)
+instance {-# INCOHERENT #-} AnyG a where
+  anyG = GEnd
+  anyGProxy _ = GEnd
+
+
+-- class AnyG f => Arity f where arity :: Proxy f -> Int
+-- class Arity f where arity :: Proxy f -> Int
+
+
+-- * Polykinded type family
+
+-- type X :: (Type -> Type -> Type) -> Type
+type X :: k -> Type
+type family X a where
+  X (->) = Int
+  X Maybe = ()
+
+
+-- * Minimal 2
+
+class C (f :: Type) where
+  str :: f -> String
+instance C (a -> b) where
+  str _ = "rec"
+-- instance C ((m :: Type -> Type) a) where
+--   str _ = "base"
+instance C a where --
+  str _ = "base"
+
+poly :: forall m . Monad m => m ()
+poly = return ()
+
+mono :: IO ()
+mono = return ()
+
+-- main = str poly
+
+
+
+
+-- main :: IO ()
+-- main = do
+--   print $ str poly
+--   return ()
+
+-- printStr :: C a m => a -> IO ()
+-- printStr a = do
+--   a' <- str a
+--   putStrLn a'
+
+-- main :: IO ()
+-- main = printStr mono
+
+-- * Arity/G depth
+
+gDepth :: forall f . G f -> Int
+gDepth g = case g of
+  GRec b -> 1 + gDepth b
+  GEnd{} -> 0
+
+arity :: forall f . AnyG f => f -> Int
+arity _ = gDepth (anyG :: G f)
+
+-- * Helpers
+
+liftReturn :: f -> Proxy (LiftReturn Id f)
+liftReturn _ = Proxy
+
+fproxy :: f -> Proxy f
+fproxy _ = Proxy
+
+newtype Id a = Id (forall x . x)
+type LiftReturn :: (Type -> Type) -> Type -> Type
+type family LiftReturn g f where
+  LiftReturn g (a -> b) = a -> LiftReturn g b
+  LiftReturn g a = g a
+
+type family Erase f where
+  Erase (a -> b) = a -> Erase b
+  Erase a = ()
