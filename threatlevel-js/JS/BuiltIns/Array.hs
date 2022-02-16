@@ -36,7 +36,7 @@ concat a b = call1 (b !. "concat") a
 
 -- * Helpers
 
-iterArray :: Expr [a] -> (Expr Int -> M r b) -> M r ()
+iterArray :: JS m => Expr [a] -> (Expr Int -> m b) -> m ()
 iterArray arr f = do
   ix <- let_ 0
   length <- const $ arr !. "length"
