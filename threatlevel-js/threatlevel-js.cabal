@@ -40,11 +40,8 @@ library
       JS.BuiltIns.Promise
       JS.DSL.Core
       JS.DSL.MTL
-      JS.DSL.Polysemy
-      JS.DSL.Polysemy.Base
-      JS.DSL.Polysemy.Effect
-      JS.DSL.Polysemy.Function
-      JS.DSL.Syntax
+      JS.DSL.MTL.Effect
+      JS.DSL.MTL.Mono
       JS.Syntax.AST
       JS.Syntax.Render
       JS.Syntax.Reserved
