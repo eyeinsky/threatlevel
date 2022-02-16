@@ -143,8 +143,27 @@ instance {-# INCOHERENT #-} (m0 ~ m, Monad m) => C2 (m0 a) m where
     body <- execSub_ f
     return $ Tagged (reverse args, body)
 
--- | The convert/back combo turns typed function expressions to actual
--- haskell function calls.
+{- * 3.1 Polykinded m, base takes an extra ()
+
+-}
+
+type C3 :: Type -> (Type -> Type) -> Constraint
+class Monad m => C3 f m where
+  c3 :: JS m => f -> [Name] -> m RetUntyped
+instance (C3 f m) => C3 (Expr a -> f) m where
+  c3 f args = do
+    name <- freshName
+    let f' = f $ EName name :: f
+    coerce <$> c3 f' (name : args)
+instance (p ~ '(), p' ~ p, m' ~ m, Monad (m '())) => C3 (m' p' a) (m p) where
+  c3 f args = do
+    body <- execSub_ f
+    return (reverse args, body)
+
+-- * Convert typed expressions to functions on expressions
+
+-- | Example: @Expr (a -> b -> c)@ to @Expr a -> Expr b -> Expr c@
+
 type family Convert x where
   Convert (Expr (a -> b)) = Expr a -> Convert (Expr b)
   Convert (Expr b) = Expr b
