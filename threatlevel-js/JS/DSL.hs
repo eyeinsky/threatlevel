@@ -11,7 +11,6 @@ module JS.DSL
   , call, call0, call1, (!.), (.!), ex
   ) where
 
-import JS.DSL.Syntax as Export
--- import JS.DSL.MTL as Export
-import JS.DSL.Polysemy as Export
 import JS.Syntax
+import JS.DSL.Syntax as Export
+import JS.DSL.MTL as Export

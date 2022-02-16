@@ -20,8 +20,8 @@ library
   other-modules:
       CSS.DSL.Common
       CSS.DSL.MTL
-      CSS.DSL.Polysemy.Base
-      CSS.DSL.Polysemy.Effect
+      CSS.DSL.MTL.Effect
+      CSS.DSL.MTL.Mono
       CSS.Identifiers
       CSS.Syntax.AST
       CSS.Syntax.Render
