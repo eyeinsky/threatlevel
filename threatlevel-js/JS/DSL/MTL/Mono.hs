@@ -29,8 +29,8 @@ bindBase syntax e = do
 
 execSubBase ask get put run m = do
   env <- ask
-  (State fresh0 used0 lib0) <- get
-  let ((a, w), s) = run env lib0 used0 fresh0 m
+  state0 <- get
+  let ((a, w), s) = run env state0 m
   put s $> (a, w)
 
 f2Base bind syntax f =
@@ -42,19 +42,23 @@ type State_ = JS.DSL.Core.State
 type Reader_ = Env
 type Writer_ = Code_
 
-type Run a = Env -> Lib -> Used -> Fresh -> a
-type MonoJS = WriterT Writer_ (StateT State_ (Reader Reader_))
+type MonoJS' m = WriterT Writer_ (StateT State_ (ReaderT Reader_ m))
+type MonoJS = MonoJS' Identity
 type Result' a = (State_, (Writer_, a))
 
-run :: Run (MonoJS a -> Result () a)
-run env lib used fresh m = m
+runM :: Reader_ -> State_ -> MonoJS' m a -> m ((a, Writer_), State_)
+runM r s m = m
   & runWriterT
-  & flip runStateT (State fresh used lib)
-  & flip runReaderT env
+  & flip runStateT s
+  & flip runReaderT r
+
+run :: Reader_ -> State_ -> MonoJS a -> Result () a
+run r s m = m
+  & runM r s
   & runIdentity
 
 runEmpty :: Syntax.Conf -> MonoJS a -> Result () a
-runEmpty env m = run env mempty mempty validIdentifiers m
+runEmpty env m = run env (State validIdentifiers mempty mempty) m
 
 instance JS MonoJS where
   stm = stmBase tell
@@ -88,9 +92,9 @@ newtype Lift x m a = Lift (m a)
 -- SampleImplRaw (x :: ()) a =
 
 type MonoJSRaw x = Lift x (WriterT Writer_ (StateT State_ (Reader Reader_)))
-type MonoJS' = MonoJSRaw '()
+type MonoJS'' = MonoJSRaw '()
 
-run' :: Env -> Lib -> Used -> Fresh -> MonoJS' a -> Result () a
+run' :: Env -> Lib -> Used -> Fresh -> MonoJS'' a -> Result () a
 run' env lib used fresh m = m
   & coerce
   & runWriterT
@@ -98,10 +102,10 @@ run' env lib used fresh m = m
   & flip runReaderT env
   & runIdentity
 
-runEmpty' :: Syntax.Conf -> MonoJS' a -> Result () a
+runEmpty' :: Syntax.Conf -> MonoJS'' a -> Result () a
 runEmpty' env m = run' env mempty mempty validIdentifiers m
 
-instance JS MonoJS' where
+instance JS MonoJS'' where
   stm s = lift $ tell (pure s)
   freshName = lift $ do
     State (Infinite x xs) used lib <- get
