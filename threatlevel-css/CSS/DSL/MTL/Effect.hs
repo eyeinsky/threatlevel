@@ -7,11 +7,21 @@ import CSS.Syntax
 -- * Effect
 
 class Monad m => CSS m where
-  css :: m a -> m Class
-  rule :: SelectorFrom s => s -> m a -> m a
-  atRule :: TS.Text -> TS.Text -> m a -> m a
+  css
+    :: m a     -- ^ rules and declarations to generated class
+    -> m Class -- ^ returns a fresh class with rules attached
+  rule
+    :: SelectorFrom s
+    => s   -- ^ selector-like to which the rule applies
+    -> m a -- ^ rules, declarations and all else available in effect @m@
+    -> m a
+  atRule
+    :: TS.Text -- ^ at-rule name, e.g @media@
+    -> TS.Text -- ^ additional conditions e.g @(min-width: 1024px)@
+    -> m a     -- ^ rules, declarations and all else available in effect @m@
+    -> m a
   combine :: (Selector -> Selector) -> m a -> m a
-  execSub :: m a -> m (W, a)
+  execSub :: m a -> m (a, W)
 
 class Monad m => Prop m where
   prop :: TS.Text -> Value -> m ()
@@ -21,12 +31,6 @@ data W = W { wRules :: OuterRules, wDecls :: Declarations }
   deriving Show
 instance Semigroup W where W a b <> W a' b' = W (a <> a') (b <> b')
 instance Monoid W where mempty = W mempty mempty
-
-tellRules :: MonadWriter W m => OuterRules -> m ()
-tellRules rs = tell (W rs mempty)
-
-tellDecls :: MonadWriter W m => Declarations -> m ()
-tellDecls ds = tell (W mempty ds)
 --
 
 -- * Compat

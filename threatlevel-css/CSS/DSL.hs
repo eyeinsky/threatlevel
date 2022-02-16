@@ -4,3 +4,4 @@ module CSS.DSL
 
 import CSS.DSL.Common as Export
 import CSS.DSL.MTL.Effect as Export
+import CSS.DSL.MTL.Mono as Export
