@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -Wno-unused-do-bind #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module CSS.DSL.MTL.Mono
   ( module CSS.DSL.MTL.Effect
   , module CSS.DSL.MTL.Mono
