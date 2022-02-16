@@ -13,7 +13,7 @@ reject = ex "Promise" !// "reject"
 
 -- | Create a promise and return it together with the functions to
 -- resolve and reject it.
-mkPromise :: M r (Expr resolve, Expr reject, Expr p)
+mkPromise :: JS m => m (Expr resolve, Expr reject, Expr p)
 mkPromise = do
   resolve <- let_ Null
   reject <- let_ Null
