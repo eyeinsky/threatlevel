@@ -1,14 +1,52 @@
-module JS.DSL.MTL.Mono where
+module JS.DSL.MTL.Mono
+  ( module JS.DSL.MTL.Mono
+  , module JS.DSL.MTL.Effect
+  , module JS.DSL.Core
+  ) where
 
+import Common.Prelude
+import Control.Monad.Reader
+import Control.Monad.Writer hiding (Any)
+import Control.Monad.State
 
+import Render
+
+import JS.Syntax as Syntax
+import JS.DSL.Core
 import JS.DSL.MTL.Effect
+
+-- * MTL base
+
+stmBase tell = tell . pure
+
+freshNameBase get put = do
+  State (Infinite x xs) used lib <- get
+  put (State xs used lib) $> Name x
+
+bindBase syntax e = do
+  name <- freshName
+  stm (syntax name e) $> EName name
+
+execSubBase ask get put run m = do
+  env <- ask
+  (State fresh0 used0 lib0) <- get
+  let ((a, w), s) = run env lib0 used0 fresh0 m
+  put s $> (a, w)
+
+f2Base bind syntax f =
+  bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
 
 -- * Mono
 
-type MonoJS = WriterT Syntax.Code_ (StateT State (Reader Env))
-type Result' a = (State, (Syntax.Code_, a))
+type State_ = JS.DSL.Core.State
+type Reader_ = Env
+type Writer_ = Code_
 
-run :: Env -> Lib -> Used -> Fresh -> MonoJS a -> Result () a
+type Run a = Env -> Lib -> Used -> Fresh -> a
+type MonoJS = WriterT Writer_ (StateT State_ (Reader Reader_))
+type Result' a = (State_, (Writer_, a))
+
+run :: Run (MonoJS a -> Result () a)
 run env lib used fresh m = m
   & runWriterT
   & flip runStateT (State fresh used lib)
@@ -19,21 +57,13 @@ runEmpty :: Syntax.Conf -> MonoJS a -> Result () a
 runEmpty env m = run env mempty mempty validIdentifiers m
 
 instance JS MonoJS where
-  stm s = tell (pure s)
-  freshName = do
-    State (Infinite x xs) used lib <- get
-    put (State xs used lib) $> Name x
-  bind syntax e = do
-    name <- freshName
-    stm (syntax name e) $> EName name
-  execSub m = do
-    env <- ask
-    (State fresh0 used0 lib0) <- get
-    let ((a, w), s) = run env lib0 used0 fresh0 m
-    put s $> (a, w)
+  stm = stmBase tell
+  freshName = freshNameBase get put
+  bind = bindBase
+  execSub = execSubBase ask get put run
 
   f1 f = bind Let . uncurry (AnonFunc Nothing) =<< c1 f []
-  f2 syntax f = bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
+  f2 syntax f = f2Base bind syntax f
   f3 f = c3 f []
 
 -- * Render
@@ -57,7 +87,7 @@ newtype Lift x m a = Lift (m a)
 -- data MonoJSRaw x a = MonoJSRaw (WriterT Syntax.Code_ (StateT State (Reader Env))) a
 -- SampleImplRaw (x :: ()) a =
 
-type MonoJSRaw x = Lift x (WriterT Syntax.Code_ (StateT State (Reader Env)))
+type MonoJSRaw x = Lift x (WriterT Writer_ (StateT State_ (Reader Reader_)))
 type MonoJS' = MonoJSRaw '()
 
 run' :: Env -> Lib -> Used -> Fresh -> MonoJS' a -> Result () a
