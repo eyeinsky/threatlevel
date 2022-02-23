@@ -54,7 +54,7 @@ instance Render (Statement a) where
 
     While cond code -> mseq
       [ pure "while"
-      , renderM cond
+      , par <$> renderM cond
       , curlyCode code
       ]
 
