@@ -36,8 +36,8 @@ library
       DOM
       PWA
       WebSockets
-      WebAPIs.DOM
-      WebAPIs.WebComponents
+      JS.WebAPIs.DOM
+      JS.WebAPIs.WebComponents
       Server
       Server.Run
       Server.Static
@@ -62,6 +62,9 @@ library
       CSP
       HTML.Core
       HTML.Paste
+      JS.WebApis.DOM
+      JS.WebApis.Event
+      JS.WebApis.WebComponents
       SVG.Attributes
       SVG.Elements
       SVG.TH

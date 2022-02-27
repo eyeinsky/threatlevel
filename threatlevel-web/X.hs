@@ -82,8 +82,8 @@ import Server as Export hiding
   )
 
 
-import WebAPIs.DOM as Export
-import WebAPIs.WebComponents as Export
+import JS.WebApis.DOM as Export
+import JS.WebApis.WebComponents as Export
 
 import qualified Prelude
 import qualified Data.Text as TS
