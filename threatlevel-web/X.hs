@@ -181,22 +181,22 @@ href url = HTML.href (Static $ TL.toStrict $ render' url)
 stylesheet :: URL.URL -> Html
 stylesheet url = link ! rel "stylesheet" ! type_ "text/css" ! href url
 
-stylesheet' :: TS.Text -> Html
-stylesheet' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
+stylesheet_ :: TS.Text -> Html
+stylesheet_ url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
 
 includeJs :: URL.URL -> Html
 includeJs url = script ! src url $ "" ! Custom "defer" "true"
 
-includeJs' :: TS.Text -> Html
-includeJs' url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
+includeJs_ :: TS.Text -> Html
+includeJs_ url = script ! HTML.src (Static url) $ "" ! Custom "defer" "true"
 
 -- | Include JavaScript module from @url@ [api]
-moduleSrc :: URL -> Html
-moduleSrc url = HTML.script "" ! src url ! type_ "module"
+includeModule :: URL -> Html
+includeModule url = HTML.script "" ! src url ! type_ "module"
 
 -- | Include JavaScript module from untyped @url@ [api]
-moduleSrc_ :: TS.Text -> Html
-moduleSrc_ url = HTML.script "" ! HTML.src (Static url) ! type_ "module"
+includeModule_ :: TS.Text -> Html
+includeModule_ url = HTML.script "" ! HTML.src (Static url) ! type_ "module"
 
 -- | Helper to turn attribute into URL
 urlAttr :: URL.URL -> DOM.Value
