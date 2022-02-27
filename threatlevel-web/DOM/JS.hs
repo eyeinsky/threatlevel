@@ -44,22 +44,6 @@ instance JSSelector (Expr String) where
 instance {-# OVERLAPPABLE #-} CSS.SelectorFrom a => JSSelector a where
   jsSelectorFrom s = lit $ render' $ CSS.selFrom s
 
-matches :: JSSelector a => a -> Expr e -> Expr Bool
-matches s e = call1 (e !. "matches") (jsSelectorFrom s)
-
-querySelector :: JSSelector a => a -> Expr e -> Expr D.Tag
-querySelector s e = call1 (e !. "querySelector") (jsSelectorFrom s)
-
--- | Query selector which includes the root node
-querySelector' :: JSSelector a => a -> Expr e -> Expr D.Tag
-querySelector' selector root = (matches selector root .&& root) .|| querySelector selector root
-
-querySelectorAll :: JSSelector a => a -> Expr e -> Expr [D.Tag]
-querySelectorAll s e = call1 (e !. "querySelectorAll") (jsSelectorFrom s)
-
-closest :: JSSelector s => s -> Expr D.Tag -> Expr D.Tag
-closest s e = call1 (e !. "closest") (jsSelectorFrom s)
-
 -- | The global find
 class    FindBy a where findBy :: a -> Expr Tag
 instance FindBy D.Id where

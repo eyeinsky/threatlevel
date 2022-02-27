@@ -1,4 +1,4 @@
-module WebAPIs.WebComponents where
+module JS.WebApis.WebComponents where
 
 import qualified Data.Text as TS
 import X.Prelude hiding ((>))
@@ -6,7 +6,7 @@ import X.Prelude hiding ((>))
 import HTML hiding (method)
 import JS
 import JS.Syntax (Name)
-import qualified DOM
+-- import qualified DOM
 
 -- * Custom element registry
 
@@ -16,7 +16,7 @@ customElements = ex "customElements"
 define :: [Expr a] -> Expr ()
 define args = call (customElements !. "define") args
 
-whenDefined :: Function f => Expr TS.Text -> f -> M r ()
+whenDefined :: JS m => Function f m => Expr TS.Text -> f -> m ()
 whenDefined name f = do
   f' <- async f
   bare $ (customElements !// "whenDefined" $ name) !// "then" $ f'
@@ -27,7 +27,7 @@ upgrade root = call1 (customElements !. "upgrade") root
 -- * Lifecycle callbacks
 
 connectedCallback, disconnectedCallback, adoptedCallback, attributeChangedCallback, observedAttributes
-  :: Function fexp => fexp -> ClassBodyM
+  :: JS m => Function fexp m => fexp -> ClassBodyM m
 
 connectedCallback = method "connectedCallback"
 disconnectedCallback = method "disconnectedCallback"
@@ -38,16 +38,12 @@ observedAttributes = staticGet "observedAttributes"
 -- * API
 
 -- | Create autonomous custom element
-customElement :: String -> ClassBodyM -> M r ()
+customElement :: JS m => String -> ClassBodyM m -> m (Expr a)
 customElement elementName code = do
-  className <- JS.next
+  className <- JS.freshName
   cls <- classExtends className (Just "HTMLElement") code
   bare $ define [lit elementName, cls]
-
--- | Use custom element
-custom :: DOM.Value -> Html -> Html
-custom name content = tell [el]
-  where el = tag name & contents .~ execWriter content
+  pure cls
 
 -- https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry/define
 -- get, upgrade, whenDefined

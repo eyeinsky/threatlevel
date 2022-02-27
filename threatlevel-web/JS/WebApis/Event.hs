@@ -1,4 +1,4 @@
-module DOM.Event where
+module JS.WebApis.Event where
 
 import X.Prelude
 import JS.Event
