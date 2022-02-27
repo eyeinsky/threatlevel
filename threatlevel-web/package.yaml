@@ -79,13 +79,12 @@ library:
   # WebAPIs
   - IndexedDB.IDB
   - DOM.Core
-  - DOM.Event
   - DOM.JS
   - DOM
   - PWA
   - WebSockets
-  - WebAPIs.DOM
-  - WebAPIs.WebComponents
+  - JS.WebApis.DOM
+  - JS.WebApis.WebComponents
 
   # Server
   - Server

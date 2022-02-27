@@ -31,13 +31,12 @@ library
       JW.T
       IndexedDB.IDB
       DOM.Core
-      DOM.Event
       DOM.JS
       DOM
       PWA
       WebSockets
-      WebAPIs.DOM
-      WebAPIs.WebComponents
+      JS.WebApis.DOM
+      JS.WebApis.WebComponents
       Server
       Server.Run
       Server.Static
@@ -62,6 +61,7 @@ library
       CSP
       HTML.Core
       HTML.Paste
+      JS.WebApis.Event
       SVG.Attributes
       SVG.Elements
       SVG.TH

@@ -82,8 +82,8 @@ import Server as Export hiding
   )
 
 
-import WebAPIs.DOM as Export
-import WebAPIs.WebComponents as Export
+import JS.WebApis.DOM as Export
+import JS.WebApis.WebComponents as Export
 
 import qualified Prelude
 import qualified Data.Text as TS
@@ -115,23 +115,7 @@ import qualified Server.Response as WR
 
 -- * DOM.Event
 
-onEvent
-  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
-  -> M r (Expr b) -- (Expr (JS.Type h))
-onEvent eventType obj handler = do
-  handler' <- async handler
-  bare $ addEventListener (Cast obj) eventType handler'
-  return $ Cast handler'
 
--- | Attach an event handler on document load
-attachOnLoad
-  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
-  -> M r (Expr b) -- (Expr (JS.Type h))
-attachOnLoad type_ element handler = do
-  handler' <- async handler
-  lit <- func AnonFunc $ bare $ addEventListener (Cast element) type_ handler'
-  bare $ addEventListener (Cast window) Load lit
-  return $ Cast handler'
 
 
 post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
