@@ -4,7 +4,7 @@ module JS.DSL
   -- * JS.Syntax
   , JS.Syntax.Conf(..)
   , Statement(BareExpr, TryCatchFinally)
-  , Expr(Undefined, Null, Par, Lit, Cast, AnonFunc, Raw, In, New, Await, Assign)
+  , Expr(Undefined, Null, Par, Lit, Cast, Func, Raw, In, New, Await, Assign)
   , Attr(..)
   , Literal(..)
   , Code

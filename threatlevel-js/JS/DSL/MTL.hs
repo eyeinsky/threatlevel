@@ -206,8 +206,8 @@ set = methodMaker (\a [b] -> Setter a b)
 -- * Functions
 
 newf, async, generator :: JS m => Function f m => f -> m (Expr (FunctionType f m))
-newf = let_ <=< func AnonFunc
-async = let_ <=< func Async
+newf = let_ <=< func (\_ -> FuncArrow)
+async = let_ <=< func (\_ -> AsyncArrow)
 generator = let_ <=< func Generator
 
 fn
