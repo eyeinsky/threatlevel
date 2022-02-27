@@ -134,9 +134,12 @@ instance Render (Expr a) where
     Lit lit -> renderM lit
     Op opExpr -> renderM opExpr
     FuncCall name exprs -> renderM name <+> unargs exprs
-    AnonFunc mbName as code -> function "function" mbName as code
+    Func mbName as code -> function "function" mbName as code
+    FuncArrow as code -> mseq [ unargs as, pure "=>", curlyCode code ]
     Generator mbName as code -> function "function*" mbName as code
     Async mbName as code -> function "async function" mbName as code
+    AsyncArrow as code -> mseq
+      [ pure "async ", unargs as, pure " =>", curlyCode code ]
     Ternary b t f -> par <$> mseq [renderM b, pure "?", renderM t, pure ":", renderM f]
     Null -> pure "null"
     Undefined -> pure "undefined"
