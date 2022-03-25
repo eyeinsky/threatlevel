@@ -23,7 +23,6 @@ library
       SVG
       SVG.CSS
       HTML
-      Web.CSS
       Web.Monad
       XML
       XML.Core
