@@ -8,11 +8,8 @@ import CSS.Syntax
 type Names = Infinite TS.Text
 
 type RunBase a = Selector -> Names -> a
-type BaseResult' w a = ((a, w), Names)
-type BaseResult a = BaseResult' OuterRules a
-getWriter :: BaseResult' w a -> w
+getWriter :: ((a, w), Names) -> w
 getWriter ((_, rs), _) = rs
-
 
 -- | Turn function on @SimpleSelector@ to function on @Selector@
 toSS :: (SimpleSelector -> SimpleSelector) -> Selector -> Selector

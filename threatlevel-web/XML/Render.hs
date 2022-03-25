@@ -23,8 +23,8 @@ instance Render Attribute where
     Boolean k v -> if v
       then f k
       else error "False booleans shouldn't be here"
-    Class _ -> todo
-    Id _ -> todo
+    Class _ -> todoMsg "XML.Render: instance Render Attribute: Class"
+    Id _ -> todoMsg "XML.Render: instance Render Attribute: Id"
     where
       f = pure . TL.fromStrict
       eq' :: TS.Text -> Value -> Reader (Conf Value) TL.Text

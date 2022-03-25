@@ -3,13 +3,15 @@ module JS.Lib.Sleep where
 import Prelude as P hiding (const)
 import JS
 
-mkSleep :: (Expr Double -> Expr Double -> Expr Double) -> Expr Double -> M r ()
+mkSleep
+  :: JS m
+  => (Expr Double -> Expr Double -> Expr Double) -> Expr Double -> m ()
 mkSleep f s = do
   e <- const $ getTime + (Cast $ f s $ lit 1000)
   while (getTime .<= e) empty
 
-sleep :: Expr Double -> M r ()
+sleep :: JS m => Expr Double -> m ()
 sleep d = mkSleep (*) (Cast d)
 
-usleep :: Expr Double -> M r ()
+usleep :: JS m => Expr Double -> m ()
 usleep = mkSleep (P./)

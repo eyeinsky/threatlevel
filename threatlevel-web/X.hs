@@ -5,7 +5,7 @@ module X
   ) where
 
 import X.Prelude as Export hiding
-  ( get, split, last, set
+  ( get, split, last, set, HasClasses(..), Any
   -- used in HTML
   , option, aside, pre, max, min, head
   , un, State, Writer, eq
@@ -31,7 +31,7 @@ import HTML as Export hiding
   -- used in JS.DSL
   var, method,
   -- conflict with DOM.Core
-  Id, Class
+  Id, Class, Tag, Id, Class
   )
 
 import CSS as Export hiding
@@ -67,8 +67,6 @@ import JS as Export hiding
   )
 
 import X.Wai as Export
-
-import Web.CSS as Export
 
 import Server as Export hiding
   -- used in Prelude
