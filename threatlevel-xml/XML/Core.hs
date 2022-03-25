@@ -145,8 +145,8 @@ instance Exclamatable (XMLM ns c -> XMLM ns c) Attribute where
 tag
   :: forall m ns c . MonadWriter [XML ns AttributeSet c] m
   => Value -> XMLM ns c -> m ()
-tag name mcontent = tell [theTag]
-  where theTag = Element (TagName name) mempty (execWriter mcontent)
+tag name mcontent = tell [tag]
+  where tag = Element (TagName name) mempty (execWriter mcontent)
 
 tag' :: Monoid a => Value -> XML n a c
 tag' str = Element (TagName str) mempty []
