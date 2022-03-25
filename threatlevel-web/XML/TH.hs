@@ -11,9 +11,7 @@ import qualified DOM.Core
 
 mk :: TypeQ -> String -> DecsQ
 mk type_ name = let name' = mkName name
-  in declareFn name'
-       [t| $type_ -> $type_ |]
-       [| (\c -> let el = tag $(stringE name) & contents .~ execWriter c in tell [el]) |]
+  in declareFn name' [t| $type_ -> $type_ |] [| tag $(stringE name) |]
 
 mkAttr :: Name -> TypeQ -> TL.Text -> DecsQ
 mkAttr custom type_ name = let

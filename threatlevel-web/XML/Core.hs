@@ -34,9 +34,6 @@ instance IsString (Writer [XML ns a c] ()) where
 
 -- ** Shorthands
 
-tag :: Monoid a => Value -> XML n a c
-tag str = Element (TagName str) mempty []
-
 dyn :: JS.Expr b -> Writer [XML ns a c] ()
 dyn expr = tell [Dyn (JS.Cast expr)]
 
@@ -101,7 +98,6 @@ instance Attributable AttributeSet where
     Boolean k _ -> a & attrs %~ (HM.insert k attr)
     On e _ -> a & attrs %~ (HM.insert (toOn e) attr)
 
-
 instance Attributable (XMLA ns c) where
   (!-) e attr = e & _Element._2 %~ (!- attr)
 
@@ -146,7 +142,11 @@ instance Exclamatable (XMLM ns c -> XMLM ns c) Attribute where
 
 -- * Helpers
 
-customTag :: MonadWriter [XML ns AttributeSet c] m => Value -> XMLM ns c -> m ()
-customTag name mcontent = let
-    contents' = execWriter mcontent
-  in tell [tag name & contents .~ contents']
+tag
+  :: forall m ns c . MonadWriter [XML ns AttributeSet c] m
+  => Value -> XMLM ns c -> m ()
+tag name mcontent = tell [theTag]
+  where theTag = Element (TagName name) mempty (execWriter mcontent)
+
+tag' :: Monoid a => Value -> XML n a c
+tag' str = Element (TagName str) mempty []
