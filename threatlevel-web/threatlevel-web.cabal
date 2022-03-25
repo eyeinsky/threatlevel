@@ -23,7 +23,6 @@ library
       SVG
       SVG.CSS
       HTML
-      Web.CSS
       Web.Monad
       XML
       XML.Core
@@ -84,12 +83,14 @@ library
       DeriveFunctor
       DeriveGeneric
       DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
       InstanceSigs
       ImportQualifiedPost
       KindSignatures
@@ -185,12 +186,14 @@ test-suite test
       DeriveFunctor
       DeriveGeneric
       DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
       InstanceSigs
       ImportQualifiedPost
       KindSignatures

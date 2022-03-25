@@ -4,21 +4,16 @@ module X.Prelude
   ) where
 
 import Common.Prelude as Export hiding
-  ( div, rem, (/), log, const, span -- Prelude
-  , (^) -- GHC.Real
+  ( (^) -- GHC.Real
   , fail
   , break
   )
 
-import Data.Default as Export
-import Data.Maybe as Export
 import Data.Text.Lazy.Lens as Export (packed)
 import Data.Either as Export (partitionEithers)
 import Data.List as Export (isPrefixOf)
-import Data.Functor as Export
 import Data.Monoid as Export hiding (First(..), Last(..))
 import Data.Semigroup as Export
-import Data.Coerce as Export
 
 import Control.Applicative as Export ((<|>))
 import Control.Monad.IO.Class as Export
@@ -36,8 +31,6 @@ import Debug.Trace as Export
 import Data.Text.Multiline as Export
 import Common.Lens as Export
 import Common.Prelude as Export
-
-import qualified Data.Text.Lazy as TL
 
 bool f t b = if b then t else f
 

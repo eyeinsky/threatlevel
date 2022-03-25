@@ -74,7 +74,7 @@ aria name value = Custom ("aria-" <> name) value
 --
 
 cssTag :: Html -> Html
-cssTag = style ! type_ "text/css"
+cssTag = Core.style ! type_ "text/css"
 
 jsTag :: Html -> Html
 jsTag = script ! type_ "text/javascript"

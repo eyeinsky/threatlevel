@@ -81,7 +81,7 @@ run r s m = m
   & runIdentity
 
 -- | Exec @MonoCSS@ to @OuterRules@
-runWrapRules :: Reader_ -> State_ -> MonoCSS a -> BaseResult a
+runWrapRules :: Reader_ -> State_ -> MonoCSS a -> ((a, OuterRules), Names)
 runWrapRules r s m = m
   & run r s
   & \((a, w), names) -> ((a, wrapW r w), names)
@@ -90,7 +90,7 @@ runWrapRules r s m = m
 wrapW :: Selector -> W -> OuterRules
 wrapW r (W rs ds) = let bare = mkRule r ds in pure bare <> rs
 
-runFresh :: MonoCSS a -> BaseResult a
+runFresh :: MonoCSS a -> ((a, OuterRules), Names)
 runFresh m = runWrapRules (selFrom $ PseudoClass "host" Nothing) identifiers m
 
 instance CSS MonoCSS where
