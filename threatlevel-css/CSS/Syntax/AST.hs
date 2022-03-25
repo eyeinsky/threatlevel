@@ -132,6 +132,15 @@ instance IsString SimpleSelector where
 
 instance Num Value where
   fromInteger = Int . fromInteger
+  (+) = mkErr "+"
+  (*) = mkErr "*"
+  abs = mkErr "abs"
+  signum = mkErr "signum"
+  negate = mkErr "negate"
+
+mkErr :: String -> a
+mkErr op = error ("CSS.Syntax.AST: Num." <> op <> " not defined")
+
 
 deriving instance Show Tag
 deriving instance Show Id

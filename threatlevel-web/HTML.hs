@@ -7,14 +7,17 @@ module HTML
   ) where
 
 import Control.Monad.Writer
-import qualified Data.Text as TS
+import Data.Text qualified as TS
+import Data.Text.Lazy qualified as TL
 
 import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core hiding (Document, Class, Id)
-import HTML.Core hiding (map, embed, input, link, Class, Id)
+import HTML.Core hiding (map, embed, input, link, Class, Id, style)
 import qualified HTML.Core as Core
+import CSS.DSL.MTL.Mono qualified as CSS
+import Render qualified
 
 declareFields [d|
   data Document = Document

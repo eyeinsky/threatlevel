@@ -43,10 +43,12 @@ import CSS as Export hiding
   , empty
   -- defined in URL
   , host
+  -- internal
+  , execSub -- , Minify --, Id, Class, Tag
+  , Reader_, Writer_, State_
   )
-import Web.Monad as Export
+-- import Web.Monad as Export
 import JS.Event as Export
-import DOM.Event as Export
 
 import URL as Export hiding (base)
 
@@ -56,32 +58,33 @@ import DOM as Export hiding (
   -- used in X
   deleteCookie,
   -- defined both in HTML and DOM.Core
-  Document
+  Document, Id, Class, Tag
   )
 
 import JS as Export hiding
   -- todo: describe these
   ( dir, for, run, Conf, String, State, concat
   -- internal
-  , next
+  , next, execSub, Minify, Id, Class, Tag
   )
 
 import X.Wai as Export
 
-import Server as Export hiding
-  -- used in Prelude
-  ( error
-  -- used in HTML
-  , text, body, code, Raw
-  -- used in Server.API
-  , State, Writer, (/)
-  -- used in JS
-  , M
-  )
+-- import Server as Export hiding
+--   -- used in Prelude
+--   ( error
+--   -- used in HTML
+--   , text, body, code, Raw
+--   -- used in Server.API
+--   , State, Writer, (/)
+--   -- used in JS
+--   , M
+--   )
 
-
+import Web.DSL as Export (Web)
 import JS.WebApis.DOM as Export
 import JS.WebApis.WebComponents as Export
+
 
 import qualified Prelude
 import qualified Data.Text as TS
@@ -102,68 +105,71 @@ import qualified HTTP.Response as HR
 
 import qualified Prelude as P
 import X.Prelude as P
-import JS hiding (String)
+-- import JS hiding (String)
 
-import CSS.DSL (DM)
+-- import CSS.DSL (DM)
 import qualified URL
 import qualified HTML
-import qualified JS.Event
 import qualified DOM
-import qualified Server.Response as WR
+-- import qualified Server.Response as WR
 
--- * DOM.Event
-
-onEvent
-  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
-  -> M r (Expr b) -- (Expr (JS.Type h))
-onEvent eventType obj handler = do
-  handler' <- async handler
-  bare $ addEventListener (Cast obj) eventType handler'
-  return $ Cast handler'
-
--- | Attach an event handler on document load
-attachOnLoad
-  :: (JS.Event.Event e, Function h) => e -> Expr a -> h
-  -> M r (Expr b) -- (Expr (JS.Type h))
-attachOnLoad type_ element handler = do
-  handler' <- async handler
-  lit <- func AnonFunc $ bare $ addEventListener (Cast element) type_ handler'
-  bare $ addEventListener (Cast window) Load lit
-  return $ Cast handler'
+import CSS qualified
+import XML.Core qualified as XML
 
 
-post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
-get_ url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
-
-postJs rc url = DOM.xhrJs rc "POST" (lit $ render' url)
-getJs rc url = DOM.xhrJs rc "GET" (lit $ render' url)
+style :: CSS.MonoProp a -> Attribute
+style decls = Custom "style" (Static $ TL.toStrict $ render CSS.Minify decls)
 
 
-type Opts a b = (IsString a, IsString b, ToExpr [(a, b)])
-fetch :: Opts a b => Expr URL -> [(a, b)] -> Expr c
-fetch url extra = call (ex "fetch") [ url, lit extra ]
+instance Exclamatable (XMLM ns c) CSS.Id where
+  (!) e id = e XML.!- XML.Id (coerce2dom id)
+instance Exclamatable (XMLM ns c -> XMLM ns c) CSS.Id where
+  (!) e id = e XML.!- XML.Id (coerce2dom id)
+instance Exclamatable (XMLM ns c) [CSS.Class] where
+  (!) e cs = e XML.!- XML.Class (map coerce2dom cs)
+instance Exclamatable (XMLM ns c -> XMLM ns c) [CSS.Class] where
+  (!) e cs = e XML.!- XML.Class (map coerce2dom cs)
 
-fetchMethod
-  :: Opts a b => b -> Expr URL -> [(a, b)] -> Expr c
-fetchMethod method url extra = fetch url opts
-  where
-    opts =  [("method", method)] <> extra
+instance Exclamatable (XMLM ns c) CSS.Class where
+  (!) e c = e XML.!- XML.Class [coerce2dom c]
+instance Exclamatable (XMLM ns c -> XMLM ns c) CSS.Class where
+  (!) e c = e XML.!- XML.Class [coerce2dom c]
 
-fetchPost :: Opts a b => Expr URL -> [(a, b)] -> Expr c
-fetchPost = fetchMethod "POST"
+coerce2dom :: Coercible a TS.Text => a -> DOM.Value
+coerce2dom c = Static $ coerce c
 
-fetchPut :: Opts a b => Expr URL -> [(a, b)] -> Expr c
-fetchPut = fetchMethod "PUT"
+-- post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
+-- get_ url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
 
-jsonPayload :: Expr a -> [(String, Expr String)]
-jsonPayload data_ =
-  [ ("body", toJSON data_)
-  , ("headers", lit
-      [(lit "Content-Type", "application/json")])
-  ]
+-- postJs rc url = DOM.xhrJs rc "POST" (lit $ render' url)
+-- getJs rc url = DOM.xhrJs rc "GET" (lit $ render' url)
 
-jsonBody :: Expr a -> [(String, Expr String)]
-jsonBody = jsonPayload
+
+-- type Opts a b = (IsString a, IsString b, ToExpr [(a, b)])
+-- fetch :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+-- fetch url extra = call (ex "fetch") [ url, lit extra ]
+
+-- fetchMethod
+--   :: Opts a b => b -> Expr URL -> [(a, b)] -> Expr c
+-- fetchMethod method url extra = fetch url opts
+--   where
+--     opts =  [("method", method)] <> extra
+
+-- fetchPost :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+-- fetchPost = fetchMethod "POST"
+
+-- fetchPut :: Opts a b => Expr URL -> [(a, b)] -> Expr c
+-- fetchPut = fetchMethod "PUT"
+
+-- jsonPayload :: Expr a -> [(String, Expr String)]
+-- jsonPayload data_ =
+--   [ ("body", toJSON data_)
+--   , ("headers", lit
+--       [(lit "Content-Type", "application/json")])
+--   ]
+
+-- jsonBody :: Expr a -> [(String, Expr String)]
+-- jsonBody = jsonPayload
 
 -- * HTML + URL
 
@@ -203,88 +209,89 @@ urlAttr url = Static $ TL.toStrict $ render' url
 src :: URL.URL -> Attribute
 src url = HTML.src (urlAttr url)
 
-action :: URL.URL -> Attribute
-action url = HTML.action (urlAttr url)
+-- * HTML + CSS
 
-for :: Id -> Attribute
-for id = HTML.for (coerce id)
+styleTag :: CSS.Conf -> MonoCSS () -> Html
+styleTag conf rules = tag "style" $ text $ render conf rules
 
--- * HTML + Date.Time
+-- action :: URL.URL -> Attribute
+-- action url = HTML.action (urlAttr url)
 
-parseTextTime :: (Monad m, MonadFail m, ParseTime t) => String -> TS.Text -> m t
-parseTextTime fmt inp =
-  parseTimeM True defaultTimeLocale fmt str
-  where
-    str = TS.unpack inp
+-- for :: Id -> Attribute
+-- for id = HTML.for (coerce id)
 
-format
-  :: (Profunctor p, Contravariant f, FormatTime t)
-  => String -> Optic' p f t TL.Text
-format str = to (formatTime defaultTimeLocale str ^ TL.pack)
+-- -- * HTML + Date.Time
 
-htmlDate = format "%F".html
-htmlTime = format "%F %T".html
+-- parseTextTime :: (Monad m, MonadFail m, ParseTime t) => String -> TS.Text -> m t
+-- parseTextTime fmt inp =
+--   parseTimeM True defaultTimeLocale fmt str
+--   where
+--     str = TS.unpack inp
 
--- * JS + HTML (= DOM)
+-- format
+--   :: (Profunctor p, Contravariant f, FormatTime t)
+--   => String -> Optic' p f t TL.Text
+-- format str = to (formatTime defaultTimeLocale str ^ TL.pack)
 
-clearContent :: Expr Tag -> Expr ()
-clearContent element = Assign (element !. "innerHTML") ""
+-- htmlDate = format "%F".html
+-- htmlTime = format "%F %T".html
 
--- | Replace content of the @element@ with @fragment@. Done in such a
--- way to be an expression.
-replaceContent :: Expr DocumentFragment -> Expr Tag -> Expr ()
-replaceContent fragment element = Par (clearContent element) .|| (element !// "append" $ fragment)
+-- -- * JS + HTML (= DOM)
 
--- | Get closest parent with data-* attribute. Partial
-closestData :: TS.Text -> Expr Tag -> Expr a
-closestData attr el = (el !// "closest" $ lit ("[data-" <> attr <> "]")) !. "dataset" !. attr
+-- clearContent :: Expr Tag -> Expr ()
+-- clearContent element = Assign (element !. "innerHTML") ""
 
--- * JS + URL
+-- -- | Replace content of the @element@ with @fragment@. Done in such a
+-- -- way to be an expression.
+-- replaceContent :: Expr DocumentFragment -> Expr Tag -> Expr ()
+-- replaceContent fragment element = Par (clearContent element) .|| (element !// "append" $ fragment)
 
-instance ToExpr URL.URL where
-  lit = renderURL ^ lit
+-- -- | Get closest parent with data-* attribute. Partial
+-- closestData :: TS.Text -> Expr Tag -> Expr a
+-- closestData attr el = (el !// "closest" $ lit ("[data-" <> attr <> "]")) !. "dataset" !. attr
 
--- * JS + CSS
+-- -- * JS + URL
 
-instance ToExpr Id where
-  lit = coerce @_ @DOM.Value ^ render' ^ lit
+-- instance ToExpr URL.URL where
+--   lit = renderURL ^ lit
 
-instance ToExpr Class where
-  lit = coerce @_ @DOM.Value ^ render' ^ lit
+-- -- * JS + CSS
 
-instance ToExpr SimpleSelector where
-  lit = lit . render'
+-- instance ToExpr Id where
+--   lit = coerce @_ @DOM.Value ^ render' ^ lit
 
-addClass :: Class -> Expr a -> M r ()
+-- instance ToExpr Class where
+--   lit = coerce @_ @DOM.Value ^ render' ^ lit
+
+-- instance ToExpr SimpleSelector where
+--   lit = lit . render'
+
+addClass :: JS m => Class -> Expr a -> m ()
 addClass cls el = bare $ call1 (el !. "classList" !. "add") $ mkExpr cls
 
-removeClass :: Class -> Expr a -> M r ()
+removeClass :: JS m => Class -> Expr a -> m ()
 removeClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
 
-remClass :: Class -> Expr a -> M r ()
-remClass = removeClass
-{-# DEPRECATED remClass "Use `removeClass` instead." #-}
-
 mkExpr :: Class -> Expr a
-mkExpr = Cast . lit . static . coerce
+mkExpr = lit . coerce @_ @TS.Text
 
--- | In JS set element's inline style to @declarations@ [api]
-inlineStyle :: Expr tag -> DM () -> M r ()
-inlineStyle element declarations = do
-  forM_ (execWriter declarations) $ \(Declaration k v) -> let
-    property = P.tsKebab2camel k
-    in element !. "style" !. property .= lit (render' v)
+-- -- | In JS set element's inline style to @declarations@ [api]
+-- inlineStyle :: Expr tag -> DM () -> M r ()
+-- inlineStyle element declarations = do
+--   forM_ (execWriter declarations) $ \(Declaration k v) -> let
+--     property = P.tsKebab2camel k
+--     in element !. "style" !. property .= lit (render' v)
 
--- * JS + HTML + URL
+-- -- * JS + HTML + URL
 
-jsHref :: Expr a -> Attribute
-jsHref url = HTML.href (Dynamic $ Cast url)
+-- jsHref :: Expr a -> Attribute
+-- jsHref url = HTML.href (Dynamic $ Cast url)
 
--- * HTTP.Request
+-- -- * HTTP.Request
 
--- * HTML
+-- -- * HTML
 
--- ** Back-end
+-- -- ** Back-end
 
 class ToHtml a where toHtml :: a -> Html
 instance ToHtml P.Int where toHtml = show ^ TL.pack ^ text
@@ -292,12 +299,12 @@ instance ToHtml P.String where toHtml = TL.pack ^ text
 instance ToHtml Char where toHtml = TL.singleton ^ text
 instance ToHtml TS.Text where toHtml = TL.fromStrict ^ text
 instance ToHtml TL.Text where toHtml = text
-instance ToHtml URL.URL where toHtml = renderURL ^ text
+-- instance ToHtml URL.URL where toHtml = renderURL ^ text
 instance ToHtml Html where toHtml a = a
 
--- ** Front-end
+-- -- ** Front-end
 
-instance ToHtml (Expr Tag) where
+instance ToHtml (Expr DOM.Tag) where
   toHtml a = HTML.dyn a
 instance ToHtml (Expr DocumentFragment) where
   toHtml a = HTML.dyn a
@@ -308,33 +315,33 @@ instance ToHtml (Expr TS.Text) where
 instance ToHtml (Expr Int) where
   toHtml e = dyn $ createTextNode $ toString e
 
-html = to toHtml
+-- html = to toHtml
 
--- * Endpoint
+-- -- * Endpoint
 
--- exec'
---   :: forall s m b a . (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
---   => (Code b -> M b a) -> JS.M b a -> m WR.Response
-exec' f jsm = do
-  code :: Code b <- js $ mkCode_ jsm
-  conf <- js askEnv
-  return $ WR.resp200 $ JS conf (f code)
+-- -- exec'
+-- --   :: forall s m b a . (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
+-- --   => (Code b -> M b a) -> JS.M b a -> m WR.Response
+-- exec' f jsm = do
+--   code :: Code b <- js $ mkCode_ jsm
+--   conf <- js askEnv
+--   return $ WR.resp200 $ JS conf (f code)
 
--- | An anonymous function definition expression is returned
-exec = exec' f
-  where
-    f = bare . Par . AnonFunc Nothing []
+-- -- | An anonymous function definition expression is returned
+-- exec = exec' f
+--   where
+--     f = bare . Par . AnonFunc Nothing []
 
-execCall = exec' f
-  where
-    f = bare . call0 . Par . AnonFunc Nothing []
+-- execCall = exec' f
+--   where
+--     f = bare . call0 . Par . AnonFunc Nothing []
 
-noCrawling :: API m a => m URL
-noCrawling = pin "robots.txt" $ return $ Prelude.const $ return $ WR.noRobots
+-- noCrawling :: API m a => m URL
+-- noCrawling = pin "robots.txt" $ return $ Prelude.const $ return $ WR.noRobots
 
--- * Serving static assets
+-- -- * Serving static assets
 
--- * Html + CSS
+-- -- * Html + CSS
 
 -- todo: The below could be more general!
 getTag a = case execWriter a of
@@ -352,146 +359,139 @@ instance SimpleSelectorFrom (XMLM ns c -> XMLM ns c) where
 instance SimpleSelectorFrom (XMLM ns c) where
   ssFrom a = getTag a
 
-fontSrc :: URL -> Maybe Text -> Value
-fontSrc url mbFmt
-  = Url (renderURL url) <> maybe "" f mbFmt
-  where
-    f fmt = Word $ "format(\"" <> fmt <> "\")"
+-- fontSrc :: URL -> Maybe Text -> Value
+-- fontSrc url mbFmt
+--   = Url (renderURL url) <> maybe "" f mbFmt
+--   where
+--     f fmt = Word $ "format(\"" <> fmt <> "\")"
 
-decls :: DeclM a -> Attribute
-decls = decls
-{-# DEPRECATED decls "Use `style` instead." #-}
+-- -- * Html + CSS + MonadWeb
 
-style :: DeclM a -> Attribute
-style decls = Custom "style" (Static $ TL.toStrict $ render Minify decls)
+-- -- | Generate id in the MonadWeb, apply styles to it, attach it to the
+-- -- element and return this
+-- -- todo: using exclamatable since this could be Html, Html -> Html, HTMLA Both, etc
+-- styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM -> m a
+-- styled elem rules = do
+--   id <- cssId rules
+--   return $ elem ! id
 
--- * Html + CSS + MonadWeb
+-- styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM -> m a
+-- styleds elem rules = do
+--   class_ <- css rules
+--   return $ elem ! class_
 
--- | Generate id in the MonadWeb, apply styles to it, attach it to the
--- element and return this
--- todo: using exclamatable since this could be Html, Html -> Html, HTMLA Both, etc
-styled :: (MonadWeb m, Exclamatable a Id) => a -> CSSM -> m a
-styled elem rules = do
-  id <- cssId rules
-  return $ elem ! id
+-- (/) :: URL.URL -> TS.Text -> URL.URL
+-- url / tail = url & URL.segments <>~ [tail]
 
-styleds :: (MonadWeb m, Exclamatable a Class) => a -> CSSM -> m a
-styleds elem rules = do
-  class_ <- css rules
-  return $ elem ! class_
+-- redirectToHttps :: URL -> IO ()
+-- redirectToHttps url =
+--   void $ forkIO $ Warp.runSettings settings
+--     $ \_ respond -> redirect url & HR.toRaw & respond
+--   where
+--     settings = Warp.setPort 80 Warp.defaultSettings
 
-(/) :: URL.URL -> TS.Text -> URL.URL
-url / tail = url & URL.segments <>~ [tail]
+-- -- * Request
 
-redirectToHttps :: URL -> IO ()
-redirectToHttps url =
-  void $ forkIO $ Warp.runSettings settings
-    $ \_ respond -> redirect url & HR.toRaw & respond
-  where
-    settings = Warp.setPort 80 Warp.defaultSettings
+-- -- textFormSubmission :: Request -> IO [(Maybe TL.Text, Maybe (Maybe TL.Text))]
+-- formSubmission :: Wai.Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
+-- formSubmission req = do
+--   lb <- Wai.strictRequestBody req
+--   let pairs = BL8.split '&' lb :: [BL.ByteString] -- queryString
+--       f (k, v) = case v of
+--         "" -> (k, Nothing)
+--         _ -> (k, Just $ BL8.tail v)
+--       g = strict %~ Wai.urlDecode True
+--       decode (k, v) = (g k, g <$> v)
+--   return $ map (decode . f . BL8.break (== '=')) pairs
 
--- * Request
+-- textFormSubmission :: Wai.Request -> IO [(TL.Text, Maybe TL.Text)]
+-- textFormSubmission req = do
+--   formSubmission req <&> map (f *** fmap f)
+--   where
+--     f = view LL.utf8
 
--- textFormSubmission :: Request -> IO [(Maybe TL.Text, Maybe (Maybe TL.Text))]
-formSubmission :: Wai.Request -> IO [(BL.ByteString, Maybe BL.ByteString)]
-formSubmission req = do
-  lb <- Wai.strictRequestBody req
-  let pairs = BL8.split '&' lb :: [BL.ByteString] -- queryString
-      f (k, v) = case v of
-        "" -> (k, Nothing)
-        _ -> (k, Just $ BL8.tail v)
-      g = strict %~ Wai.urlDecode True
-      decode (k, v) = (g k, g <$> v)
-  return $ map (decode . f . BL8.break (== '=')) pairs
+-- -- | Turn event handler to async iterator
+-- iterEvent :: Event e => e -> Expr a -> M r (Expr b)
+-- iterEvent eventType element = do
 
-textFormSubmission :: Wai.Request -> IO [(TL.Text, Maybe TL.Text)]
-textFormSubmission req = do
-  formSubmission req <&> map (f *** fmap f)
-  where
-    f = view LL.utf8
+--   let
+--     eventType' = lit $ eventString eventType :: Expr String
+--     wrap done value = lit
+--       [("done", done), ("value" :: TS.Text, value)]
 
--- | Turn event handler to async iterator
-iterEvent :: Event e => e -> Expr a -> M r (Expr b)
-iterEvent eventType element = do
+--   event <- let_ Null
+--   resolver <- let_ Null
 
-  let
-    eventType' = lit $ eventString eventType :: Expr String
-    wrap done value = lit
-      [("done", done), ("value" :: TS.Text, value)]
+--   handler <- newf $ \ev -> do
+--     ifelse resolver
+--       (bare $ call1 resolver $ wrap false ev)
+--       (event .= ev)
 
-  event <- let_ Null
-  resolver <- let_ Null
+--   let pair = [eventType', Cast handler]
 
-  handler <- newf $ \ev -> do
-    ifelse resolver
-      (bare $ call1 resolver $ wrap false ev)
-      (event .= ev)
+--   next <- newf $ do
+--     executor <- newf $ \resolve -> do
+--       ifelse event
+--         (do bare $ call1 resolve $ wrap false event
+--             event .= Null)
+--         (resolver .= resolve)
+--     retrn $ newPromise executor
 
-  let pair = [eventType', Cast handler]
+--   bare $ call (element !. "addEventListener") pair
 
-  next <- newf $ do
-    executor <- newf $ \resolve -> do
-      ifelse event
-        (do bare $ call1 resolve $ wrap false event
-            event .= Null)
-        (resolver .= resolve)
-    retrn $ newPromise executor
+--   it <- newf $ retrn $ ex "this"
+--   return_ <- newf $ do
+--     bare $ call (element !. "removeEventListener") pair
+--     bare $ call1 resolver $ wrap true Undefined
+--     retrn $ wrap true Undefined
+--   throw_ <- newf $ \err -> do
+--     retrn $ wrap true $ reject err
+--   const $ lit
+--     [ (ex "Symbol" !. "asyncIterator", it)
+--     , (lit "next", next)
+--     , (lit "return", return_)
+--     , (lit "throw", Cast throw_)
+--     ]
 
-  bare $ call (element !. "addEventListener") pair
+-- eventPromise
+--   :: forall a b r e. Event e
+--   => Expr a -> e -> (Expr b -> Expr Bool) -> M r (Expr b)
+-- eventPromise el eventType p = do
+--   executor <- newf $ \resolve -> mdo
+--     let args = [lit $ eventString eventType, handler]
+--     handler <- newf $ \ev -> do
+--       ifonly (p ev) $ do
+--         bare $ call1 resolve ev
+--         bare $ call (el !. "removeEventListener") args
+--     bare $ call (el !. "addEventListener") args
+--   return $ newPromise executor
 
-  it <- newf $ retrn $ ex "this"
-  return_ <- newf $ do
-    bare $ call (element !. "removeEventListener") pair
-    bare $ call1 resolver $ wrap true Undefined
-    retrn $ wrap true Undefined
-  throw_ <- newf $ \err -> do
-    retrn $ wrap true $ reject err
-  const $ lit
-    [ (ex "Symbol" !. "asyncIterator", it)
-    , (lit "next", next)
-    , (lit "return", return_)
-    , (lit "throw", Cast throw_)
-    ]
+-- -- * Date
 
-eventPromise
-  :: forall a b r e. Event e
-  => Expr a -> e -> (Expr b -> Expr Bool) -> M r (Expr b)
-eventPromise el eventType p = do
-  executor <- newf $ \resolve -> mdo
-    let args = [lit $ eventString eventType, handler]
-    handler <- newf $ \ev -> do
-      ifonly (p ev) $ do
-        bare $ call1 resolve ev
-        bare $ call (el !. "removeEventListener") args
-    bare $ call (el !. "addEventListener") args
-  return $ newPromise executor
+-- -- | Formats dates as "in 2 days" etc.
+-- --
+-- -- Adapted from here: https://blog.webdevsimplified.com/2020-07/relative-time-format/
+-- mkFormatFromNow :: Expr a -> M r (Expr Date -> Expr String)
+-- mkFormatFromNow formatter = do
+--   divisions <- const (lit $ map (\(a, b) -> lit [a, b])
+--     [ (60, "seconds")
+--     , (60, "minutes")
+--     , (24, "hours")
+--     , (7, "days")
+--     , (4.34524, "weeks")
+--     , (12, "months")
+--     , (ex "Number" !. "POSITIVE_INFINITY", "years")
+--     ] :: Expr [(Double, String)])
+--   let amount a = a !- 0
+--       name a = a !- 1
 
--- * Date
-
--- | Formats dates as "in 2 days" etc.
---
--- Adapted from here: https://blog.webdevsimplified.com/2020-07/relative-time-format/
-mkFormatFromNow :: Expr a -> M r (Expr Date -> Expr String)
-mkFormatFromNow formatter = do
-  divisions <- const (lit $ map (\(a, b) -> lit [a, b])
-    [ (60, "seconds")
-    , (60, "minutes")
-    , (24, "hours")
-    , (7, "days")
-    , (4.34524, "weeks")
-    , (12, "months")
-    , (ex "Number" !. "POSITIVE_INFINITY", "years")
-    ] :: Expr [(Double, String)])
-  let amount a = a !- 0
-      name a = a !- 1
-
-  fn $ \date -> do
-    duration <- let_ $ (date - call0 (New dateConstructor)) P./ 1000
-    iterArray divisions $ \ix -> do
-      division <- const $ divisions !- ix
-      ifonly ((ex "Math" !// "abs" $ duration) .< amount division) $ do
-        retrn $ call (formatter !. "format")
-          [ ex "Math" !// "round" $ duration
-          , name division ]
-      duration ./= amount division
-    retrn (Null :: Expr String)
+--   fn $ \date -> do
+--     duration <- let_ $ (date - call0 (New dateConstructor)) P./ 1000
+--     iterArray divisions $ \ix -> do
+--       division <- const $ divisions !- ix
+--       ifonly ((ex "Math" !// "abs" $ duration) .< amount division) $ do
+--         retrn $ call (formatter !. "format")
+--           [ ex "Math" !// "round" $ duration
+--           , name division ]
+--       duration ./= amount division
+--     retrn (Null :: Expr String)

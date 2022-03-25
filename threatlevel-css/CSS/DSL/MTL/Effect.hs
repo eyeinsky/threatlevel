@@ -26,6 +26,8 @@ class Monad m => CSS m where
 class Monad m => Prop m where
   prop :: TS.Text -> Value -> m ()
 
+keyframes = undefined
+
 -- Writer boilerplate due to writing two things
 data W = W { wRules :: OuterRules, wDecls :: Declarations }
   deriving Show
@@ -35,6 +37,7 @@ instance Monoid W where mempty = W mempty mempty
 
 -- * Compat
 
+-- | Combine current selector with another non-simple selector
 combinator :: CSS m => SimpleSelectorFrom a => SOp -> a -> m () -> m ()
 combinator op slike = combine (\s -> Combined op s (ssFrom slike))
 

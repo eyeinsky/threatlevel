@@ -1,18 +1,9 @@
 module JS.DSL.MTL.Effect
   ( module JS.DSL.Core
   , module JS.DSL.MTL.Effect
-  , ask, put
   ) where
 
 import Common.Prelude hiding (next)
-import qualified Common.Prelude as P
-import qualified Data.Text as TS
-import qualified Data.HashMap.Strict as HS
-import Control.Monad.Writer
-import Control.Monad.State hiding (State)
-import Control.Monad.Reader
-
-import Render
 import JS.Syntax as Syntax
 import JS.DSL.Core
 
