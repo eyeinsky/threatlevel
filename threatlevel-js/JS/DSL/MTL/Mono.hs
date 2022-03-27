@@ -82,48 +82,6 @@ runPretty = runFresh (Indent 2)
 runMinify :: MonoJS a -> Result () a
 runMinify = runFresh Minify
 
--- * 3.2 Use polykinded m
-
-type Lift :: () -> (Type -> Type) -> Type -> Type
-newtype Lift x m a = Lift (m a)
-  deriving (Functor, Applicative, Monad, MonadTrans)
-
--- data MonoJSRaw x a = MonoJSRaw (WriterT Syntax.Code_ (StateT State (Reader Env))) a
--- SampleImplRaw (x :: ()) a =
-
-type MonoJSRaw x = Lift x (WriterT Writer_ (StateT State_ (Reader Reader_)))
-type MonoJS'' = MonoJSRaw '()
-
-run' :: Env -> Lib -> Used -> Fresh -> MonoJS'' a -> Result () a
-run' env lib used fresh m = m
-  & coerce
-  & runWriterT
-  & flip runStateT (State fresh used lib)
-  & flip runReaderT env
-  & runIdentity
-
-runFresh' :: Syntax.Conf -> MonoJS'' a -> Result () a
-runFresh' env m = run' env mempty mempty validIdentifiers m
-
-instance JS MonoJS'' where
-  stm s = lift $ tell (pure s)
-  freshName = lift $ do
-    State (Infinite x xs) used lib <- get
-    put (State xs used lib) $> Name x
-  bind syntax e = lift $ do
-    name <- freshName
-    stm (syntax name e) $> EName name
-  execSub m = lift $ do
-    env <- ask
-    (State fresh0 used0 lib0) <- get
-    let ((a, w), s) = run' env lib0 used0 fresh0 m
-    put s $> (a, w)
-
-  -- f1 f = bind Let . uncurry (AnonFunc Nothing) =<< c1 f []
-  -- f2 syntax f = bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
-  f3 f = c3 f []
-
-
 -- * Polykinded type family
 
 type F :: k -> Type
