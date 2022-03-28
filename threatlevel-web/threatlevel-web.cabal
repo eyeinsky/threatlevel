@@ -30,13 +30,12 @@ library
       JW.T
       IndexedDB.IDB
       DOM.Core
-      DOM.Event
       DOM.JS
       DOM
       PWA
       WebSockets
-      JS.WebAPIs.DOM
-      JS.WebAPIs.WebComponents
+      JS.WebApis.DOM
+      JS.WebApis.WebComponents
       Server
       Server.Run
       Server.Static
@@ -61,14 +60,13 @@ library
       CSP
       HTML.Core
       HTML.Paste
-      JS.WebApis.DOM
       JS.WebApis.Event
-      JS.WebApis.WebComponents
       SVG.Attributes
       SVG.Elements
       SVG.TH
       Trie
       Web.DSL
+      Web.Secret
       WebStorage
       X.Template.Common
       XML.Render
@@ -86,12 +84,14 @@ library
       DeriveFunctor
       DeriveGeneric
       DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
       InstanceSigs
       ImportQualifiedPost
       KindSignatures
@@ -187,12 +187,14 @@ test-suite test
       DeriveFunctor
       DeriveGeneric
       DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
       InstanceSigs
       ImportQualifiedPost
       KindSignatures

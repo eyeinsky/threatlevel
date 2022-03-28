@@ -2,17 +2,14 @@ module Web.DSL where
 
 import Common.Prelude
 import Control.Monad.RWS
-
-import qualified CSS.DSL.MTL.Mono as CSS
-import qualified CSS.Identifiers as CSS
-
 import Data.Text.Lazy qualified as TL
 
--- import qualified CSS.DSL.MTL.Mono as CSS
--- import qualified CSS.Identifiers as CSS
 import CSS qualified
-import qualified JS.DSL.MTL.Mono as JS
-import qualified JS.Syntax as JS
+import CSS.DSL.MTL.Mono qualified as CSS
+import CSS.Identifiers qualified as CSS
+
+import JS.DSL.MTL.Mono qualified as JS
+import JS.Syntax qualified as JS
 
 import Render
 

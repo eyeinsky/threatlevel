@@ -17,8 +17,9 @@ library
       JS.Syntax
       JS.DSL
       JS.DSL.Syntax
-      JS.DSL.MTL.Core
-      JS.DSL.MTL.Function
+      JS.DSL.Core
+      JS.DSL.MTL.Effect
+      JS.DSL.MTL.Mono
       JS.Derive
       JS.Roundtrip
       JS.TH
@@ -39,10 +40,7 @@ library
   other-modules:
       JS.BuiltIns.Array
       JS.BuiltIns.Promise
-      JS.DSL.Core
       JS.DSL.MTL
-      JS.DSL.MTL.Effect
-      JS.DSL.MTL.Mono
       JS.Syntax.AST
       JS.Syntax.Render
       JS.Syntax.Reserved
@@ -59,12 +57,14 @@ library
       DeriveFunctor
       DeriveGeneric
       DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
       InstanceSigs
       ImportQualifiedPost
       KindSignatures
@@ -80,6 +80,7 @@ library
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
       TypeApplications

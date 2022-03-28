@@ -1,9 +1,8 @@
 module CSS.Identifiers where
 
-import Prelude
+import Common.Prelude
 import Data.Text
 import qualified Data.Text.Lazy as TL
-import Identifiers
 
 identifiers :: Infinite Text
 identifiers = fmap pack $ orderedFilter forbidden $ bigEndian ['a' .. 'z']

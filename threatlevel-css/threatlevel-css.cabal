@@ -14,14 +14,14 @@ build-type:     Simple
 
 library
   exposed-modules:
+      CSS.DSL.MTL.Mono
+      CSS.DSL.MTL.Effect
+      CSS.Identifiers
       CSS.Syntax
       CSS.DSL
       CSS
   other-modules:
       CSS.DSL.Common
-      CSS.DSL.MTL.Effect
-      CSS.DSL.MTL.Mono
-      CSS.Identifiers
       CSS.Syntax.AST
       CSS.Syntax.Render
       CSS.TH
