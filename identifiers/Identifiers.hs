@@ -76,9 +76,6 @@ identifiersFilter li = filterFrom (lengthAlphaSort reserved) $ map T.reverse $ s
           ord -> ord
     filterFrom _ ys = ys
 
--- * Infinite
-
-
 -- * Increment
 
 class Increment a where
