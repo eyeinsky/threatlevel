@@ -50,6 +50,7 @@ dependencies:
 - lens
 
 library:
+  source-dirs: .
   exposed-modules:
   - Identifiers
 
