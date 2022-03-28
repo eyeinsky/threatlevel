@@ -56,6 +56,7 @@ library
       X.Widgets
       X.Widgets.Menu
       X.Wai
+      Web.Secret
   other-modules:
       CSP
       HTML.Core
@@ -66,7 +67,6 @@ library
       SVG.TH
       Trie
       Web.DSL
-      Web.Secret
       WebStorage
       X.Template.Common
       XML.Render
