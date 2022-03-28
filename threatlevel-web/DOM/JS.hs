@@ -4,19 +4,19 @@ module DOM.JS where
 
 import X.Prelude as P hiding (id)
 import qualified X.Prelude as P
-import qualified Data.Text.Lazy as TL
+-- import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 
 import JS hiding (Raw)
 import qualified JS.BuiltIns.Full as JS
-import qualified JS.Syntax
+-- import JS.Syntax qualified
 
-import qualified DOM.Core as D
-import qualified CSS as CSS
+-- import qualified DOM.Core as D
+-- import CSS qualified
 import HTML
 import XML
-import SVG hiding (onload, id)
+-- import SVG hiding (onload, id)
 import JS.WebApis.DOM
 
 -- -- | The global find

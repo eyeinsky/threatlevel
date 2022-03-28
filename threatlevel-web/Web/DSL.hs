@@ -5,8 +5,6 @@ import Control.Monad.RWS
 import Data.Text.Lazy qualified as TL
 
 import CSS qualified
-import CSS.DSL.MTL.Mono qualified as CSS
-import CSS.Identifiers qualified as CSS
 
 import JS.DSL.MTL.Mono qualified as JS
 import JS.Syntax qualified as JS

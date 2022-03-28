@@ -1,12 +1,10 @@
 module XML.TH where
 
-import Common.Prelude
 import qualified Data.Text.Lazy as TL
 import Language.Haskell.TH
 
+import Common.Prelude
 import Common.TH
-
-import X.Prelude
 import qualified DOM.Core
 
 mk :: TypeQ -> String -> DecsQ
