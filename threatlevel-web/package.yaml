@@ -107,6 +107,9 @@ library:
   - X.Widgets
   - X.Widgets.Menu
   - X.Wai
+
+  # Encrypted static site
+  - Web.Secret
   ghc-options:
   - -Wall
   - -Wno-name-shadowing
