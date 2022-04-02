@@ -12,32 +12,35 @@ import qualified Crypto.Random.Types as CRT
 import Data.ByteArray (ByteArray)
 import Data.ByteString qualified as BS
 
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as TE
 
 import X
-import JS qualified
+import JS
 import CSS qualified
 import Web.DSL
 import HTML hiding (id)
-import HTML.Core qualified as HTML
 
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Base64.URL as B64URL
 
+-- * API
 
-secretSiteIO :: Web Html -> IO (BS.ByteString, Web Html)
-secretSiteIO site = do
-  (key, iv) <- genKeyIv
-  return $ secretSite key iv site
-
-secretSiteCode :: String -> Web Html -> (BS.ByteString, Web Html)
-secretSiteCode code site = secretSite key iv site
+-- | With existing key, create a secret site
+secretSite :: String -> Web Html -> (BS.ByteString, Web Html)
+secretSite code site = secretSitePrim key iv site
   where
     (key, iv) = fromBase64url code
 
-secretSite :: BS.ByteString -> BS.ByteString -> Web Html -> (BS.ByteString, Web Html)
-secretSite key iv site = (key <> iv, wrapSite key' iv' site)
+-- | Generate a key and encrypt the site with it
+secretSiteIO :: Web Html -> IO (BS.ByteString, Web Html)
+secretSiteIO site = do
+  (key, iv) <- genKeyIv
+  return $ secretSitePrim key iv site
+
+secretSitePrim :: BS.ByteString -> BS.ByteString -> Web Html -> (BS.ByteString, Web Html)
+secretSitePrim key iv site = (key <> iv, wrapSite key' iv' site)
   where
     key' = Key key :: Key AES256 BS.ByteString
     iv' = fromJust $ makeIV iv
@@ -125,10 +128,12 @@ base64urlToBase64 = replace (g "-") "+" ^ replace (g "_") "/" ^ replace (regex "
 base64toBase64url :: Expr Base64 -> Expr Base64Url
 base64toBase64url str = str & replace (g "+") "-" ^ replace (g "/") "_" ^ padEnd (4 - ((str !. "length") % 4)) "="
 
+g :: TS.Text -> Expr RegExp
 g pat = regex pat "g"
 
 -- ** DOM
 
+documentReplace :: JS m => Expr a -> m ()
 documentReplace unescapedContent = do
   newDoc <- const $ call (document !. "open") ["text/html", "replace"]
   bare $ call1 (newDoc !. "write") unescapedContent
@@ -198,6 +203,13 @@ runStatic wm = HTML.Document head' body'
       HTML.style $ raw $ render (CSS.Pretty 2) css
       HTML.script $ raw $ render (JS.Indent 2) js
       HTML.favicon "data:;base64,iVBORw0KGgo="
+
+-- <link rel="preconnect" href="https://fonts.googleapis.com">
+-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      HTML.link
+        ! HTML.href "https://fonts.googleapis.com/css2?family=Public+Sans:wght@300&family=Roboto:wght@300;400&display=swap"
+        ! rel "stylesheet"
+
       meta
         ! httpEquiv "Content-Type"
         ! HTML.content "text/html; charset=utf-8" $ pure ()
