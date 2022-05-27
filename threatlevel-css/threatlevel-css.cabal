@@ -19,7 +19,6 @@ library
       CSS
   other-modules:
       CSS.DSL.Common
-      CSS.DSL.MTL
       CSS.DSL.MTL.Effect
       CSS.DSL.MTL.Mono
       CSS.Identifiers

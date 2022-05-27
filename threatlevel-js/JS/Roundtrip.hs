@@ -11,7 +11,7 @@ import Data.Data
 import GHC.Generics
 
 import Common.Prelude
-import JS hiding (String)
+import JS hiding (String, Result)
 import JS.TH
 
 -- * Generic data type handling in front-end

@@ -35,6 +35,7 @@ instance Monoid W where mempty = W mempty mempty
 
 -- * Compat
 
+-- | Combine current selector with another non-simple selector
 combinator :: CSS m => SimpleSelectorFrom a => SOp -> a -> m () -> m ()
 combinator op slike = combine (\s -> Combined op s (ssFrom slike))
 
