@@ -130,7 +130,6 @@ default-extensions:
 - DeriveDataTypeable
 - DeriveFunctor
 - DeriveGeneric
-- DerivingStrategies
 - DerivingVia
 - EmptyDataDecls
 - ExtendedDefaultRules
@@ -139,8 +138,8 @@ default-extensions:
 - FunctionalDependencies
 - GADTs
 - GeneralizedNewtypeDeriving
-- InstanceSigs
 - ImportQualifiedPost
+- InstanceSigs
 - KindSignatures
 - LambdaCase
 - MultiParamTypeClasses
@@ -151,7 +150,6 @@ default-extensions:
 - PolyKinds
 - QuasiQuotes
 - RankNTypes
-- RecordWildCards
 - RecursiveDo
 - ScopedTypeVariables
 - StandaloneDeriving

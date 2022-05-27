@@ -37,13 +37,14 @@ default-extensions:
 - DeriveDataTypeable
 - DeriveFunctor
 - DeriveGeneric
-- DerivingStrategies
+- DerivingVia
 - EmptyDataDecls
 - ExtendedDefaultRules
 - FlexibleContexts
 - FlexibleInstances
 - FunctionalDependencies
 - GADTs
+- GeneralizedNewtypeDeriving
 - ImportQualifiedPost
 - InstanceSigs
 - KindSignatures
@@ -67,4 +68,3 @@ default-extensions:
 - TypeInType
 - TypeOperators
 - TypeSynonymInstances
-- UndecidableInstances

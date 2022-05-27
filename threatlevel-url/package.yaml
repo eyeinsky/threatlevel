@@ -26,40 +26,42 @@ library:
     - URL.TH
 
 default-extensions:
-  - Arrows
-  - BangPatterns
-  - ConstraintKinds
-  - DataKinds
-  - DefaultSignatures
-  - DeriveAnyClass
-  - DeriveDataTypeable
-  - DeriveFunctor
-  - DeriveGeneric
-  - DerivingStrategies
-  - DerivingVia
-  - EmptyDataDecls
-  - ExtendedDefaultRules
-  - FlexibleContexts
-  - FlexibleInstances
-  - FunctionalDependencies
-  - GADTs
-  - GeneralizedNewtypeDeriving
-  - InstanceSigs
-  - ImportQualifiedPost
-  - KindSignatures
-  - MultiParamTypeClasses
-  - NamedFieldPuns
-  - NoImplicitPrelude
-  - NoMonomorphismRestriction
-  - OverloadedStrings
-  - PolyKinds
-  - QuasiQuotes
-  - RecursiveDo
-  - ScopedTypeVariables
-  - StandaloneDeriving
-  - TemplateHaskell
-  - TupleSections
-  - TypeFamilies
-  - TypeInType
-  - TypeOperators
-  - TypeSynonymInstances
+- Arrows
+- BangPatterns
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveDataTypeable
+- DeriveFunctor
+- DeriveGeneric
+- DerivingVia
+- EmptyDataDecls
+- ExtendedDefaultRules
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- ImportQualifiedPost
+- InstanceSigs
+- KindSignatures
+- LambdaCase
+- MultiParamTypeClasses
+- NamedFieldPuns
+- NoImplicitPrelude
+- NoMonomorphismRestriction
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RankNTypes
+- RecursiveDo
+- ScopedTypeVariables
+- StandaloneDeriving
+- StandaloneKindSignatures
+- TemplateHaskell
+- TupleSections
+- TypeApplications
+- TypeFamilies
+- TypeInType
+- TypeOperators
+- TypeSynonymInstances

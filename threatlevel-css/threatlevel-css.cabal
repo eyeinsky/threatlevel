@@ -37,15 +37,16 @@ library
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
-      DerivingStrategies
+      DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
       FlexibleContexts
       FlexibleInstances
       FunctionalDependencies
       GADTs
-      InstanceSigs
+      GeneralizedNewtypeDeriving
       ImportQualifiedPost
+      InstanceSigs
       KindSignatures
       LambdaCase
       MultiParamTypeClasses
@@ -59,6 +60,7 @@ library
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
       TypeApplications

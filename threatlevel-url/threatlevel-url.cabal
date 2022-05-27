@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.6.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -35,11 +35,9 @@ library
       ConstraintKinds
       DataKinds
       DefaultSignatures
-      DeriveAnyClass
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
-      DerivingStrategies
       DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
@@ -48,9 +46,10 @@ library
       FunctionalDependencies
       GADTs
       GeneralizedNewtypeDeriving
-      InstanceSigs
       ImportQualifiedPost
+      InstanceSigs
       KindSignatures
+      LambdaCase
       MultiParamTypeClasses
       NamedFieldPuns
       NoImplicitPrelude
@@ -58,11 +57,14 @@ library
       OverloadedStrings
       PolyKinds
       QuasiQuotes
+      RankNTypes
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
+      StandaloneKindSignatures
       TemplateHaskell
       TupleSections
+      TypeApplications
       TypeFamilies
       TypeInType
       TypeOperators

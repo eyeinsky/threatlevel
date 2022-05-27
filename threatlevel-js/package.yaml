@@ -71,7 +71,6 @@ default-extensions:
 - DeriveDataTypeable
 - DeriveFunctor
 - DeriveGeneric
-- DerivingStrategies
 - DerivingVia
 - EmptyDataDecls
 - ExtendedDefaultRules
@@ -80,8 +79,8 @@ default-extensions:
 - FunctionalDependencies
 - GADTs
 - GeneralizedNewtypeDeriving
-- InstanceSigs
 - ImportQualifiedPost
+- InstanceSigs
 - KindSignatures
 - LambdaCase
 - MultiParamTypeClasses

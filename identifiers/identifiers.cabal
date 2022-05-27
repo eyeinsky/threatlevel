@@ -25,40 +25,10 @@ library
   hs-source-dirs:
       ./
   default-extensions:
-      Arrows
-      BangPatterns
-      ConstraintKinds
-      DataKinds
-      DefaultSignatures
-      DeriveDataTypeable
-      DeriveFunctor
-      DeriveGeneric
-      EmptyDataDecls
-      ExtendedDefaultRules
-      FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      KindSignatures
-      MultiParamTypeClasses
-      NamedFieldPuns
-      NoImplicitPrelude
-      NoMonomorphismRestriction
       OverloadedStrings
-      PolyKinds
-      QuasiQuotes
-      RecursiveDo
-      ScopedTypeVariables
-      StandaloneDeriving
-      TemplateHaskell
-      TupleSections
-      TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      InstanceSigs
       RankNTypes
+      ScopedTypeVariables
+      TypeFamilies
   build-depends:
       base
     , lens
@@ -74,40 +44,10 @@ benchmark identifier-source
   hs-source-dirs:
       benchmarks
   default-extensions:
-      Arrows
-      BangPatterns
-      ConstraintKinds
-      DataKinds
-      DefaultSignatures
-      DeriveDataTypeable
-      DeriveFunctor
-      DeriveGeneric
-      EmptyDataDecls
-      ExtendedDefaultRules
-      FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      KindSignatures
-      MultiParamTypeClasses
-      NamedFieldPuns
-      NoImplicitPrelude
-      NoMonomorphismRestriction
       OverloadedStrings
-      PolyKinds
-      QuasiQuotes
-      RecursiveDo
-      ScopedTypeVariables
-      StandaloneDeriving
-      TemplateHaskell
-      TupleSections
-      TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      InstanceSigs
       RankNTypes
+      ScopedTypeVariables
+      TypeFamilies
   ghc-options: -w -O2 -threaded
   build-depends:
       base

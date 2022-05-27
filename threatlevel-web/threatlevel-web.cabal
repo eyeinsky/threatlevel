@@ -84,7 +84,6 @@ library
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
-      DerivingStrategies
       DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
@@ -93,8 +92,8 @@ library
       FunctionalDependencies
       GADTs
       GeneralizedNewtypeDeriving
-      InstanceSigs
       ImportQualifiedPost
+      InstanceSigs
       KindSignatures
       LambdaCase
       MultiParamTypeClasses
@@ -105,7 +104,6 @@ library
       PolyKinds
       QuasiQuotes
       RankNTypes
-      RecordWildCards
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
@@ -186,7 +184,6 @@ test-suite test
       DeriveDataTypeable
       DeriveFunctor
       DeriveGeneric
-      DerivingStrategies
       DerivingVia
       EmptyDataDecls
       ExtendedDefaultRules
@@ -195,8 +192,8 @@ test-suite test
       FunctionalDependencies
       GADTs
       GeneralizedNewtypeDeriving
-      InstanceSigs
       ImportQualifiedPost
+      InstanceSigs
       KindSignatures
       LambdaCase
       MultiParamTypeClasses
@@ -207,7 +204,6 @@ test-suite test
       PolyKinds
       QuasiQuotes
       RankNTypes
-      RecordWildCards
       RecursiveDo
       ScopedTypeVariables
       StandaloneDeriving
