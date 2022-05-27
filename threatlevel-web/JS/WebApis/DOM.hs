@@ -5,11 +5,9 @@ module JS.WebApis.DOM
 
 import Common.Prelude
 import Data.Text qualified as TS
-import Control.Monad.Writer
 import CSS qualified
 import JS
 import HTML
-import Render
 
 import JS.WebApis.Event
 

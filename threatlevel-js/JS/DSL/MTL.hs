@@ -11,18 +11,10 @@ module JS.DSL.MTL
 
 import qualified Prelude as P
 import Common.Prelude as P hiding (break, next)
-import qualified Data.Set as S
-import qualified Data.Hashable as H
 import qualified Data.Text as TS
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.IO as TL
 
 import Data.Either
 import Control.Monad.Writer
-
-import qualified Control.Monad.Reader
-
-import Render
 
 import JS.Syntax as Syntax
 import JS.DSL.MTL.Effect as JS

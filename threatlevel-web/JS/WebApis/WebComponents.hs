@@ -3,9 +3,7 @@ module JS.WebApis.WebComponents where
 import qualified Data.Text as TS
 import X.Prelude hiding ((>))
 
-import HTML hiding (method)
 import JS
-import JS.Syntax (Name)
 -- import qualified DOM
 
 -- * Custom element registry
