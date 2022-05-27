@@ -44,7 +44,7 @@ orderedFilter excluded xs = filterFrom excluded' xs
     excluded' = lengthAlphaSort $ nub excluded
 
     filterFrom :: [[a]] -> Infinite [a] -> Infinite [a]
-    filterFrom xs'@ (x : xs) ys'@ (Infinite y ys) = case lenCmp x y of
+    filterFrom xs'@(x : xs) ys'@(Infinite y ys) = case lenCmp x y of
       GT -> Infinite y (filterFrom xs' ys)
       EQ -> filterFrom xs ys
       _ -> filterFrom xs ys'
