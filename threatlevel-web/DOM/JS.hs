@@ -261,7 +261,7 @@ instance RenderJSM (HTML Both) where
     Text txt -> return $ createTextNode (lit txt)
     Raw txt -> do
       tmp <- const $ createElement "div"
-      innerHTML tmp .= lit txt
+      tmp !. "innerHTML" .= lit txt
       nodes <- const $ tmp !. "childNodes"
       frag <- fmap Cast $ const $ createDocumentFragment
       i <- let_ 0
@@ -272,13 +272,13 @@ instance RenderJSM (HTML Both) where
     Dyn expr -> return (Cast expr)
     Embed a -> renderJSM a
     where
-      mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
+      mkAttr :: JS m => Expr a -> TS.Text -> Attribute -> m ()
       mkAttr e k attr = case attr of
         Data _ v -> e !. "dataset" !. tsKebab2camel k .= lit v
         Custom _ v -> e !. tsKebab2camel k .= lit v
         _ -> mkAttrCommon e k attr
 
-createHtmls :: Html -> JS.M r (Expr DocumentFragment)
+createHtmls :: JS m => Html -> m (Expr DocumentFragment)
 createHtmls m = do
   f <- const $ createDocumentFragment
   forM_ (execWriter m) $ \ html -> do
@@ -320,7 +320,9 @@ instance  RenderJSM (XML SVG AttributeSet Both) where
       mkElem :: TagName -> Expr Tag
       mkElem tagName = call (document !. "createElementNS") [ns, lit $ coerce @_ @Value tagName]
 
-attrsJSM :: Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> JS.M r ()) -> AttributeSet -> JS.M r ()
+attrsJSM
+  :: JS m
+  => Expr Tag -> (Expr Tag -> TS.Text -> Attribute -> m ()) -> AttributeSet -> m ()
 attrsJSM t mkAttr as = do
   maybe (return ()) (\id -> t !. "id" .= lit id) (as^.id)
   forM_ (HM.toList $ as^.attrs) $ uncurry $ mkAttr t
