@@ -1,12 +1,15 @@
 module Web.DSL where
 
 import Common.Prelude
-import Data.Tuple
 import Control.Monad.RWS
+import Data.Text.Lazy qualified as TL
 
-import qualified CSS.DSL.MTL.Mono as CSS
-import qualified JS.DSL.MTL.Mono as JS
-import qualified JS.Syntax as JS
+import CSS qualified
+
+import JS.DSL.MTL.Mono qualified as JS
+import JS.Syntax qualified as JS
+
+import Render
 
 {- * Boilerplate
 
@@ -32,14 +35,28 @@ tellJS t = tell (mempty, t)
 
 -- * Mono
 
-type Web' m = RWST Reader_ Writer_ State_ m
-type Web = Web' Identity
+type WebRaw m = RWST Reader_ Writer_ State_ m
 
-runM :: Web' m a -> Reader_ -> State_ -> m (a, State_, Writer_)
-runM m r s = runRWST m r s
+newtype WebT m a = WebT (WebRaw m a)
+  deriving newtype (Functor, Applicative, Monad, MonadTrans)
+  deriving (MonadReader (CSS.Reader_, JS.Reader_)) via WebRaw m
+  deriving (MonadState (CSS.State_, JS.State_)) via WebRaw m
+  deriving (MonadWriter (CSS.Writer_, JS.Writer_)) via WebRaw m
+  deriving MonadFix via WebRaw m
+
+runRaw :: WebRaw m a -> Reader_ -> State_ -> m (a, State_, Writer_)
+runRaw m r s = runRWST m r s
+
+type Web = WebT Identity
 
 run :: Web a -> Reader_ -> State_ -> (a, State_, Writer_)
-run m r s = runM m r s & runIdentity
+run m r s = runRaw (coerce m) r s & runIdentity
+
+hostSelector :: CSS.Selector
+hostSelector = CSS.selFrom (CSS.PseudoClass "host" Nothing)
+
+runFresh :: Web a -> (a, State_, Writer_)
+runFresh m = run m (hostSelector, JS.Indent 2) (CSS.identifiers, def)
 
 execSubBase' ask get put tell pick m = do
   (a, s, w) <- run m <$> ask <*> get
@@ -64,8 +81,28 @@ instance CSS.CSS Web where
   rule slike m = CSS.ruleBase localCSS tellCSS slike m
   combine f m = CSS.combineBase askCSS f m
   atRule atIdent atCond m = CSS.atRuleBase askCSS tellCSS atIdent atCond m
-  execSub m = execSubBase' ask get put tell undefined m
+  execSub m = execSubBase' ask get put tell pick m
     where pick (c, j) = (c, (mempty, j))
 
 instance CSS.Prop Web where
   prop property value = CSS.propBase tellCSS property value
+
+instance Render (Web a) where
+  type Conf (Web a) = (CSS.Conf, JS.Conf)
+  renderM m = pure text
+    where
+      (css2, js1) = renderWeb m
+      text = "<style>\n"
+          <> css2
+          <> "</style>\n"
+          <> "<script>\n"
+          <> js1
+          <> "</script>"
+
+renderWeb :: Web a -> (TL.Text, TL.Text)
+renderWeb m = (css2, js1)
+  where
+    (_, _, (css, js)) = runFresh m
+    css1 = CSS.wrapW hostSelector css
+    css2 = render (CSS.Pretty 2) css1
+    js1 = render (JS.Indent 2) js
