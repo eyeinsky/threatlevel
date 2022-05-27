@@ -57,8 +57,8 @@ run r s m = m
   & runM r s
   & runIdentity
 
-runEmpty :: Syntax.Conf -> MonoJS a -> Result () a
-runEmpty env m = run env (State validIdentifiers mempty mempty) m
+runFresh :: Syntax.Conf -> MonoJS a -> Result () a
+runFresh env m = run env (State validIdentifiers mempty mempty) m
 
 instance JS MonoJS where
   stm = stmBase tell
@@ -74,13 +74,13 @@ instance JS MonoJS where
 
 instance Render (MonoJS a) where
   type Conf (MonoJS a) = Syntax.Conf
-  renderM m = renderM . resultCode . flip runEmpty m =<< ask
+  renderM m = renderM . resultCode . flip runFresh m =<< ask
 
 runPretty :: MonoJS a -> Result () a
-runPretty = runEmpty (Indent 2)
+runPretty = runFresh (Indent 2)
 
 runMinify :: MonoJS a -> Result () a
-runMinify = runEmpty Minify
+runMinify = runFresh Minify
 
 -- * 3.2 Use polykinded m
 
@@ -102,8 +102,8 @@ run' env lib used fresh m = m
   & flip runReaderT env
   & runIdentity
 
-runEmpty' :: Syntax.Conf -> MonoJS'' a -> Result () a
-runEmpty' env m = run' env mempty mempty validIdentifiers m
+runFresh' :: Syntax.Conf -> MonoJS'' a -> Result () a
+runFresh' env m = run' env mempty mempty validIdentifiers m
 
 instance JS MonoJS'' where
   stm s = lift $ tell (pure s)
