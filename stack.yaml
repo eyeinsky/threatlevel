@@ -12,8 +12,8 @@ packages:
 
 extra-deps:
 - boomerang-1.4.7@sha256:c385e2269c78b2b2135d5b5b47491525e52f8d145f84eca427c7649c953c1cdf,2132
-- git: https://github.com/eyeinsky/rapid.git
-  commit: dcf0b75e306a33a08e4405de4c9f2577331a9bda
+- git: https://github.com/haskell-rapid/rapid.git
+  commit: f2a30f68c9c82a1f5622afaa913404ac786d554e
 - git: https://github.com/eyeinsky/fixedlist.git
   commit: 2f4642d8c697d9666fbf579b8d4d5616c3a397ec
 
