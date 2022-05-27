@@ -8,11 +8,9 @@ module CSS.DSL.MTL.Mono
   ) where
 
 import Common.Prelude
-import Data.Text qualified as TS
 import CSS.Syntax
 import CSS.DSL.Common
 
-import Data.Tuple (swap)
 import Control.Monad.Reader
 import Control.Monad.Writer hiding (Any)
 import Control.Monad.State
@@ -34,8 +32,8 @@ ruleBase local tell slike m =
   let s = selFrom slike
   in local (\_ -> selFrom s) $ do
     (a, W rs ds) <- execSub m
-    let rs = pure (mkRule s ds) <> rs
-    tell (W rs mempty)
+    let rs' = pure (mkRule s ds) <> rs
+    tell (W rs' mempty)
     return a
 
 combineBase ask f m = do
