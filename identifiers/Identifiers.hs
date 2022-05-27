@@ -66,7 +66,7 @@ identifiersFilter li = filterFrom (lengthAlphaSort reserved) $ map T.reverse $ s
     reserved :: [T.Text]
     reserved = nub li
 
-    filterFrom xs'@ (x : xs) ys'@ (y : ys) = case lenCmp x y of
+    filterFrom xs'@(x : xs) ys'@(y : ys) = case lenCmp x y of
       GT -> y : filterFrom xs' ys
       EQ -> filterFrom xs ys
       _ -> filterFrom xs ys'
