@@ -30,8 +30,9 @@ library:
   - JS.Syntax
   - JS.DSL
   - JS.DSL.Syntax
-  - JS.DSL.MTL.Core
-  - JS.DSL.MTL.Function
+  - JS.DSL.Core
+  - JS.DSL.MTL.Effect
+  - JS.DSL.MTL.Mono
   - JS.Derive
   - JS.Roundtrip
   - JS.TH
