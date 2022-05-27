@@ -4,6 +4,7 @@ category: Web
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
+
 dependencies:
 - base
 - cookie
@@ -55,8 +56,7 @@ dependencies:
 - threatlevel-js
 
 library:
-  source-dirs:
-  - .
+  source-dirs: .
   exposed-modules:
   - HTTP.Common
   - HTTP.Header

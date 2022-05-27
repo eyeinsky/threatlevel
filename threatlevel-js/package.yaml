@@ -4,6 +4,7 @@ category: Language
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
+
 dependencies:
 - aeson
 - base
@@ -23,8 +24,7 @@ dependencies:
 - threatlevel-common
 
 library:
-  source-dirs:
-  - .
+  source-dirs: .
   exposed-modules:
   # JavaScript syntax, DSL and meta
   - JS.Syntax

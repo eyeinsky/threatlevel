@@ -4,6 +4,7 @@ category: Language
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
+
 dependencies:
 - base
 - dlist
@@ -18,8 +19,7 @@ dependencies:
 - threatlevel-common
 
 library:
-  source-dirs:
-  - .
+  source-dirs: .
   exposed-modules:
   - CSS.DSL.MTL.Mono
   - CSS.DSL.MTL.Effect

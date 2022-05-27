@@ -29,6 +29,8 @@ library
       URL.TH
   other-modules:
       Paths_threatlevel_url
+  hs-source-dirs:
+      ./
   default-extensions:
       Arrows
       BangPatterns

@@ -4,6 +4,7 @@ category: Language
 author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
+
 dependencies:
 - base
 - data-default
@@ -15,8 +16,7 @@ dependencies:
 - identifiers
 
 library:
-  source-dirs:
-  - .
+  source-dirs: .
   exposed-modules:
   - Common.TH
   - Common.Lens

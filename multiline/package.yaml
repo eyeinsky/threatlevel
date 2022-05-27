@@ -12,5 +12,6 @@ dependencies:
 - template-haskell
 
 library:
+  source-dirs: .
   exposed-modules:
   - Data.Text.Multiline

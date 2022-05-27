@@ -8,16 +8,17 @@ github: eyeinsky/threatlevel/threatlevel-url
 category: Web
 
 dependencies:
-  - base
-  - lens
-  - text
-  - mtl
-  - attoparsec
-  - http-types
-  - render
-  - template-haskell
+- base
+- lens
+- text
+- mtl
+- attoparsec
+- http-types
+- render
+- template-haskell
 
 library:
+  source-dirs: .
   exposed-modules:
     - URL
     - URL.Core

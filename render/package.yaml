@@ -8,11 +8,12 @@ dependencies:
 - mtl
 - text
 
+library:
+  source-dirs: .
+  exposed-modules:
+  - Render
+
 default-extensions:
 - ScopedTypeVariables
 - TypeFamilies
 - OverloadedStrings
-
-library:
-  exposed-modules:
-  - Render
