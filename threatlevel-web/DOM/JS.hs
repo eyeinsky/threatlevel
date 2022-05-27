@@ -4,246 +4,151 @@ module DOM.JS where
 
 import X.Prelude as P hiding (id)
 import qualified X.Prelude as P
-import qualified Data.Text.Lazy as TL
+-- import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 
 import JS hiding (Raw)
 import qualified JS.BuiltIns.Full as JS
-import qualified JS.Syntax
+-- import JS.Syntax qualified
 
-import qualified DOM.Core as D
-import qualified CSS as CSS
+-- import qualified DOM.Core as D
+-- import CSS qualified
 import HTML
-import DOM.Event
 import XML
-import SVG hiding (onload, id)
+-- import SVG hiding (onload, id)
+import JS.WebApis.DOM
 
-getAttribute :: Expr b -> Expr a -> Expr c
-getAttribute k e = call1 (e !. "getAttribute") k
+-- -- | The global find
+-- class    FindBy a where findBy :: a -> Expr Tag
+-- instance FindBy D.Id where
+--    findBy (D.Id id) = valueSelf id (docCall "getElementById")
+-- instance FindBy D.Class where
+--    findBy (D.Class a) = case a of
+--      Static v -> call1 (document !. "getElementsByClassName") (lit v)
+--      Dynamic v -> Cast v
+-- instance FindBy TagName where
+--    findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
+-- instance FindBy (Expr D.Id) where
+--    findBy a = docCall' "getElementById" a
+-- instance FindBy (Expr D.Class) where
+--    findBy a = docCall' "getElementsByClassName" a
 
-setAttribute :: Expr b -> Expr b -> Expr a -> Expr c
-setAttribute k v e = call (e !. "setAttribute") [k, v]
+-- instance FindBy (HTML Both) where
+--   findBy a
+--     | Just id <- P.join maybeId = findBy (D.Id id)
+--     | [cls] <- classes_ = findBy cls
+--     | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
+--     | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
+--     | otherwise = error "FindBy (HTML a): nothing to find by"
+--     where
+--       maybeId = a ^? _Element._2.id
+--       classes_ = a ^. _Element._2.classes.P.to (map D.Class) :: [D.Class]
 
-requestAnimationFrame :: Expr a -> Expr b
-requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
+-- instance FindBy Html where
+--    findBy a = case execWriter a of
+--      e : _ -> findBy e
+--      _ -> error "FindBy Html: no html to find by"
+-- instance FindBy (Html -> Html) where
+--   findBy a = case execWriter $ a $ pure () of
+--     e : _ -> findBy e
+--     _ -> error "FindBy (Html -> Html): no html to find by"
 
-documentWrite :: Expr b -> Expr c
-documentWrite what = call1 (document !. "write") what
+-- valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
+-- valueSelf v f = case v of
+--   Static a -> f a
+--   Dynamic a -> Cast a
 
-onLoad f = do
-  f' <- newf f
-  bare $ addEventListener (Cast window) Load f'
+-- docCall' :: TS.Text -> Expr b -> Expr c
+-- docCall' f a = call1 (document !. f) a
 
--- * Finding elements
+-- docCall :: ToExpr a => TS.Text -> a -> Expr c
+-- docCall f a = docCall' f (lit a)
 
-class JSSelector a where
-  jsSelectorFrom :: a -> Expr String
-instance JSSelector (Expr String) where
-  jsSelectorFrom a = a
-instance {-# OVERLAPPABLE #-} CSS.SelectorFrom a => JSSelector a where
-  jsSelectorFrom s = lit $ render' $ CSS.selFrom s
+-- --
 
--- | The global find
-class    FindBy a where findBy :: a -> Expr Tag
-instance FindBy D.Id where
-   findBy (D.Id id) = valueSelf id (docCall "getElementById")
-instance FindBy D.Class where
-   findBy (D.Class a) = case a of
-     Static v -> call1 (document !. "getElementsByClassName") (lit v)
-     Dynamic v -> Cast v
-instance FindBy TagName where
-   findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
-instance FindBy (Expr D.Id) where
-   findBy a = docCall' "getElementById" a
-instance FindBy (Expr D.Class) where
-   findBy a = docCall' "getElementsByClassName" a
+-- -- *** Text input
 
-instance FindBy (HTML Both) where
-  findBy a
-    | Just id <- P.join maybeId = findBy (D.Id id)
-    | [cls] <- classes_ = findBy cls
-    | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
-    | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
-    | otherwise = error "FindBy (HTML a): nothing to find by"
-    where
-      maybeId = a ^? _Element._2.id
-      classes_ = a ^. _Element._2.classes.P.to (map D.Class) :: [D.Class]
+-- -- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
+-- cursorPosition e = do
+--       start <- let_ $ e !. "selectionStart"
+--       end <- const $ e !. "selectionEnd"
+--       let_ $ ternary (start .== end) (Cast start) (Cast Null)
+--    {- ^ Get caret position from textarea/input type=text
 
-instance FindBy Html where
-   findBy a = case execWriter a of
-     e : _ -> findBy e
-     _ -> error "FindBy Html: no html to find by"
-instance FindBy (Html -> Html) where
-  findBy a = case execWriter $ a $ pure () of
-    e : _ -> findBy e
-    _ -> error "FindBy (Html -> Html): no html to find by"
+--       IE not implemented, see here for how:
+--          http://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates
 
-valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
-valueSelf v f = case v of
-  Static a -> f a
-  Dynamic a -> Cast a
+--    -}
 
-docCall' :: TS.Text -> Expr b -> Expr c
-docCall' f a = call1 (document !. f) a
+-- -- * From JS_API
 
-docCall :: ToExpr a => TS.Text -> a -> Expr c
-docCall f a = docCall' f (lit a)
+-- -- ** XMLHttpRequest (Ajax)
 
---
+-- -- Expr URL -> data -> (\ x -> M y z) -> M a b
+-- -- doPost' a b c = call ajaxExpr ["post", a, b, c]
+-- doPost' uri data_ cb = do
+--    aj <- newf $ ajaxExpr
+--    bare $ call aj [lit "POST", uri, data_, cb]
+-- doGet' uri data_ cb = do
+--    aj <- newf $ ajaxExpr
+--    bare $ call aj [lit "GET", uri, data_, cb]
 
-ea s e = e !. s
+-- ajaxExpr meth uri data_ callback = do
+--    xhr <- const $ ex "new XMLHttpRequest()"
+--    ifonly (callback .!== Undefined) $ do
+--       wrap <- newf $ \(_ :: Expr ()) -> do
+--          text <- const $ xhr !. "responseText"
+--          json <- const $ fromJSON text
+--          bare $ call1 callback json
+--       xhr !. "onload" .= Cast wrap
+--    bare (call (xhr !. "open") [meth, uri, lit True])
+--    bare $ call1 (xhr !. "send") data_
 
-offsetHeight = ea "offsetHeight"
-scrollHeight = ea "scrollHeight"
+-- xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
+-- xhrRaw meth uri data_ callback = do
+--   xhr <- const $ ex "new XMLHttpRequest()"
+--   ifonly (callback .!== Undefined) $ do
+--     xhr !. "onload" .= callback
+--   bare (call (xhr !. "open") [Cast meth, uri, lit True])
+--   bare $ call1 (xhr !. "send") data_
 
-scrollTop = ea "scrollTop"
-scrollBottom e = scrollTop e + offsetHeight e
+-- xhrJs :: JS.Syntax.Conf -> Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
+-- xhrJs rc meth uri data_ args = do
+--   wrap <- newf $ \(resp :: Expr ()) -> do
+--     let funcText = responseText resp
+--         argsText = lit $ runReader (JS.Syntax.unargs args) rc
+--     bare $ call1 (ex "eval") $ funcText + argsText
+--   xhrRaw meth uri data_ wrap
 
-offsetTop = ea "offsetTop"
-offsetBottom e = ea "offsetTop" e + offsetHeight e
+-- responseText :: Expr a -> Expr b
+-- responseText resp = resp !. "target" !. "responseText"
 
-atTop el = scrollTop el .== 0 :: Expr Bool
-atBottom el = scrollBottom el .>= scrollHeight el :: Expr Bool
+-- xhrGet :: Conf -> Expr a -> [Expr d] -> M r ()
+-- xhrGet rc uri args = xhrJs rc "GET" uri Undefined args
 
-getComputedStyle e = call1 (ex "getComputedStyle") e
+-- xhrPost :: Conf -> Expr a -> Expr c -> [Expr d] -> M r ()
+-- xhrPost rc uri data_ args = xhrJs rc "POST" uri data_ args
 
-childNodes e = e !. "childNodes"
+-- -- ** DOM/Event
 
--- * Modify DOM
+-- -- | Get char from keyboard event
+-- eventKey :: Expr a1 -> M a2 ()
+-- eventKey event = do -- from: http://unixpapa.com/js/key.html
+--    retrn $ let
+--          which = event !. "which" -- :: Expr J.Number
+--          from arg = call (ex "String" !. "fromCharCode") [ arg ]
+--          -- from which or keyCode
+--       in ternary (which .== ex "null")
+--       (from $ event !. "keyCode" ) -- old IE
+--       (ternary
+--          (  (which .!= lit 0)
+--         .&& event !. "charCode" .!= lit 0
+--         ) (from which {-all others-}) Null)
 
-timeStamp e = e !. "timeStamp"
+-- -- * RenderJSM instances
 
-appendChild :: Expr Tag -> Expr Tag -> Expr ()
-appendChild a t = call1 (t !. "appendChild") a
-
-insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
-
-replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
-
-removeChild :: Expr Tag -> Expr Tag -> Expr Tag
-removeChild parent child = call1 (parent !. "removeChild") child
-
-parentNode :: Expr Tag -> Expr Tag
-parentNode e = e !. "parentNode"
-
-setInnerHTML e x = innerHTML e .= x
-
-innerHTML e = e !. "innerHTML"
-
-createElement :: TagName -> Expr Tag
-createElement tn = docCall' "createElement" $ lit $ coerce @_ @Value tn
-
-createTextNode :: Expr String -> Expr Tag
-createTextNode txt = docCall' "createTextNode" txt
-
-createDocumentFragment :: Expr DocumentFragment
-createDocumentFragment = call0 (document !. "createDocumentFragment")
-
--- *** Text input
-
--- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
-cursorPosition e = do
-      start <- let_ $ e !. "selectionStart"
-      end <- const $ e !. "selectionEnd"
-      let_ $ ternary (start .== end) (Cast start) (Cast Null)
-   {- ^ Get caret position from textarea/input type=text
-
-      IE not implemented, see here for how:
-         http://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates
-
-   -}
-
--- * From JS_API
-
--- ** XMLHttpRequest (Ajax)
-
--- Expr URL -> data -> (\ x -> M y z) -> M a b
--- doPost' a b c = call ajaxExpr ["post", a, b, c]
-doPost' uri data_ cb = do
-   aj <- newf $ ajaxExpr
-   bare $ call aj [lit "POST", uri, data_, cb]
-doGet' uri data_ cb = do
-   aj <- newf $ ajaxExpr
-   bare $ call aj [lit "GET", uri, data_, cb]
-
-ajaxExpr meth uri data_ callback = do
-   xhr <- const $ ex "new XMLHttpRequest()"
-   ifonly (callback .!== Undefined) $ do
-      wrap <- newf $ \(_ :: Expr ()) -> do
-         text <- const $ xhr !. "responseText"
-         json <- const $ fromJSON text
-         bare $ call1 callback json
-      xhr !. "onload" .= Cast wrap
-   bare (call (xhr !. "open") [meth, uri, lit True])
-   bare $ call1 (xhr !. "send") data_
-
-xhrRaw :: Expr a -> Expr a -> Expr c -> Expr d -> JS.M r ()
-xhrRaw meth uri data_ callback = do
-  xhr <- const $ ex "new XMLHttpRequest()"
-  ifonly (callback .!== Undefined) $ do
-    xhr !. "onload" .= callback
-  bare (call (xhr !. "open") [Cast meth, uri, lit True])
-  bare $ call1 (xhr !. "send") data_
-
-xhrJs :: JS.Syntax.Conf -> Expr a -> Expr a -> Expr c -> [Expr d] -> JS.M r ()
-xhrJs rc meth uri data_ args = do
-  wrap <- newf $ \(resp :: Expr ()) -> do
-    let funcText = responseText resp
-        argsText = lit $ runReader (JS.Syntax.unargs args) rc
-    bare $ call1 (ex "eval") $ funcText + argsText
-  xhrRaw meth uri data_ wrap
-
-responseText :: Expr a -> Expr b
-responseText resp = resp !. "target" !. "responseText"
-
-xhrGet :: Conf -> Expr a -> [Expr d] -> M r ()
-xhrGet rc uri args = xhrJs rc "GET" uri Undefined args
-
-xhrPost :: Conf -> Expr a -> Expr c -> [Expr d] -> M r ()
-xhrPost rc uri data_ args = xhrJs rc "POST" uri data_ args
-
--- ** DOM/Event
-
-focus :: Expr a -> Expr c
-focus e = call0 (e !. "focus")
-
-blur :: Expr a -> Expr c
-blur e = call0 (e !. "blur")
-
--- | Get char from keyboard event
-eventKey :: Expr a1 -> M a2 ()
-eventKey event = do -- from: http://unixpapa.com/js/key.html
-   retrn $ let
-         which = event !. "which" -- :: Expr J.Number
-         from arg = call (ex "String" !. "fromCharCode") [ arg ]
-         -- from which or keyCode
-      in ternary (which .== ex "null")
-      (from $ event !. "keyCode" ) -- old IE
-      (ternary
-         (  (which .!= lit 0)
-        .&& event !. "charCode" .!= lit 0
-        ) (from which {-all others-}) Null)
-
-preventDefault :: Event e => Expr e -> Expr ()
-preventDefault e = call0 (e !. "preventDefault")
-
-mkEventListener :: Event e => TS.Text -> Expr Tag -> e -> [Expr b] -> Expr c
-mkEventListener a el et li = call (el !. a) (etStr : li)
-  where etStr = lit $ eventString et
-
-addEventListener :: Event e => Expr Tag -> e -> Expr b -> Expr c
-addEventListener el et handler = mkEventListener "addEventListener" el et [handler]
-
-removeEventListener :: Event e => Expr Tag -> e -> Expr b -> Expr c
-removeEventListener el et handler = mkEventListener "removeEventListener" el et [handler]
-
-alert :: Expr a -> Expr b
-alert x = call1 (ex "alert") x
-
--- * RenderJSM instances
-
-mkAttrCommon :: Expr a -> TS.Text -> Attribute -> M r ()
+mkAttrCommon :: JS m => Expr a -> TS.Text -> Attribute -> m ()
 mkAttrCommon e _ attr = case attr of
   On event expr ->
      bare $ addEventListener (Cast e) event expr
@@ -286,39 +191,39 @@ createHtmls m = do
     bare $ appendChild e (Cast f)
   return f
 
--- * Svg
+-- -- * Svg
 
-instance  RenderJSM (XML SVG AttributeSet Both) where
-  renderJSM xml = case xml of
-    Element tagName as children -> do
-      t <- const $ mkElem tagName
-      attrsJSM t mkAttr as
-      ts :: [Expr Tag] <- mapM renderJSM children
-      forM_ ts $ bare . flip appendChild t
-      return t
-    Text txt -> return $ createTextNode (lit txt)
-    Raw _ -> error "XML SVG AttributeSet Both: Raw not implemented"
-    -- ^ fix: see implementation for HTML Both, would that work for svg too?
-    Dyn expr -> return (Cast expr)
-    Embed a -> renderJSM a
-    where
-      mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
-      mkAttr e k attr = case attr of
-        Data _ v -> e & setAttr ("data-" <> k) v & bare
-        Custom _ v -> case k of
-          "xmlns" -> pure ()
-          _ -> e & setAttr k v & bare
-        _ -> mkAttrCommon e k attr
-        where
-          setAttr :: TS.Text -> Value -> Expr a -> Expr b
-          setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]
-          -- ^ The regular setAttribute supposedly doesn't work in all browsers.
-          -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
+-- instance  RenderJSM (XML SVG AttributeSet Both) where
+--   renderJSM xml = case xml of
+--     Element tagName as children -> do
+--       t <- const $ mkElem tagName
+--       attrsJSM t mkAttr as
+--       ts :: [Expr Tag] <- mapM renderJSM children
+--       forM_ ts $ bare . flip appendChild t
+--       return t
+--     Text txt -> return $ createTextNode (lit txt)
+--     Raw _ -> error "XML SVG AttributeSet Both: Raw not implemented"
+--     -- ^ fix: see implementation for HTML Both, would that work for svg too?
+--     Dyn expr -> return (Cast expr)
+--     Embed a -> renderJSM a
+--     where
+--       mkAttr :: Expr a -> TS.Text -> Attribute -> JS.M r ()
+--       mkAttr e k attr = case attr of
+--         Data _ v -> e & setAttr ("data-" <> k) v & bare
+--         Custom _ v -> case k of
+--           "xmlns" -> pure ()
+--           _ -> e & setAttr k v & bare
+--         _ -> mkAttrCommon e k attr
+--         where
+--           setAttr :: TS.Text -> Value -> Expr a -> Expr b
+--           setAttr k v e = call (e !. "setAttributeNS") [Null, lit k, lit v]
+--           -- ^ The regular setAttribute supposedly doesn't work in all browsers.
+--           -- https://stackoverflow.com/questions/7273500/how-to-create-an-attribute-in-svg-using-javascript
 
-      ns = "http://www.w3.org/2000/svg"
+--       ns = "http://www.w3.org/2000/svg"
 
-      mkElem :: TagName -> Expr Tag
-      mkElem tagName = call (document !. "createElementNS") [ns, lit $ coerce @_ @Value tagName]
+--       mkElem :: TagName -> Expr Tag
+--       mkElem tagName = call (document !. "createElementNS") [ns, lit $ coerce @_ @Value tagName]
 
 attrsJSM
   :: JS m
@@ -329,9 +234,9 @@ attrsJSM t mkAttr as = do
   forM_ (map (value2either) $ as^.classes) $ \cls -> do
      bare $ t !. "classList" !// "add" $ either lit P.id cls
 
--- * Helpers
+-- -- * Helpers
 
-deleteCookie :: Expr String -> JS.M r ()
-deleteCookie name = do
-  document !. "cookie" .= value
-  where value = name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+-- deleteCookie :: Expr String -> JS.M r ()
+-- deleteCookie name = do
+--   document !. "cookie" .= value
+--   where value = name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
