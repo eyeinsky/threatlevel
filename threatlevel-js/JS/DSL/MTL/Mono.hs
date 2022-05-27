@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module JS.DSL.MTL.Mono
   ( module JS.DSL.MTL.Mono
   , module JS.DSL.MTL.Effect

@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 {- |
   TH-generate @ToExpr@ and @HasField@ instances data types.
 -}
