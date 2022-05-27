@@ -1,12 +1,11 @@
 module CSS.Identifiers where
 
-import Prelude
-import Data.Text
-import qualified Data.Text.Lazy as TL
-import Identifiers
+import Common.Prelude
+import Data.Text qualified as TS
+import Data.Text.Lazy qualified as TL
 
-identifiers :: Infinite Text
-identifiers = fmap pack $ orderedFilter forbidden $ bigEndian ['a' .. 'z']
+identifiers :: Infinite TS.Text
+identifiers = fmap TS.pack $ orderedFilter forbidden $ bigEndian ['a' .. 'z']
   where
     forbidden = ["none", "unset", "initial", "inherit"]
     -- ^ As by https://developer.mozilla.org/en-US/docs/Web/CSS/animation-name

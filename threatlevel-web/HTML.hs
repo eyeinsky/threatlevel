@@ -7,7 +7,7 @@ module HTML
   ) where
 
 import Control.Monad.Writer
-import qualified Data.Text as TS
+import Data.Text qualified as TS
 
 import X.Prelude hiding (head)
 import XML hiding (Raw)
