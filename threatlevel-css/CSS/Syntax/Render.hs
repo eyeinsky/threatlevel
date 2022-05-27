@@ -7,7 +7,6 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.DList as D
 import Text.Printf
-import Data.Text.Format
 import Numeric (showHex)
 
 import CSS.Syntax.AST
@@ -42,10 +41,10 @@ instance Render Value where
     ViewportMax    a -> pure $ p a <> "vmax"
 
     ColorHex w32 -> pure $ "#" <> hex w32
-    ColorRGB a b c -> pure $ format "rgb({},{},{})" (a,b,c)
-    ColorRGBA a b c d -> pure $ format "rgba({},{},{}, {})" (a,b,c,d)
-    ColorHSL a b c -> pure $ format "hsl({},{}%,{}%, {})" (a,b,c)
-    ColorHSLA a b c d -> pure $ format "hsla({},{}%,{}%, {})" (a,b,c,d)
+    ColorRGB a b c -> pure $ show3 "rgb" a b c
+    ColorRGBA a b c d -> pure $ show4 "rgba" a b c d
+    ColorHSL a b c -> pure $ show3 "hsl" a b c
+    ColorHSLA a b c d -> pure $ show4 "hsla" a b c d
 
     Url tl -> pure $ "url(\"" <>  TL.fromStrict tl <> "\")"
     Compound l -> TL.intercalate " " <$> mapM renderM (D.toList l)
@@ -53,6 +52,9 @@ instance Render Value where
     where
       hex a = TL.pack $ showHex a ""
       p = R.tshow
+      show3 f a b c = f <> par (TL.intercalate "," [p a, p b, p c])
+      show4 f a b c d = f <> par (TL.intercalate "," [p a, p b, p c, p d])
+
 
 instance Render Comment where
   type Conf Comment = Conf

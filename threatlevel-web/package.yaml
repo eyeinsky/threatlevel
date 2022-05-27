@@ -32,7 +32,6 @@ dependencies:
 - tagged
 - template-haskell
 - text
-- text-format
 - unordered-containers
 - wai
 - wai-extra
