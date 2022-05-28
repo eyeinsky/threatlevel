@@ -4,9 +4,9 @@ module HTML.Core
   , module DOM.Core
   ) where
 
+import Common.Prelude hiding (id)
 import Control.Monad.Writer
 
-import X.Prelude hiding (id)
 import DOM.Core hiding (Document)
 import XML
 import XML.TH

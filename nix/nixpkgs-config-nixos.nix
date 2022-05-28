@@ -11,7 +11,6 @@
         fixedlist = f ../github-eyeinsky-fixedlist.nix {};
         render = f ../render {};
         identifiers = f ../identifiers {};
-        multiline = f ../multiline {};
         threatlevel-url = f ../threatlevel-url {};
         threatlevel-common = f ../threatlevel-common {};
         threatlevel-js = f ../threatlevel-js {};

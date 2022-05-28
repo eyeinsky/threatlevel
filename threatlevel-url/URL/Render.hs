@@ -78,3 +78,6 @@ instance Render Fragment where
 urlEncode' :: TS.Text -> TS.Text
 urlEncode' =  TS.decodeUtf8 . urlEncode True . TS.encodeUtf8
 -- ^ True: encodes ","
+
+renderURL :: URL -> TL.Text
+renderURL url = render' url

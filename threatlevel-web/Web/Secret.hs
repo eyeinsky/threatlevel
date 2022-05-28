@@ -1,29 +1,26 @@
 module Web.Secret where
 
-import X.Prelude
+import Common.Prelude as P
 import Data.Char
-
-import Crypto.Cipher.AES
-import Crypto.Cipher.Types (BlockCipher(..), Cipher(..), IV, makeIV)
-import Crypto.Error (CryptoFailable(..), CryptoError(..))
-
-import qualified Crypto.Random.Types as CRT
-
 import Data.ByteArray (ByteArray)
 import Data.ByteString qualified as BS
-
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Lens as TE
-
-import X
-import JS
-import CSS qualified
-import Web.DSL
-import HTML hiding (id)
-
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Base64.URL as B64URL
+import Crypto.Cipher.AES
+import Crypto.Cipher.Types (BlockCipher(..), Cipher(..), IV, makeIV)
+import Crypto.Error (CryptoFailable(..), CryptoError(..))
+import qualified Crypto.Random.Types as CRT
+import Network.HTTP.Types
+
+import JS
+import CSS
+import XML.Core
+import Web.DSL
+import HTML
+import Web.Apis.DOM
 
 -- * API
 
@@ -96,7 +93,10 @@ data WordArray
 parseBase64 :: Expr String -> Expr WordArray
 parseBase64 t = call1 (ex "CryptoJS.enc.Base64.parse") t
 
+toString' :: Expr a -> Expr c
 toString' v = call1 (v !. "toString") (ex "CryptoJS.enc.Utf8")
+
+decrypt' :: Expr b -> Expr b -> Expr WordArray -> Expr c
 decrypt' s key iv = dec'
   where
     obj' = lit $ obj iv
@@ -116,7 +116,10 @@ parseHex = call1 (ex "CryptoJS.enc.Hex.parse")
 --   where
 --     f b (u, e) = replace (g $ e^.from lazy) (lit [u]) b
 
+replace :: Expr b -> Expr b -> Expr a -> Expr c
 replace a b str = call (str !. "replace") [a, b]
+
+padEnd :: Expr b -> Expr b -> Expr a -> Expr c
 padEnd a b str = call (str !. "padEnd") [a, b]
 
 type Base64 = String
@@ -150,13 +153,13 @@ data Key c a where
 fromBase64 :: String -> (BS.ByteString, BS.ByteString)
 fromBase64 str = BS.splitAt 32 bs
   where
-    bs = either explode id $ B64.decode $ urlDecode True $ fromString str :: BS.ByteString
+    bs = either explode P.id $ B64.decode $ urlDecode True $ fromString str :: BS.ByteString
     explode = todoMsg "fromBase64: can't decode"
 
 fromBase64url :: String -> (BS.ByteString, BS.ByteString)
 fromBase64url str = BS.splitAt 32 bs
   where
-    bs = either explode id $ B64URL.decode $ urlDecode True $ fromString str :: BS.ByteString
+    bs = either explode P.id $ B64URL.decode $ urlDecode True $ fromString str :: BS.ByteString
     explode = todoMsg "fromBase64url: can't decode"
 
 genKeyIv :: CRT.MonadRandom m => m (BS.ByteString, BS.ByteString)
@@ -195,7 +198,7 @@ decrypt :: (BlockCipher c, ByteArray a) => Key c a -> IV c -> a -> Either Crypto
 decrypt = encrypt
 
 runStatic :: Web Html -> HTML.Document
-runStatic wm = HTML.Document head' body'
+runStatic wm = HTML.Document $ HTML.html $ head' *> body'
   where
     (body' :: Html, _, (css', js)) = Web.DSL.runFresh wm
     css = CSS.wrapW (CSS.selFrom CSS.Any) css'

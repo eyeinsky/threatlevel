@@ -1,11 +1,12 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module XML.Render where
 
+import Common.Prelude hiding (id, concat)
+import Common.Lens
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
-import X.Prelude hiding (eq, id, concat)
 import Render
 import XML.Core
 import DOM.Core hiding (Id(..), Class(..))
@@ -30,6 +31,7 @@ instance Render Attribute where
       eq' :: TS.Text -> Value -> Reader (Conf Value) TL.Text
       eq' k v = eq <$> f k <*> renderM v
 
+eq :: (Semigroup a, IsString a) => a -> a -> a
 eq k v = k <> "=" <> q v
   where
     q v = "'" <> v <> "'"
@@ -38,7 +40,7 @@ instance Render AttributeSet where
   renderM attrSet = fmap TL.unwords $ (catMaybes [id',  cs] <>) <$> rest
     where
       id' :: Maybe TL.Text
-      id' = (eq "id" . TL.fromStrict . static) <$> attrSet^.id
+      id' = (eq "id" . TL.fromStrict . static) <$> attrSet^.id_
       cs :: Maybe TL.Text
       cs = let cs = attrSet^.classes
         in null cs
@@ -99,4 +101,5 @@ htmlTextEscape t = foldl f t map'
     f t (a, b) = TL.replace a b t
     map' = map (first TL.singleton) htmlTextEscapeMap
 
+renderJS :: (Render a, Conf a ~ JS.Conf) => a -> Text
 renderJS = render JS.Syntax.Minify

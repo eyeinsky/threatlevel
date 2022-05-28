@@ -25,6 +25,9 @@ import Identifiers as Export hiding (Element)
 import Data.Text qualified as TS
 import Data.Text.Lazy qualified as TL
 import Data.Char
+import Data.List
+
+import Debug.Trace as Export
 
 
 infixr 9 ^
@@ -34,10 +37,16 @@ infixr 9 ^
 todo :: a
 todo = undefined
 
+todoMsg :: String -> a
+todoMsg msg = trace msg (error msg)
+
 -- Data.Bool
 infix 1 ?
 (?) :: Bool -> p -> p -> p
 (?) bool = if bool then (\a _ -> a) else (\_ a -> a)
+
+bool :: a -> a -> Bool -> a
+bool f t b = if b then t else f
 
 -- Control.Monad
 (>>=$) :: Monad m => m a -> (a -> m b) -> m b
@@ -62,7 +71,7 @@ kebab2camel xs = case xs of
     err :: a
     err = error "Common.Prelude.kebab2camel: This shouldn't ever happen"
 
-
+-- * Data.Text
 
 tlKebab2camel :: TL.Text -> TL.Text
 tlKebab2camel t = TL.concat $ x : map capitalise xs
@@ -74,3 +83,35 @@ tlKebab2camel t = TL.concat $ x : map capitalise xs
 -- | Convert strict text kebab-case to camelCase
 tsKebab2camel :: TS.Text -> TS.Text
 tsKebab2camel k = TL.toStrict $ tlKebab2camel $ TL.fromStrict k
+
+-- * Data.List
+
+split :: Eq a => [a] -> [a] -> [[a]] -- from MissingH
+split _ [] = []
+split delim str = let
+      (firstline, remainder) = breakList (isPrefixOf delim) str
+   in firstline : case remainder of
+                     [] -> []
+                     x -> if x == delim
+                        then [] : []
+                        else split delim (drop (length delim) x)
+
+  where
+    {- | Similar to Data.List.break, but performs the test on the entire remaining
+    list instead of just one element. -}
+    breakList :: ([a] -> Bool) -> [a] -> ([a], [a]) -- from MissingH
+    breakList func = spanList (not . func)
+
+    {- | Similar to Data.List.span, but performs the test on the entire remaining
+    list instead of just one element.
+
+    @spanList p xs@ is the same as @(takeWhileList p xs, dropWhileList p xs)@
+    -}
+    spanList :: ([a] -> Bool) -> [a] -> ([a], [a])
+
+    spanList _ [] = ([],[])
+    spanList func list@(x:xs) =
+        if func list
+           then (x:ys,zs)
+           else ([],list)
+        where (ys,zs) = spanList func xs

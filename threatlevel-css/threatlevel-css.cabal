@@ -76,7 +76,7 @@ library
     , identifiers
     , lens
     , mtl
-    , multiline
+    , neat-interpolation
     , render
     , template-haskell
     , text

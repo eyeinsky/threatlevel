@@ -15,61 +15,38 @@ build-type:     Simple
 
 library
   exposed-modules:
-      HTTP.Common
-      HTTP.Header
-      HTTP.Response
-      HTTP.Response.InlineFile
-      HTTP
+      Web.DSL
+      Web.DSL.Helpers
+      Web.Lib.CSS_HTML
+      Web.Lib.HTML_URL
+      Web.Lib.URL_CSS
+      Web.Apis.DOM
+      Web.Apis.Fetch
+      Web.Apis.IDB
+      Web.Apis.PWA
+      Web.Apis.CustomElement
+      Web.Apis.WebSocket
+      Web.X
+      DOM.Core
+      DOM.JS
       SVG
       SVG.CSS
       HTML
-      Web.Monad
       XML
       XML.Core
-      Sessions
-      JW.T
-      IndexedDB.IDB
-      DOM.Core
-      DOM.JS
-      DOM
-      PWA
-      WebSockets
-      JS.WebApis.DOM
-      JS.WebApis.WebComponents
-      Server
-      Server.Run
-      Server.Static
-      Server.API
-      Server.Response
-      Server.Hot
-      Server.Wai
-      X
-      X.Prelude
-      X.Cookie
-      X.DOM
-      X.Template
-      X.Template.V2
-      X.Template.V3
-      X.Auth.Google
-      X.Google.Maps
-      X.Google.Spreadsheet
-      X.Widgets
-      X.Widgets.Menu
-      X.Wai
+      Web
       Web.Secret
   other-modules:
-      CSP
       HTML.Core
       HTML.Paste
-      JS.WebApis.Event
       SVG.Attributes
       SVG.Elements
       SVG.TH
-      Trie
-      Web.DSL
-      Web.Secret
-      WebStorage
-      X.Template.Common
+      Web.Apis.Event
+      Web.Apis.WebStorage
+      Web.Lib.HTML
+      Web.Lib.JS_HTML
+      Web.Prelude
       XML.Render
       XML.TH
       Paths_threatlevel_web
@@ -142,8 +119,8 @@ library
     , memory
     , mime-types
     , mtl
-    , multiline
     , mwc-random
+    , neat-interpolation
     , network
     , process
     , rapid
@@ -241,8 +218,8 @@ test-suite test
     , memory
     , mime-types
     , mtl
-    , multiline
     , mwc-random
+    , neat-interpolation
     , network
     , process
     , rapid

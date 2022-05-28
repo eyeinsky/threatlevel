@@ -1,7 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module DOM.Core where
 
-import X.Prelude
+import Common.Prelude
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -17,21 +17,13 @@ newtype Class   = Class Value
 
 -- | Stubs
 data Tag
-data Window
 data DocumentFragment
-data Location
 data Document
 
 -- * Objects
 
-window :: Expr Window
-window = ex "window"
-
 document :: Expr Document
 document = ex "document"
-
-location :: Expr Location
-location = window !. "location"
 
 instance Semigroup (Expr DocumentFragment) where
   (<>) = error "Not implemented: Semigroup (Expr DocumentFragment)"
