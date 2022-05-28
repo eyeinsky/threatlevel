@@ -142,12 +142,12 @@ switch e m = do
   let (def, cases') = partitionEithers li
   stm $ Switch e cases' (case def of def' : _ -> Just def'; _ -> Nothing)
 
-case_ :: JS m => Expr a -> m a -> SwitchBodyM m a
+case_ :: JS m => Expr a -> m b -> SwitchBodyM m a
 case_ match code = do
   code' <- lift $ execSub_ (code >> break)
   tell $ pure $ Right (match, code')
 
-default_ :: JS m => m a -> SwitchBodyM m a
+default_ :: JS m => m a -> SwitchBodyM m b
 default_ code = lift (execSub_ code) >>= Left ^ pure ^ tell
 
 -- * Class

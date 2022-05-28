@@ -22,15 +22,34 @@ type Reader_ = (CSS.Reader_, JS.Reader_)
 type State_ = (CSS.State_, JS.State_)
 type Writer_ = (CSS.Writer_, JS.Writer_)
 
+askCSS :: MonadReader (a, b) m => m a
 askCSS = asks fst
+
+askJS :: MonadReader (a1, a2) m => m a2
 askJS = asks snd
+
+localCSS :: MonadReader (t, b) m => (t -> t) -> m a -> m a
 localCSS f = local $ \(c, j) -> (f c, j)
+
+localJS :: MonadReader (a1, t) m => (t -> t) -> m a2 -> m a2
 localJS f = local $ \(c, j) -> (c, f j)
+
+putCSS :: MonadState (a, b) m => a -> m ()
 putCSS c' = modify $ \(_, j) -> (c', j)
+
+putJS :: MonadState (a, b) m => b -> m ()
 putJS j' = modify $ \(c, _) -> (c, j')
+
+getCSS :: MonadState (a, b) m => m a
 getCSS = gets fst
+
+getJS :: MonadState (a1, a2) m => m a2
 getJS = gets snd
+
+tellCSS :: (MonadWriter (a, b) m, Monoid b) => a -> m ()
 tellCSS t = tell (t, mempty)
+
+tellJS :: (MonadWriter (a, b) m, Monoid a) => b -> m ()
 tellJS t = tell (mempty, t)
 
 -- * Mono
@@ -58,6 +77,9 @@ hostSelector = CSS.selFrom (CSS.PseudoClass "host" Nothing)
 runFresh :: Web a -> (a, State_, Writer_)
 runFresh m = run m (hostSelector, JS.Indent 2) (CSS.identifiers, def)
 
+execSubBase'
+  :: Monad m
+  => m Reader_ -> m State_ -> (State_ -> m a1) -> (t -> m a2) -> (Writer_ -> (b, t)) -> Web a3 -> m (a3, b)
 execSubBase' ask get put tell pick m = do
   (a, s, w) <- run m <$> ask <*> get
   let (toReturn, toTell) = pick w

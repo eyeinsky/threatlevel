@@ -28,9 +28,7 @@ instance IsString Host where
 instance Read Host where
   readsPrec _ str = [(fromString str, "")]
 
-declareFields [d|
-  newtype Port = Port { portUn :: Word16 }
-  |]
+newtype Port = Port Word16
 
 instance Num Port where
   fromInteger a = Port (fromInteger a)
@@ -111,8 +109,8 @@ instance HasSegments URL [TS.Text] where
 instance HasSegments [Segment] [TS.Text] where
   segments = id
 
-base :: Lens' URL BaseURL
-base f url = fmap to (f from)
+baseUrl :: Lens' URL BaseURL
+baseUrl f url = fmap to (f from)
   where
     auth = url^.authority
     from = BaseURL (url^.proto) (auth^.host) (auth^.port)

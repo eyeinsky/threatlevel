@@ -1,16 +1,18 @@
 module HTML.Paste where
 
-import X.Prelude
+import Common.Prelude
+import Data.Text qualified as TS
+import NeatInterpolation
 
 tags :: [String]
 tags = map extract . filter' . lines $ paste
   where
-    extract = takeWhile (neq '>') . tail
+    extract = takeWhile (/= '>') . tail
     filter' = filter f
     f xs = if null xs
       then False
-      else eq '<' . head $ xs
-    paste = [multiline|
+      else (== '<') . head $ xs
+    paste = TS.unpack [trimming|
 <a> 	Defines a hyperlink.
 <article> 	Defines an article.
 <aside> 	Defines some content loosely related to the page content.

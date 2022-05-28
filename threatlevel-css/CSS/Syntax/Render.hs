@@ -3,9 +3,9 @@
 module CSS.Syntax.Render (Conf (..)) where
 
 import Common.Prelude hiding ((<+>))
-import qualified Data.Text as TS
-import qualified Data.Text.Lazy as TL
-import qualified Data.DList as D
+import Data.Text qualified as TS
+import Data.Text.Lazy qualified as TL
+import Data.DList qualified as D
 import Text.Printf
 import Numeric (showHex)
 

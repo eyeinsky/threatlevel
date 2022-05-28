@@ -6,32 +6,20 @@ module HTML
   , module XML
   ) where
 
+import Common.Prelude hiding (head)
 import Control.Monad.Writer
 import Data.Text qualified as TS
 
-import X.Prelude hiding (head)
 import XML hiding (Raw)
 import Render hiding (Conf)
 import DOM.Core hiding (Document, Class, Id)
 import HTML.Core hiding (map, embed, input, link, Class, Id)
 import qualified HTML.Core as Core
 
-declareFields [d|
-  data Document = Document
-    { documentHead' :: Html
-    , documentBody' :: Html
-    }
-  |]
-
--- * Response
-
-instance Render Document where
-  renderM (Document h b) = tl
-    where
-      html' = html (head h >> b)
-      tl = ("<!DOCTYPE html>" <>) <$> (renderM html')
-
 -- * Shorthands
+
+htmlTag :: Html -> Html
+htmlTag = HTML.Core.html
 
 input :: Html
 input = Core.input $ pure ()
@@ -94,5 +82,9 @@ property name value = meta
 og :: TS.Text -> Value -> Html
 og name value = property (Static $ "og:" <> name) value
 
-docBody :: Html -> Document
-docBody = Document (return ())
+-- * Document
+
+newtype Document = Document Html
+
+instance Render Document where
+  renderM (Document html) =  pure "<!DOCTYPE html>" Render.<+> renderM html

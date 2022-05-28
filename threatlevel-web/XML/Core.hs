@@ -5,12 +5,14 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.HashMap.Strict as HM
 import Control.Monad.Writer
 
-import X.Prelude hiding (id)
+import Common.Prelude hiding (id)
+import Common.Lens
 import qualified JS
 import DOM.Core hiding (Id(..), Class(..))
 import qualified DOM.Core as DOM.Core
 import JS.Event
 import qualified Render
+import CSS qualified
 
 data XML ns a c where
   Element :: TagName -> a -> [XML ns a c] -> XML ns a c
@@ -24,6 +26,11 @@ data XML ns a c where
     => XML ns' a' c -> XML ns a c
 
 makePrisms ''XML
+
+contents
+  :: forall k (f :: * -> *) (ns :: k) a (c :: * -> Constraint)
+   . Applicative f
+  => ([XML ns a c] -> f [XML ns a c]) -> XML ns a c -> f (XML ns a c)
 contents = _Element._3
 
 instance IsString (XML ns a c) where
@@ -60,13 +67,13 @@ data Attribute where
   Boolean :: TS.Text -> Bool -> Attribute
   On :: Event event => event -> JS.Expr a -> Attribute
 
-declareFields [d|
-  data AttributeSet = AttributeSet
-    { attributeSetId :: Maybe Value
-    , attributeSetClasses :: [Value]
-    , attributeSetAttrs :: HM.HashMap TS.Text Attribute
-    }
-  |]
+data AttributeSet = AttributeSet
+  { attributeSetId_ :: Maybe Value
+  , attributeSetClasses :: [Value]
+  , attributeSetAttrs :: HM.HashMap TS.Text Attribute
+  }
+
+makeFields ''AttributeSet
 
 instance Semigroup AttributeSet where
   _ <> _ = todoMsg "mappend not implemented for AttributeSet"
@@ -93,7 +100,7 @@ instance Attributable AttributeSet where
   (!-) a attr = case attr of
     Custom k _ -> a & attrs %~ (HM.insert k attr)
     Class cs -> a & classes %~ (cs <>)
-    Id v -> a & id .~ Just v
+    Id v -> a & id_ .~ Just v
     Data k _ -> a & attrs %~ (HM.insert k attr)
     Boolean k _ -> a & attrs %~ (HM.insert k attr)
     On e _ -> a & attrs %~ (HM.insert (toOn e) attr)
@@ -139,6 +146,15 @@ instance Exclamatable (XMLM ns c) Attribute where
   (!) e c = e !- c
 instance Exclamatable (XMLM ns c -> XMLM ns c) Attribute where
   (!) e c = e !- c
+
+instance Exclamatable (XMLM ns c) CSS.Class where
+  (!) e c = e !- Class [Static (coerce c)]
+instance Exclamatable (XMLM ns c) CSS.Id where
+  (!) e c = e !- Id (Static (coerce c))
+instance Exclamatable (XMLM ns c -> XMLM ns c) CSS.Class where
+  (!) e c = e !- Class [Static (coerce c)]
+instance Exclamatable (XMLM ns c -> XMLM ns c) CSS.Id where
+  (!) e c = e !- Id (Static (coerce c))
 
 -- * Helpers
 

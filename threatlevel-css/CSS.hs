@@ -7,6 +7,7 @@ module CSS
   ) where
 
 import Common.Prelude as P
+import Data.Text qualified as TS
 import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
@@ -31,6 +32,9 @@ descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
+
+customTag :: TS.Text -> Tag
+customTag = Tag
 
 -- * Useful styles
 

@@ -12,9 +12,9 @@ dependencies:
 - mtl
 - template-haskell
 - text
+- neat-interpolation
 
 - identifiers
-- multiline
 - render
 - threatlevel-common
 

@@ -9,7 +9,7 @@ module JS.DSL.MTL.Mono
 import Common.Prelude
 import Control.Monad.Reader
 import Control.Monad.Writer hiding (Any)
-import Control.Monad.State
+import Control.Monad.State hiding (State)
 
 import Render
 
@@ -19,22 +19,36 @@ import JS.DSL.MTL.Effect
 
 -- * MTL base
 
+stmBase :: Applicative f => (f a -> c) -> a -> c
 stmBase tell = tell . pure
 
+freshNameBase :: Monad m => m State -> (State -> m a) -> m Name
 freshNameBase get put = do
   State (Infinite x xs) used lib <- get
   put (State xs used lib) $> Name x
 
+bindBase :: JS m => (Name -> t -> Statement ()) -> t -> m (Expr a)
 bindBase syntax e = do
   name <- freshName
   stm (syntax name e) $> EName name
 
+execSubBase :: Monad m =>
+               m t1
+               -> m t2
+               -> (t3 -> m a1)
+               -> (t1 -> t2 -> t4 -> ((a2, b), t3))
+               -> t4
+               -> m (a2, b)
 execSubBase ask get put run m = do
   env <- ask
   state0 <- get
   let ((a, w), s) = run env state0 m
   put s $> (a, w)
 
+f2Base :: (C2 f m, JS m, Coercible b1 Code_,
+           Coercible a1 [Name]) =>
+          ((Name -> Expr a2 -> Statement b2) -> b3 -> m b4)
+          -> (Maybe a3 -> a1 -> b1 -> b3) -> f -> m b4
 f2Base bind syntax f =
   bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
 

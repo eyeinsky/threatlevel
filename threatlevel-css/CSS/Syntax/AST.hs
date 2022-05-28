@@ -1,6 +1,7 @@
 module CSS.Syntax.AST where
 
 import Common.Prelude
+import Common.Lens (HasClasses(..))
 import Data.Word
 import qualified Data.DList as D
 import qualified Data.Text as TS

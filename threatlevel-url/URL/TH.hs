@@ -2,7 +2,7 @@ module URL.TH where
 
 import Prelude
 import Data.Word
-import Control.Lens hiding (un)
+import Control.Lens
 import qualified Data.Text as TS
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote

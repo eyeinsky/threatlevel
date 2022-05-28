@@ -5,8 +5,8 @@ module CSS.TH
 
 import Common.Prelude
 import Language.Haskell.TH
-import Data.Text.Multiline
-import qualified Data.Text as TS
+import NeatInterpolation
+import Data.Text qualified as TS
 import Data.List
 
 import Common.TH
@@ -83,7 +83,7 @@ pseudoElements :: [Either String String]
 pseudoElements = prep pseudoElements'
 
 pseudoClasses' :: [String]
-pseudoClasses' = common ":" [unindent|
+pseudoClasses' = common ":" [trimming|
   :active
   --:any-link
   --:blank
@@ -148,7 +148,7 @@ pseudoClasses' = common ":" [unindent|
   |]
 
 pseudoElements' :: [String]
-pseudoElements' = common "::" [unindent|
+pseudoElements' = common "::" [trimming|
   ::after (:after)
   -- ::backdrop
   ::before (:before)
@@ -167,7 +167,7 @@ pseudoElements' = common "::" [unindent|
   |]
 
 -- | Filter and strip by prefix (i.e leave out comments), drop everything after space
-common :: String -> String -> [String]
-common prefix = catMaybes . map (stripPrefix prefix . untilSpace) . lines
+common :: String -> TS.Text -> [String]
+common prefix content = catMaybes . map (stripPrefix prefix . untilSpace) . lines . TS.unpack $ content
   where
     untilSpace = takeWhile (/= ' ')

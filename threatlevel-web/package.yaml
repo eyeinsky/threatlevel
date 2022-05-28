@@ -5,110 +5,41 @@ author: Markus Läll
 maintainer: markus.l2ll@gmail.com
 license: GPL-2
 
-dependencies:
-- base
-- cookie
-- lens-aeson
-- directory
-- transformers
-- wreq
-- vector
-- lens
-- aeson
-- async
-- blaze-builder
-- boomerang
-- bytestring
-- case-insensitive
-- containers
-- dlist
-- file-embed
-- hashable
-- http-types
-- http-client
-- identifiers
-- mime-types
-- mtl
-- network
-- tagged
-- template-haskell
-- text
-- unordered-containers
-- wai
-- wai-extra
-- warp
-- warp-tls
-- render
-- rapid
-- cryptonite
-- memory
-- base64-bytestring
-- process
-- time
-- mwc-random
-- data-default
-- multiline
-- websockets
-- wai-websockets
-- threatlevel-common
-- threatlevel-url
-- threatlevel-css
-- threatlevel-js
-
 library:
   source-dirs: .
   exposed-modules:
-  - HTTP.Common
-  - HTTP.Header
-  - HTTP.Response
-  - HTTP.Response.InlineFile
-  - HTTP
+
+  - Web.DSL
+  - Web.DSL.Helpers
+
+  # Lib
+  - Web.Lib.CSS_HTML
+  - Web.Lib.HTML_URL
+  - Web.Lib.URL_CSS
+
+  # WebAPIs
+  - Web.Apis.DOM
+  - Web.Apis.Fetch
+  - Web.Apis.IDB
+  - Web.Apis.PWA
+  - Web.Apis.CustomElement
+  - Web.Apis.WebSocket
+  - Web.X
+
+  - DOM.Core
+  - DOM.JS
 
   - SVG
   - SVG.CSS
   - HTML
-  - Web.Monad
   - XML
   - XML.Core
 
-  - Sessions
-  - JW.T
-
-  # WebAPIs
-  - IndexedDB.IDB
-  - DOM.Core
-  - DOM.JS
-  - DOM
-  - PWA
-  - WebSockets
-  - JS.WebApis.DOM
-  - JS.WebApis.WebComponents
-
-  # Server
-  - Server
-  - Server.Run
-  - Server.Static
-  - Server.API
-  - Server.Response
-  - Server.Hot
-  - Server.Wai
-
-  - X
-  - X.Prelude
-  - X.Cookie
-  - X.DOM
-  - X.Template
-  - X.Template.V2
-  - X.Template.V3
-  - X.Auth.Google
-  - X.Google.Maps
-  - X.Google.Spreadsheet
-  - X.Widgets
-  - X.Widgets.Menu
-  - X.Wai
+  - Web
 
   # Encrypted static site
   - Web.Secret
+
   ghc-options:
   - -Wall
   - -Wno-name-shadowing
@@ -162,3 +93,53 @@ default-extensions:
 - TypeOperators
 - TypeSynonymInstances
 - UndecidableInstances
+
+dependencies:
+- aeson
+- async
+- base
+- base64-bytestring
+- blaze-builder
+- boomerang
+- bytestring
+- case-insensitive
+- containers
+- cookie
+- cryptonite
+- data-default
+- directory
+- dlist
+- file-embed
+- hashable
+- http-client
+- http-types
+- identifiers
+- lens
+- lens-aeson
+- memory
+- mime-types
+- mtl
+- mwc-random
+- neat-interpolation
+- network
+- process
+- rapid
+- render
+- tagged
+- template-haskell
+- text
+- time
+- transformers
+- unordered-containers
+- vector
+- wai
+- wai-extra
+- wai-websockets
+- warp
+- warp-tls
+- websockets
+- wreq
+- threatlevel-common
+- threatlevel-url
+- threatlevel-css
+- threatlevel-js
