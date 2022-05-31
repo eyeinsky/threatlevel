@@ -10,6 +10,9 @@ class Monad m => CSS m where
   css
     :: m a     -- ^ rules and declarations to generated class
     -> m Class -- ^ returns a fresh class with rules attached
+  cssId
+    :: m a
+    -> m Id
   rule
     :: SelectorFrom s
     => s   -- ^ selector-like to which the rule applies

@@ -77,7 +77,8 @@ instance JS.JS Web where
   -- f3 :: forall f . (C3 f m) => f -> m RetUntyped
 
 instance CSS.CSS Web where
-  css m = CSS.cssBase getCSS putCSS m
+  css m = CSS.cssNextWith getCSS putCSS CSS.Class m
+  cssId m = CSS.cssNextWith getCSS putCSS CSS.Id m
   rule slike m = CSS.ruleBase localCSS tellCSS slike m
   combine f m = CSS.combineBase askCSS f m
   atRule atIdent atCond m = CSS.atRuleBase askCSS tellCSS atIdent atCond m

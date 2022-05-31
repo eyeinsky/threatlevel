@@ -21,12 +21,15 @@ import CSS.DSL.MTL.Effect
 
 -- * Base
 
-cssBase get put m = do
+cssNext get put = do
   Infinite x xs <- get
   put xs
-  let class_ = Class x
-  rule class_ m
-  return class_
+  return x
+
+cssNextWith get put with m = do
+  selector <- with <$> cssNext get put
+  rule selector m
+  return selector
 
 ruleBase local tell slike m =
   let s = selFrom slike
@@ -92,7 +95,8 @@ runFresh :: MonoCSS a -> ((a, OuterRules), Names)
 runFresh m = runWrapRules (selFrom $ PseudoClass "host" Nothing) identifiers m
 
 instance CSS MonoCSS where
-  css m = cssBase get put m
+  css m = cssNextWith get put Class m
+  cssId m = cssNextWith get put Id m
   rule slike m = ruleBase local tell slike m
   combine f m = combineBase ask f m
   atRule atIdent atCond m = atRuleBase ask tell atIdent atCond m
@@ -107,7 +111,10 @@ instance Render.Render (MonoCSS a) where
 
 -- * Mono Prop
 
-type MonoProp' m = WriterT Declarations m
+type MonoProp' :: (Type -> Type) -> Type -> Type
+type MonoProp' = WriterT Declarations
+
+type MonoProp :: Type -> Type
 type MonoProp = MonoProp' Identity
 
 instance Prop MonoProp where
@@ -115,6 +122,9 @@ instance Prop MonoProp where
 
 runMonoProp :: MonoProp a -> (a, Declarations)
 runMonoProp = runWriter
+
+execMonoProp :: MonoProp a -> Declarations
+execMonoProp = execWriter
 
 instance Render.Render (MonoProp a) where
   type Conf (MonoProp a) = Conf
