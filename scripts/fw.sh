@@ -36,7 +36,6 @@ in_deps_do() {
 
 dev_init() {
     # Use forked rapid (has updated dependency bounds)
-    cabal2nix https://github.com/eyeinsky/rapid.git > github-eyeinsky-rapid.nix
     cabal2nix https://github.com/eyeinsky/fixedlist.git > github-eyeinsky-fixedlist.nix
 }
 

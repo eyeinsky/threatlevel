@@ -12,16 +12,12 @@ packages:
   original:
     hackage: boomerang-1.4.7@sha256:c385e2269c78b2b2135d5b5b47491525e52f8d145f84eca427c7649c953c1cdf,2132
 - completed:
-    name: rapid
     pantry-tree:
-      sha256: b19946c4789ff92d0b761eac832093d0233fe467d0533910e3fd2d3aa8948c16
-      size: 451
-    commit: f2a30f68c9c82a1f5622afaa913404ac786d554e
-    git: https://github.com/haskell-rapid/rapid.git
-    version: 0.1.4
+      sha256: 3efe0ef730a5b7be0ec70cdd1ef3fec71f33991114f9dcc6f2cccf94a3b97c25
+      size: 299
+    hackage: rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec,1761
   original:
-    commit: f2a30f68c9c82a1f5622afaa913404ac786d554e
-    git: https://github.com/haskell-rapid/rapid.git
+    hackage: rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec
 - completed:
     name: fixedlist
     pantry-tree:
