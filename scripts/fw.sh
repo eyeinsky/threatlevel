@@ -25,7 +25,7 @@ echo_() {
 
 in_deps_do() {
     local DO_WHAT=$@
-    for PKG_PATH in $(local_deps) threatlevel-web; do
+    for PKG_PATH in $(local_deps); do
         echo "In '$PKG_PATH' run '$DO_WHAT':"
         (
             cd $PKG_PATH
@@ -41,17 +41,14 @@ dev_init() {
 }
 
 prepare() {
+    local PKG="${1:-threatlevel-web}"
     in_deps_do "cabal2nix . > default.nix"
-    (
-        cd threatlevel-web
-        cabal2nix --shell . > shell.nix
-        patch shell.nix local-deps.patch
-    )
+    cabal2nix --shell "$PKG" > shell.nix
+    patch shell.nix nix/local-deps.patch
 }
 
 repl() {
     prepare
-    cd threatlevel-web
     CMD="${@:-cabal repl}"
     nix-shell --command "$CMD"
 }
