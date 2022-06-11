@@ -18,9 +18,6 @@ import qualified HTML.Core as Core
 
 -- * Shorthands
 
-htmlTag :: Html -> Html
-htmlTag = HTML.Core.html
-
 input :: Html
 input = Core.input $ pure ()
 
