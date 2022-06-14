@@ -15,11 +15,7 @@ class (Monad m) => JS m where
   bind :: (Name -> Expr a -> Statement ()) -> Expr a -> m (Expr a)
   execSub :: m a -> m (a, Code_)
 
-  f1 :: forall f . (C1 f, MonadFor f ~ m) => f -> m (Expr ())
-
   f2 :: forall f . (C2 f m) => FuncConstr () (FunctionType f m) -> f -> m (Expr (FunctionType f m))
-
-  f3 :: forall f . (C3 f m) => f -> m RetUntyped
 
 execSub_ :: JS m => m a -> m Code_
 execSub_ m = execSub m <&> snd
@@ -34,29 +30,6 @@ func = f2
 
 funcUntyped :: forall m f . (JS m, Function f m) => f -> m RetUntyped
 funcUntyped f = coerce <$> c2 f []
-
-{- * 1. Get arg list and body
-
-PROBLEMS:
-- requires (MonadFor (m a)) ~ m for every a
-- requires INCOHERENT
--}
-
-type MonadFor :: Type -> Type -> Type
-type family MonadFor f where
-  MonadFor (Expr a -> f) = MonadFor f
-  MonadFor (m a) = m
-
-class C1 f where c1 :: (JS m, MonadFor f ~ m) => f -> [Name] -> m ([Name], Code_)
-instance C1 f => C1 (Expr a -> f) where
-  c1 f args = do
-    name <- freshName
-    let f' = f $ EName name :: f
-    c1 f' (name : args)
-instance {-# INCOHERENT #-} (MonadFor (m a) ~ m) => C1 (m a) where
-  c1 f args = do
-    body <- execSub_ f
-    return $ (reverse args, body)
 
 {- * 2. Monad in parameter
 
@@ -83,23 +56,6 @@ instance {-# INCOHERENT #-} (m0 ~ m, Monad m) => C2 (m0 a) m where
   c2 f args = do
     body <- execSub_ f
     return $ Tagged (reverse args, body)
-
-{- * 3.1 Polykinded m, base takes an extra ()
-
--}
-
-type C3 :: Type -> (Type -> Type) -> Constraint
-class Monad m => C3 f m where
-  c3 :: JS m => f -> [Name] -> m RetUntyped
-instance (C3 f m) => C3 (Expr a -> f) m where
-  c3 f args = do
-    name <- freshName
-    let f' = f $ EName name :: f
-    coerce <$> c3 f' (name : args)
-instance (p ~ '(), p' ~ p, m' ~ m, Monad (m '())) => C3 (m' p' a) (m p) where
-  c3 f args = do
-    body <- execSub_ f
-    return (reverse args, body)
 
 -- * Convert typed expressions to functions on expressions
 

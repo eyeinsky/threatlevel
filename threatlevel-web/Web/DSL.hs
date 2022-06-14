@@ -91,12 +91,7 @@ instance JS.JS Web where
   bind = JS.bindBase
   execSub m = execSubBase' ask get put tell pick m
     where pick (c, j) = (j, (c, mempty))
-
-  -- f1 :: forall f . (C1 f, MonadFor f ~ m) => f -> m (Expr ())
-  f1 = error "Web.DSL: f1 not defined"
   f2 = JS.f2Base JS.bind
-  f3 = error "Web.DSL: f3 not defined"
-  -- f3 :: forall f . (C3 f m) => f -> m RetUntyped
 
 instance CSS.CSS Web where
   css m = CSS.cssNextWith getCSS putCSS CSS.Class m
