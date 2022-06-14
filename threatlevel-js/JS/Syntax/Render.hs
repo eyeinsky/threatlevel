@@ -31,8 +31,8 @@ instance Render (Code a) where
 instance Render (Statement a) where
   type Conf (Statement a) = Conf
   renderM stm = case stm of
-    Var name -> var name
-    VarDef name exp -> var name `assign` renderM exp
+    VarDec name -> var name
+    VarDecDef name exp -> var name `assign` renderM exp
     BareExpr expr -> renderM expr
     For init cond post conts -> mseq
       [ pure "for"
@@ -71,7 +71,7 @@ instance Render (Statement a) where
     Empty -> pure ""
     Let name exp -> define "let " name `assign` renderM exp
     Const name exp -> define "const " name `assign` renderM exp
-    FuncDefStm name as code -> function "function " (Just name) as code
+    FuncDec name as code -> function "function " (Just name) as code
     TryCatchFinally try catches maybeFinally ->
       pure "try" <+> curlyCode try
       <+> (mconcat <$> mapM mkCatchBlock catches)

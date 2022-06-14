@@ -91,7 +91,7 @@ instance JS.JS Web where
   bind = JS.bindBase
   execSub m = execSubBase' ask get put tell pick m
     where pick (c, j) = (j, (c, mempty))
-  f2 = JS.f2Base JS.bind
+  execFunc f = JS.c2 f []
 
 instance CSS.CSS Web where
   css m = CSS.cssNextWith getCSS putCSS CSS.Class m

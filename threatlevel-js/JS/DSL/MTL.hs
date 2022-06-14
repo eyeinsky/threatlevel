@@ -24,7 +24,7 @@ import JS.DSL.MTL.Effect as JS
 -- ** Declaration
 
 let_, const, var :: JS m => Expr a -> m (Expr a)
-var = bind VarDef
+var = bind VarDecDef
 let_ = bind Let
 const = bind Const
 
