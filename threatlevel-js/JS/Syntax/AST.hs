@@ -11,9 +11,12 @@ type Code a = [Statement a]
 type Code_ = Code ()
 
 data Statement a where
-   FuncDefStm :: Name -> [Name] -> Code a -> Statement b
-   Var      :: Name -> Statement a
-   VarDef   :: Name -> Expr a -> Statement b
+   FuncDec  :: Name -> [Name] -> Code a -> Statement b
+   -- ^ Function declaration, apart from
+   -- function-expression-as-expression-statement
+   -- https://2ality.com/2012/09/expressions-vs-statements.html
+   VarDec   :: Name -> Statement a
+   VarDecDef:: Name -> Expr a -> Statement b
    BareExpr :: Expr a -> Statement b
    IfElse   :: Expr b -> Code r -> Maybe (Code r) -> Statement r
 
