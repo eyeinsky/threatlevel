@@ -82,9 +82,8 @@ instance JS MonoJS where
   bind = bindBase
   execSub = execSubBase ask get put run
 
-  f1 f = bind Let . uncurry (Func Nothing) =<< c1 f []
   f2 syntax f = f2Base bind syntax f
-  f3 f = c3 f []
+
 
 -- * Render
 
