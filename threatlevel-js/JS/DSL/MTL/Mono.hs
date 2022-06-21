@@ -45,13 +45,6 @@ execSubBase ask get put run m = do
   let ((a, w), s) = run env state0 m
   put s $> (a, w)
 
-f2Base :: (C2 f m, JS m, Coercible b1 Code_,
-           Coercible a1 [Name]) =>
-          ((Name -> Expr a2 -> Statement b2) -> b3 -> m b4)
-          -> (Maybe a3 -> a1 -> b1 -> b3) -> f -> m b4
-f2Base bind syntax f =
-  bind Let . uncurry (syntax Nothing) =<< coerce <$> c2 f []
-
 -- * Mono
 
 type State_ = JS.DSL.Core.State
@@ -82,8 +75,7 @@ instance JS MonoJS where
   bind = bindBase
   execSub = execSubBase ask get put run
 
-  f2 syntax f = f2Base bind syntax f
-
+  -- func syntax f = bind Let . uncurry (syntax Nothing) =<< funcUntyped f
 
 -- * Render
 

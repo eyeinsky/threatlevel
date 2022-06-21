@@ -33,8 +33,8 @@ child = combinator Child
 sibling = combinator Sibling
 generalSibling = combinator GeneralSibling
 
-customTag :: TS.Text -> Tag
-customTag = Tag
+tagSelector :: TS.Text -> Tag
+tagSelector = Tag
 
 -- * Useful styles
 

@@ -176,14 +176,14 @@ classExtends name what bodyParts = do
 
 constructor :: JS m => Function f m => f -> ClassBodyM m
 constructor f = do
-  (formalArgs, functionBody) <- lift $ funcUntyped f
+  (formalArgs, functionBody) <- lift $ execFuncUntyped f
   tell [ClassBodyMethod (Constructor formalArgs) functionBody]
 
 methodMaker
   :: forall m f . JS m => Function f m
   => (Name -> [Name] -> ClassBodyMethodType) -> Name -> f -> ClassBodyM m
 methodMaker mm name f = do
-  (formalArgs, functionBody) <- lift $ funcUntyped f
+  (formalArgs, functionBody) <- lift $ execFuncUntyped f
   tell [ClassBodyMethod (mm name formalArgs) functionBody]
 
 method, staticMethod, get, staticGet, set
@@ -198,9 +198,9 @@ set = methodMaker (\a [b] -> Setter a b)
 -- * Functions
 
 newf, async, generator :: JS m => Function f m => f -> m (Expr (FunctionType f m))
-newf = let_ <=< func (\_ -> FuncArrow)
-async = let_ <=< func (\_ -> AsyncArrow)
-generator = let_ <=< func Generator
+newf = let_ . uncurry FuncArrow <=< execFuncUntyped
+async = let_ . uncurry AsyncArrow <=< execFuncUntyped
+generator = let_ . uncurry (Generator Nothing) <=< execFuncUntyped
 
 fn
   :: JS m => Function f m => Back (Expr (FunctionType f m))
@@ -211,6 +211,13 @@ async_
   :: (JS m, Function f m, Back (Expr (FunctionType f m)))
   => f -> m (Convert (Expr (FunctionType f m)))
 async_ f = async f <&> convert []
+
+function :: JS m => Function f m => f -> m (Expr (FunctionType f m))
+function f = do
+  (args, body) <- execFuncUntyped f
+  name <- freshName
+  stm $ FuncDec name args body
+  pure $ EName name
 
 -- * Async/await
 
