@@ -19,6 +19,7 @@ library
       Web.DSL.Helpers
       Web.Lib.CSS_HTML
       Web.Lib.HTML_URL
+      Web.Lib.HTML
       Web.Lib.URL_CSS
       Web.Apis.DOM
       Web.Apis.Fetch
@@ -44,7 +45,6 @@ library
       SVG.TH
       Web.Apis.Event
       Web.Apis.WebStorage
-      Web.Lib.HTML
       Web.Lib.JS_HTML
       Web.Prelude
       XML.Render

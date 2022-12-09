@@ -15,6 +15,7 @@ library:
   # Lib
   - Web.Lib.CSS_HTML
   - Web.Lib.HTML_URL
+  - Web.Lib.HTML
   - Web.Lib.URL_CSS
 
   # WebAPIs

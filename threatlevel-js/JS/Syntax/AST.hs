@@ -66,12 +66,12 @@ data Expr a where
    -- * Function expressions
    -- | @function maybeName(name) {code}@
    Func :: Maybe Name -> [Name] -> Code b -> Expr c
-   -- | @(names) => {code}@
-   FuncArrow :: [Name] -> Code b -> Expr c
    -- | @function *maybeName(name) {code}@
    Generator :: Maybe Name -> [Name] -> Code b -> Expr c
    -- | @async function maybeName(names) {code}@
    Async :: Maybe Name -> [Name] -> Code b -> Expr c
+   -- | @(names) => {code}@
+   FuncArrow :: [Name] -> Code b -> Expr c
    -- | @async (names) => {code}@
    AsyncArrow :: [Name] -> Code b -> Expr c
 

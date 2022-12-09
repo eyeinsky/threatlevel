@@ -71,7 +71,7 @@ name2dataDecl name = reify name >>= \info -> case info of
           maybeDec :: Maybe Dec
           maybeDec = find ((nameBase conName ==) . nameBase . dcName . getCon) singleConInstances
         case maybeDec of
-          Just di@ (DataInstD _ _ _ _ [con] _) -> do
+          Just di@(DataInstD _ _ _ _ [con] _) -> do
             let (_ {- conName -- same as the one in scope -}, fieldNamesTypes) = record con
             return $ DataFamilyInstance (mkAppliedTyped di) conName fieldNamesTypes
           _ -> fail "here here here"

@@ -14,27 +14,22 @@ class (Monad m) => JS m where
   freshName :: m Name
   bind :: (Name -> Expr a -> Statement ()) -> Expr a -> m (Expr a)
   execSub :: m a -> m (a, Code_)
-
-  f2 :: forall f . (C2 f m) => FuncConstr () (FunctionType f m) -> f -> m (Expr (FunctionType f m))
+  execFunc :: forall f . Function f m => f -> m (Ret f m)
 
 execSub_ :: JS m => m a -> m Code_
 execSub_ m = execSub m <&> snd
 
--- * Use C2 as function
+execFuncUntyped :: forall f m . JS m => Function f m => f -> m RetUntyped
+execFuncUntyped f = coerce <$> execFunc @m @f f
 
-type Function = C2
-func
-  :: forall m f . (JS m, Function f m)
+funcLet
+  :: forall m f . (Function f m, JS m)
   => FuncConstr () (FunctionType f m) -> f -> m (Expr (FunctionType f m))
-func = f2
+funcLet syntax f = do
+  (args, body) <- execFuncUntyped f
+  bind Let $ syntax Nothing args body
 
-funcUntyped :: forall m f . (JS m, Function f m) => f -> m RetUntyped
-funcUntyped f = coerce <$> c2 f []
-
-{- * 2. Monad in parameter
-
-PROBLEM: requires INCOHERENT
--}
+-- * Function syntax
 
 type FunctionType :: Type -> (Type -> Type) -> Type
 type family FunctionType f m where
@@ -45,14 +40,14 @@ newtype Tagged a b = Tagged b
 type RetUntyped = ([Name], Code_)
 type Ret f m = Tagged (FunctionType f m) RetUntyped
 
-class Monad m => C2 (f :: Type) (m :: Type -> Type) where
+class Monad m => Function (f :: Type) (m :: Type -> Type) where
   c2 :: JS m => f -> [Name] -> m (Ret f m)
-instance (C2 f m, FunctionType (Expr a -> f) m ~ (a -> FunctionType f m)) => C2 (Expr a -> f) m where
+instance (Function f m, FunctionType (Expr a -> f) m ~ (a -> FunctionType f m)) => Function (Expr a -> f) m where
   c2 f args = do
     name <- freshName
     let f' = f $ EName name :: f
     coerce <$> c2 f' (name : args)
-instance {-# INCOHERENT #-} (m0 ~ m, Monad m) => C2 (m0 a) m where
+instance {-# INCOHERENT #-} (m0 ~ m, Monad m) => Function (m0 a) m where
   c2 f args = do
     body <- execSub_ f
     return $ Tagged (reverse args, body)

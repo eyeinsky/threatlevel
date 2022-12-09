@@ -151,7 +151,7 @@ attachOnLoad
   => e -> Expr a -> f -> m (Expr b) -- (Expr (JS.Type h))
 attachOnLoad type_ element handler = do
   handler' <- async handler
-  lit <- func Func $ bare $ addEventListener (Cast element) type_ handler'
+  lit <- funcLet Func $ bare $ addEventListener (Cast element) type_ handler'
   bare $ addEventListener (Cast window) Load lit
   return $ Cast handler'
 
