@@ -52,6 +52,7 @@ dependencies:
 library:
   exposed-modules:
   - Identifiers
+  - Identifiers.Infinite
 
 benchmarks:
   identifier-source:
