@@ -30,6 +30,7 @@ instance Render Attribute where
       eq' :: TS.Text -> Value -> Reader (Conf Value) TL.Text
       eq' k v = eq <$> f k <*> renderM v
 
+eq :: (Semigroup a, IsString a) => a -> a -> a
 eq k v = k <> "=" <> q v
   where
     q v = "'" <> v <> "'"
@@ -99,4 +100,5 @@ htmlTextEscape t = foldl f t map'
     f t (a, b) = TL.replace a b t
     map' = map (first TL.singleton) htmlTextEscapeMap
 
+renderJS :: (Render a, Conf a ~ JS.Conf) => a -> Text
 renderJS = render JS.Syntax.Minify

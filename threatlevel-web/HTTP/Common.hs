@@ -16,18 +16,34 @@ instance ToPayload T where
 
 type T = T.Text
 
+unlines :: [T.Text] -> T.Text
 unlines = T.unlines
-pack    = T.pack
-concat  = T.concat
-null    = T.null
 
+pack :: String -> T.Text
+pack = T.pack
+
+concat :: [T.Text] -> T.Text
+concat = T.concat
+
+null :: T.Text -> Bool
+null = T.null
+
+pair :: Semigroup a => a -> (a, a) -> a
 pair j (a,b) = a <> j <> b
+
+un :: T.Text -> [T.Text] -> T.Text
 un x xs = T.intercalate x xs
 
+nl :: IsString p => p
 nl  = "\n"
+
+nl2 :: IsString p => p
 nl2 = "\n\n"
+
+crlf :: IsString p => p
 crlf = "\r\n"
 
+rp :: ToPayload a => a -> IO ()
 rp = TIO.putStr . toPayload
 
 

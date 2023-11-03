@@ -255,8 +255,14 @@ generator = let_ <=< func Generator
 newf' :: Function f => TS.Text -> f -> M r (Expr (JS.Type f))
 newf' n = new' n <=< func AnonFunc
 
-fn :: (Function f, Back (Expr (JS.Type f))) => f -> M r (Convert (Expr (JS.Type f)))
+fn
+  :: (Function f, Back (Expr (JS.Type f)))
+  => f -> M r (Convert (Expr (JS.Type f)))
 fn f = newf f <&> convert []
+
+fn'
+  :: (Function f, Back (Expr (JS.Type f)))
+  => TS.Text -> f -> WriterT (Code r) (StateT State (Reader Env)) (Convert (Expr (JS.Type f)))
 fn' n f = newf' n f <&> convert []
 
 async_ :: (Function f, Back (Expr (JS.Type f))) => f -> M r (Convert (Expr (JS.Type f)))

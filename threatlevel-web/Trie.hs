@@ -33,6 +33,8 @@ lookup _ t = case t of
   Tip v -> Just v
   _ -> Nothing
 
+t :: (H.Hashable k, Eq k, IsString k, Num v)
+  => Maybe ([k], Maybe v, Maybe (HM.HashMap k (Trie k v)))
 t = lookupPrefix ["b", "g"] t
   where
     v li n = (li, n)
@@ -90,4 +92,5 @@ union (Branch Nothing hm) (Branch (Just v) hm') = Branch (Just v) (HM.unionWith 
 union (Branch (Just v) hm) (Branch Nothing hm') = Branch (Just v) (HM.unionWith union hm hm')
 union (Branch (Just _) hm) (Branch (Just v') hm') = Branch (Just v') (HM.unionWith union hm hm')
 
+update :: IO ()
 update = putStrLn "OK"

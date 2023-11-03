@@ -11,6 +11,7 @@ import qualified Data.HashMap.Strict as HM
 import JS hiding (Raw)
 import qualified JS.BuiltIns.Full as JS
 import qualified JS.Syntax
+import qualified JS.DSL.MTL.Core
 
 import qualified DOM.Core as D
 import qualified CSS as CSS
@@ -31,6 +32,9 @@ requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
 documentWrite :: Expr b -> Expr c
 documentWrite what = call1 (document !. "write") what
 
+onLoad
+  :: Function f
+  => f -> WriterT (Code r) (StateT JS.State (Reader JS.DSL.MTL.Core.Env)) ()
 onLoad f = do
   f' <- newf f
   bare $ addEventListener (Cast window) Load f'
@@ -108,33 +112,51 @@ docCall f a = docCall' f (lit a)
 
 --
 
+ea :: TS.Text -> Expr a -> Expr b
 ea s e = e !. s
 
+offsetHeight :: Expr a -> Expr b
 offsetHeight = ea "offsetHeight"
+
+scrollHeight :: Expr a -> Expr b
 scrollHeight = ea "scrollHeight"
 
+scrollTop :: Expr a -> Expr b
 scrollTop = ea "scrollTop"
+
+scrollBottom :: Expr a -> Expr b
 scrollBottom e = scrollTop e + offsetHeight e
 
+offsetTop :: Expr a -> Expr b
 offsetTop = ea "offsetTop"
+
+offsetBottom :: Expr a -> Expr b
 offsetBottom e = ea "offsetTop" e + offsetHeight e
 
+atTop :: Expr a -> Expr Bool
 atTop el = scrollTop el .== 0 :: Expr Bool
+
+atBottom :: Expr a -> Expr Bool
 atBottom el = scrollBottom el .>= scrollHeight el :: Expr Bool
 
+getComputedStyle :: Expr b -> Expr c
 getComputedStyle e = call1 (ex "getComputedStyle") e
 
+childNodes :: Expr a -> Expr b
 childNodes e = e !. "childNodes"
 
 -- * Modify DOM
 
+timeStamp :: Expr a -> Expr b
 timeStamp e = e !. "timeStamp"
 
 appendChild :: Expr Tag -> Expr Tag -> Expr ()
 appendChild a t = call1 (t !. "appendChild") a
 
+insertBefore :: Expr Tag -> Expr Tag -> Expr c
 insertBefore a b = call (parentNode b !. "insertBefore") [a, b]
 
+replaceChild :: Expr Tag -> Expr Tag -> Expr c
 replaceChild old new = call (parentNode old !. "replaceChild") [new, old]
 
 removeChild :: Expr Tag -> Expr Tag -> Expr Tag
@@ -143,8 +165,10 @@ removeChild parent child = call1 (parent !. "removeChild") child
 parentNode :: Expr Tag -> Expr Tag
 parentNode e = e !. "parentNode"
 
+setInnerHTML :: Expr a -> Expr b -> M r ()
 setInnerHTML e x = innerHTML e .= x
 
+innerHTML :: Expr a -> Expr b
 innerHTML e = e !. "innerHTML"
 
 createElement :: TagName -> Expr Tag
@@ -159,6 +183,7 @@ createDocumentFragment = call0 (document !. "createDocumentFragment")
 -- *** Text input
 
 -- cursorPosition :: Expr Tag -> M JT.Number (Expr JT.Number)
+cursorPosition :: Expr a1 -> WriterT (Code r) (StateT JS.State (Reader JS.DSL.MTL.Core.Env)) (Expr a2)
 cursorPosition e = do
       start <- let_ $ e !. "selectionStart"
       end <- const $ e !. "selectionEnd"
@@ -176,13 +201,18 @@ cursorPosition e = do
 
 -- Expr URL -> data -> (\ x -> M y z) -> M a b
 -- doPost' a b c = call ajaxExpr ["post", a, b, c]
+doPost' :: Expr b -> Expr b -> Expr b -> WriterT (Code r) (StateT JS.State (Reader JS.DSL.MTL.Core.Env)) ()
 doPost' uri data_ cb = do
    aj <- newf $ ajaxExpr
    bare $ call aj [lit "POST", uri, data_, cb]
+
+doGet' :: Expr b -> Expr b -> Expr b -> WriterT (Code r) (StateT JS.State (Reader JS.DSL.MTL.Core.Env)) ()
 doGet' uri data_ cb = do
    aj <- newf $ ajaxExpr
    bare $ call aj [lit "GET", uri, data_, cb]
 
+ajaxExpr
+  :: Expr b1 -> Expr b1 -> Expr b2 -> Expr a -> WriterT (Code r) (StateT JS.State (Reader JS.DSL.MTL.Core.Env)) ()
 ajaxExpr meth uri data_ callback = do
    xhr <- const $ ex "new XMLHttpRequest()"
    ifonly (callback .!== Undefined) $ do

@@ -59,22 +59,49 @@ instance Semigroup Value where
 instance Monoid Value where
   mempty = error "CSS.Internal: Value can't be empty"
 
+prc :: Double -> Value
 prc i = Percent i
+
+px :: Int -> Value
 px i = Px i
+
+pt :: Double -> Value
 pt i = Points i
+
+em :: Double -> Value
 em i = Em i
+
+rem :: Double -> Value
 rem i = Rem i
+
+vh :: Double -> Value
 vh i   = ViewportHeight i
+
+vw :: Double -> Value
 vw i   = ViewportWidth  i
+
+vmin :: Double -> Value
 vmin i = ViewportMin  i
+
+vmax :: Double -> Value
 vmax i = ViewportMax  i
 
-hex a     = ColorHex a
+hex :: Word32 -> Value
+hex a = ColorHex a
+
+rgb :: Word8 -> Word8 -> Word8 -> Value
 rgb a b c = ColorRGB a b c
+
+rgba :: Word8 -> Word8 -> Word8 -> Double -> Value
 rgba a b c d = ColorRGBA a b c d
+
+hsl :: Double -> Double -> Double -> Value
 hsl a b c = ColorHSL a b c
+
+hsla :: Double -> Double -> Double -> Double -> Value
 hsla a b c d = ColorHSLA a b c d
 
+str :: TL.Text -> Value
 str = Word
 
 instance Render Value where

@@ -8,7 +8,6 @@ import qualified Data.Text.Lazy as TL
 
 import JS
 import Render
-import JS.Syntax (Conf(..))
 import CSS hiding (Value)
 
 newtype TagName = TagName { unTagName :: Value }
@@ -45,10 +44,12 @@ data Value
   | Dynamic (JS.Expr ())
 makeClassyPrisms ''Value
 
+value2either :: Value -> Either TS.Text (Expr ())
 value2either v = case v of
   Static a -> Left a
   Dynamic a -> Right a
 
+static :: Value -> TS.Text
 static v = case v of
   Static s -> s
   Dynamic a -> error $ show $ render Minify a

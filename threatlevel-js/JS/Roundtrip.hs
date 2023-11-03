@@ -86,7 +86,10 @@ instance {-# OVERLAPPABLE #-} (Result a ~ Expr a) => J a where
   str _ t = lit t
   numberOfFields _ = 0
 
+emptyObject :: Expr b
 emptyObject = lit ([] :: [(String, Expr ())]) -- :: Expr a
+
+emptyArray :: Expr b
 emptyArray = lit ([] :: [Expr ()]) -- :: Expr a
 
 -- * GetConstr

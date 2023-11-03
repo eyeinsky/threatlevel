@@ -24,6 +24,11 @@ data XML ns a c where
     => XML ns' a' c -> XML ns a c
 
 makePrisms ''XML
+
+contents :: forall k (f :: * -> *) (ns :: k) a
+                         (c :: * -> Constraint).
+                  Applicative f =>
+                  ([XML ns a c] -> f [XML ns a c]) -> XML ns a c -> f (XML ns a c)
 contents = _Element._3
 
 instance IsString (XML ns a c) where

@@ -31,6 +31,7 @@ instance ToPayload Header where
 instance ToPayload [Header] where
    toPayload = unlines . map toPayload
 
+find :: Eq a1 => a1 -> [(a1, a2)] -> a2
 find k m = fromMaybe (error "header missing from map") $ lookup k m
 
 data HeaderName where --   Stolen from "HTTP": Network.HTTP.Headers
@@ -124,6 +125,8 @@ headerMap =
    , p "Content-Security-Policy" ContentSecurityPolicy
    , p "Content-Security-Policy-Report-Only" ContentSecurityPolicyReportOnly
    ]
+
+p :: b -> a -> (a, b)
 p a b = (b,a)
 
 deriving instance Show HeaderName

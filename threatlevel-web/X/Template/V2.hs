@@ -129,9 +129,13 @@ type Template_ t ctx = Template t ctx ()
 --   :: (Out t ctx ~ out)
 --   => [Id] -> Expr () -> Expr (t -> DocumentFragment) -> Expr (t -> ())
 --   -> Expr t -> (t -> Html) -> out -> Template0 t ctx
+mkTemplate_
+  :: forall k a (ctx :: k). [Id] -> Expr () -> Create a -> Update a -> Expr a -> (a -> Html) -> Template a ctx ()
 mkTemplate_ ids mount create update get ssr =
   Template ids mount create update get ssr ()
 
+mkTemplate0
+  :: forall k a (ctx :: k). [Id] -> Expr () -> Create a -> Update a -> Expr a -> (a -> Html) -> Template a ctx ()
 mkTemplate0 = mkTemplate_
 {-# DEPRECATED mkTemplate0 "Use `mkTemplate_` instead." #-}
 

@@ -2,11 +2,13 @@ module JS.API where
 
 import Prelude
 import JS.DSL
+import qualified Data.Text as TS
 
 -- * Async
 
 data JobId
 
+timeout :: ToExpr a => TS.Text -> Expr b -> a -> Expr c
 timeout name f ms = call (ex name) [ Cast f, lit ms]
 
 setInterval :: Expr a -> Int -> Expr JobId

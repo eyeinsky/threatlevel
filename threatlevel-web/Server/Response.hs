@@ -71,9 +71,13 @@ instance ToRaw Response where
 resp200 :: AnyResponse -> Response
 resp200 = Response (toEnum 200) []
 
+htmlDoc :: HTML.Html -> HTML.Html -> Response
 htmlDoc head body = resp200 $ HtmlDocument (HTML.Document head body)
+
+page :: HTML.Html -> Response
 page html = resp200 $ HtmlDocument $ HTML.docBody $ html
 
+renderedPage :: BL.ByteString -> Response
 renderedPage = resp200 . Raw
 
 text :: TL.Text -> Response
@@ -83,6 +87,7 @@ text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
 js :: JS.Syntax.Conf -> JS.M r a -> Response
 js conf code = resp200 $ JS conf code
 
+json :: Aeson.ToJSON a => a -> Response
 json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response
@@ -94,9 +99,11 @@ redirect url = redirectRaw $ renderURL url
 redirectRaw :: TL.Text -> Response
 redirectRaw url = rawText (toEnum 303) [Hdr.header Hdr.Location url] ""
 
+redirect' :: Int -> URL -> Response
 redirect' code url = rawText (toEnum code) headers ""
   where headers = [Hdr.header Hdr.Location $ renderURL url]
 
+redirectRaw' :: Int -> TL.Text -> Response
 redirectRaw' code url = rawText (toEnum code) [Hdr.header Hdr.Location url] ""
 
 noRobots :: Response

@@ -100,6 +100,7 @@ import qualified HTML
 import qualified JS.Event
 import qualified DOM
 import qualified Server.Response as WR
+import qualified Render
 
 -- * DOM.Event
 
@@ -130,11 +131,16 @@ attachOnLoad type_ element handler = do
   bare $ addEventListener (Cast window) Load lit
   return $ Cast handler'
 
-
+post :: (Render a, Render.Conf a ~ ()) => a -> Expr c -> Expr d -> M r ()
 post url dt cb = DOM.xhrRaw "POST" (lit $ render' url) dt cb
+
+get_ :: (Render a, Render.Conf a ~ ()) => a -> Expr c -> Expr d -> M r ()
 get_ url dt cb = DOM.xhrRaw "GET" (lit $ render' url) dt cb
 
+postJs :: (Render a, Render.Conf a ~ ()) => JS.Conf -> a -> Expr c -> [Expr d] -> M r ()
 postJs rc url = DOM.xhrJs rc "POST" (lit $ render' url)
+
+getJs :: (Render a, Render.Conf a ~ ()) => JS.Conf -> a -> Expr c -> [Expr d] -> M r ()
 getJs rc url = DOM.xhrJs rc "GET" (lit $ render' url)
 
 
@@ -181,9 +187,12 @@ stylesheet url = link ! rel "stylesheet" ! type_ "text/css" ! href url
 stylesheet' :: TS.Text -> Html
 stylesheet' url = link ! rel "stylesheet" ! type_ "text/css" ! HTML.href (Static url)
 
-includeCss = stylesheet :: URL.URL -> Html
+includeCss :: URL -> Html
+includeCss = stylesheet
 {-# DEPRECATED includeCss "Use `stylesheet` instead." #-}
-includeCss' = stylesheet' :: TS.Text -> Html
+
+includeCss' :: TS.Text -> Html
+includeCss' = stylesheet'
 {-# DEPRECATED includeCss' "Use `stylesheet'` instead." #-}
 
 includeJs :: URL.URL -> Html
@@ -226,7 +235,10 @@ format
   => String -> Optic' p f t TL.Text
 format str = to (formatTime defaultTimeLocale str ^ TL.pack)
 
+htmlDate :: (Profunctor p, Contravariant f, FormatTime t) => p Html (f Html) -> p t (f t)
 htmlDate = format "%F".html
+
+htmlTime :: (Profunctor p, Contravariant f, FormatTime t) => p Html (f Html) -> p t (f t)
 htmlTime = format "%F %T".html
 
 -- * JS + HTML (= DOM)
@@ -297,6 +309,7 @@ requestCookies = Wai.requestHeaders
   ^ lookup Wai.hCookie
   ^ fmap Wai.parseCookiesText
 
+postKvs :: Request -> IO QueryText
 postKvs req = do
   bs <- getRequestBody req
   return $ Wai.parseQueryText $ BL.toStrict bs
@@ -334,9 +347,11 @@ instance ToHtml (Expr TS.Text) where
 instance ToHtml (Expr Int) where
   toHtml e = dyn $ createTextNode $ toString e
 
+html :: (Profunctor p, Contravariant f, ToHtml a) => Optic' p f a Html
 html = to toHtml
 
 -- * Endpoint
+
 
 exec'
   :: (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf)
@@ -347,10 +362,12 @@ exec' f jsm = do
   return $ WR.js conf $ f code
 
 -- | An anonymous function definition expression is returned
+exec :: (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf) => M b () -> m Response
 exec = exec' f
   where
     f = bare . Par . AnonFunc Nothing []
 
+execCall :: (MonadReader s m, MonadWeb m, HasJsConf s JS.Conf) => M b () -> m Response
 execCall = exec' f
   where
     f = bare . call0 . Par . AnonFunc Nothing []
@@ -363,6 +380,7 @@ noCrawling = pin "robots.txt" $ return $ Prelude.const $ return $ WR.noRobots
 -- * Html + CSS
 
 -- todo: The below could be more general!
+getTag :: forall k (ns :: k) a1 (c :: * -> Constraint) a2. P.Writer [XML ns a1 c] a2 -> SimpleSelector
 getTag a = case execWriter a of
   e : _ -> let
       tn = e^?_Element._1 :: Maybe TagName

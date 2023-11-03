@@ -146,12 +146,12 @@ mkToExpr :: TypeQ -> [(String, Type)] -> Q [Dec]
 mkToExpr mainType namesTypes = case namesTypes of
   nameType : rest -> [d|
     instance {-# OVERLAPPING #-} ToExpr $(mainType) where
-      lit v = lit $(listE $ toTup nameType : map toTup rest :: ExpQ)
+      lit _v = lit $(listE $ toTup nameType : map toTup rest :: ExpQ)
     |]
   _ -> fail "mkToExpr: "
   where
   toTup :: (String, Type) -> ExpQ
-  toTup (name, type_) = [e| ($(stringE name), lit (v ^. $(varE $ mkName name) :: $(pure type_)) ) |]
+  toTup (name, type_) = [e| ($(stringE name), lit (_v ^. $(varE $ mkName name) :: $(pure type_)) ) |]
 
 
 -- | Make HasField instance

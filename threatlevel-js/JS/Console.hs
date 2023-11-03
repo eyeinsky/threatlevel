@@ -10,7 +10,10 @@ data Console
 console :: Expr Console
 console = ex "console"
 
+logStart :: Expr b -> M r ()
 logStart label = bare $ console !// "group" $ label
+
+logEnd :: Expr b -> M r ()
 logEnd label = bare $ console !// "groupEnd" $ label
 
 -- ** Consoleobject/debugging

@@ -31,11 +31,19 @@ $(
 -- | TH-generate all pseoudo-elements
 concat <$> mapM declarePseudoElement pseudoElements
 
+alpha :: Double -> Value
 alpha a = rgba 0 0 0 a
 
+descendant :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
 descendant = combinator Descendant
+
+child :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
 child = combinator Child
+
+sibling :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
 sibling = combinator Sibling
+
+generalSibling :: SimpleSelectorFrom a => a -> CSSM () -> CSSM ()
 generalSibling = combinator GeneralSibling
 
 anyTag :: Selector

@@ -39,10 +39,16 @@ import Common.Prelude as Export
 
 import qualified Data.Text.Lazy as TL
 
+bool :: p -> p -> Bool -> p
 bool f t b = if b then t else f
 
+eq :: Eq a => a -> a -> Bool
 eq = (==)
+
+notEq :: Eq a => a -> a -> Bool
 notEq = (/=)
+
+neq :: Eq a => a -> a -> Bool
 neq = (/=)
 
 todoMsg :: String -> a
@@ -50,9 +56,11 @@ todoMsg msg = trace msg (error msg)
 
 -- Control.Monad
 infixr 0 >>=$
+(>>=$) :: Monad m => m a -> (a -> m b) -> m b
 (>>=$) = (>>=)
 
 infixr 0 =<<$
+(=<<$) :: Monad m => (a -> m b) -> m a -> m b
 (=<<$) = (=<<)
 
 kebab2camel :: TL.Text -> TL.Text

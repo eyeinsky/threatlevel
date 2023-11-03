@@ -42,6 +42,9 @@ embeddedFile path = let
 
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
+statics' :: (MonadState WE.State m, MonadReader URL m,
+             MonadWriter [(Segment, T r)] m) =>
+            [(FilePath, BS.ByteString)] -> m [(FilePath, URL)]
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
   mime = path^.TS.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
   headers = [Hdr.contentType mime]
@@ -51,6 +54,9 @@ statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> le
 
 -- | Generate endpoints for source-embedded files and return the html
 -- to include them.
+includes :: (MonadState WE.State f, MonadReader URL f,
+             MonadWriter [(Segment, T r)] f) =>
+            [(FilePath, BS.ByteString)] -> f (WriterT [HTML Both] Identity ())
 includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ sequence_
   where
     f :: (FilePath, URL) -> Html
@@ -63,6 +69,10 @@ includes (pairs :: [(FilePath, BS.ByteString)]) = statics' pairs <&> map f ^ seq
 -- needs to match file's path in the. TODO: resolve ".." in path and
 -- error out if path goes outside of the served subtree. And check the
 -- standard of if .. is even allowed in url paths.
+staticDiskSubtree' :: (Monad m2, MonadReader s m1,
+                       HasDynPath s [TS.Text], MonadIO m1) =>
+                      (Response -> b)
+                      -> (TS.Text -> m1 b) -> FilePath -> m2 (Request -> m1 b)
 staticDiskSubtree' mod onError (path :: FilePath) = do
   return $ \(_ :: Request) -> do
     e <- asks (view WE.dynPath) <&> sanitizePath
@@ -80,6 +90,9 @@ sanitizePath parts = if any (== "..") parts
   else Right (TS.unpack $ TS.intercalate "/" parts)
 
 -- | Serve entire path from under created url
+staticDiskSubtree :: (MonadReader s m1, HasDynPath s [TS.Text],
+                      MonadIO m1, Monad m2) =>
+                     Response -> FilePath -> m2 (Request -> m1 Response)
 staticDiskSubtree notFound path = staticDiskSubtree' P.id (\_ -> return notFound) path
 
 -- | Serve files from filesystem path using a content adressable hash

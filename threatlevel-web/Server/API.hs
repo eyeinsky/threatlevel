@@ -157,6 +157,10 @@ currentUrl = ask
 api :: API m r => InT r -> m URL
 api m = next >>= flip pin m
 
+xhrPost' :: (MonadState State (t m), MonadReader URL (t m),
+                   MonadWriter [(Segment, T r)] (t m), MonadTrans t, W.MonadWeb m,
+                   W.MonadWeb (t m)) =>
+                  InT r -> t m (JS.Expr (c -> b))
 xhrPost' m = do
   rc <- W.js ask
   url :: URL <- api m
