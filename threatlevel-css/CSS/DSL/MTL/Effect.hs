@@ -42,6 +42,4 @@ instance Monoid W where mempty = W mempty mempty
 combinator :: CSS m => SimpleSelectorFrom a => SOp -> a -> m () -> m ()
 combinator op slike = combine (\s -> Combined op s (ssFrom slike))
 
-type CSSF = forall m . CSS m => m () -> m ()
 type CSSM = forall m . CSS m => m ()
-type PolyProp = forall m . Prop m => m ()

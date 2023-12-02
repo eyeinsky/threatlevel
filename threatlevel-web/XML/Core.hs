@@ -34,7 +34,7 @@ _Element = prism from to
       other -> Left other
 
 contents
-  :: forall k (f :: * -> *) (ns :: k) a (c :: * -> Constraint)
+  :: forall k (f :: Type -> Type) (ns :: k) a (c :: Type -> Constraint)
    . Applicative f
   => ([XML ns a c] -> f [XML ns a c]) -> XML ns a c -> f (XML ns a c)
 contents = _Element._3

@@ -52,7 +52,6 @@ instance FindBy (HTML Both) where
     | [cls] <- classes_ = findBy cls
     | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
     | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
-    | otherwise = error "FindBy (HTML a): nothing to find by"
     where
       maybeId = a ^? _Element._2.id_
       classes_ = a ^. _Element._2.classes.P.to (map D.Class) :: [D.Class]

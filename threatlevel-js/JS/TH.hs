@@ -10,9 +10,7 @@ import Data.Char
 import Data.List
 import Control.Lens hiding (Empty)
 import Data.Maybe
-
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
 
 import JS.DSL
 

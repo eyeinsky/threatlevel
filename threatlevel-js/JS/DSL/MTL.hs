@@ -193,7 +193,9 @@ method = methodMaker InstanceMethod
 staticMethod = methodMaker StaticMethod
 get = methodMaker (\a _ -> Getter a)
 staticGet = methodMaker (\a _ -> StaticGetter a)
-set = methodMaker (\a [b] -> Setter a b)
+set = methodMaker $ \a args -> case args of
+  [arg] -> Setter a arg
+  _ -> error "JS.DSL: Must have exactly one formal argument"
 
 -- * Functions
 

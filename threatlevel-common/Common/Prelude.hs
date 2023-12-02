@@ -74,9 +74,10 @@ kebab2camel xs = case xs of
 -- * Data.Text
 
 tlKebab2camel :: TL.Text -> TL.Text
-tlKebab2camel t = TL.concat $ x : map capitalise xs
+tlKebab2camel t = case TL.splitOn "-" t of
+  x : xs -> TL.concat $ x : map capitalise xs
+  [] -> ""
   where
-    x : xs = TL.splitOn "-" t
     capitalise t = let (a, b) = TL.splitAt 1 t
        in TL.toUpper a <> b
 

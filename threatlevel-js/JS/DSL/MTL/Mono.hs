@@ -74,6 +74,7 @@ instance JS MonoJS where
   freshName = freshNameBase get put
   bind = bindBase
   execSub = execSubBase ask get put run
+  execFunc f = c2 f []
 
   -- func syntax f = bind Let . uncurry (syntax Nothing) =<< funcUntyped f
 

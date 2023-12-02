@@ -3,7 +3,7 @@ module Web.Apis.IDB where
 
 import Data.Text qualified as TS
 import Common.Prelude hiding (Index)
-import JS hiding (c1, c2, c3) -- TODO
+import JS hiding (c2) -- TODO
 
 
 data DB

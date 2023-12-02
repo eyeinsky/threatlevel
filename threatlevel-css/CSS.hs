@@ -26,8 +26,7 @@ $(
 -- | TH-generate all pseoudo-elements
 concat <$> mapM declarePseudoElement pseudoElements
 
-descendant, child, sibling, generalSibling
-  :: SimpleSelectorFrom a => a -> CSSF
+descendant, child, sibling, generalSibling :: forall m a . (CSS m, SimpleSelectorFrom a) => a -> m () -> m ()
 descendant = combinator Descendant
 child = combinator Child
 sibling = combinator Sibling
@@ -38,24 +37,24 @@ tagSelector = Tag
 
 -- * Useful styles
 
-centerContent :: PolyProp
+centerContent :: Prop m => m ()
 centerContent = do
   display "flex"
   flexFlow "column nowrap"
   justifyContent "center"
   alignItems "center"
 
-flexbox :: Value -> PolyProp
+flexbox :: Prop m => Value -> m ()
 flexbox how = do
   display "flex"
   flexFlow how
 
-square :: Value -> PolyProp
+square :: Prop m => Value -> m ()
 square n = do
   width n
   height n
 
-circle :: Value -> PolyProp
+circle :: Prop m => Value -> m ()
 circle n = do
   square n
   borderRadius $ prc 50

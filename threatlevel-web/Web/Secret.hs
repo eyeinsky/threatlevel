@@ -76,12 +76,13 @@ wrapSite key iv secretSite = site
         div ! encrypted $ text secret
 
 encryptSite :: Key AES256 BS.ByteString -> IV AES256 -> Web Html -> BS.ByteString
-encryptSite key iv site = em
+encryptSite key iv site = case encrypt key iv padded of
+  Left (err :: CryptoError) -> error $ show err -- todo improve, don't use impercise error
+  Right bs -> bs
   where
     htmlText = render' $ runStatic site :: Text
     bs = htmlText^.re TE.utf8.from lazy :: BS.ByteString
     padded = bs <> BS.replicate (16 - (BS.length bs `mod` 16)) (toEnum $ fromEnum $ ord ' ')
-    Right em = encrypt key iv padded :: Either CryptoError BS.ByteString
 
 -- * CryptoJS
 

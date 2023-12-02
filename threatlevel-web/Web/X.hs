@@ -35,7 +35,7 @@ import CSS as Export hiding
 import JS.Event as Export
 import Web.Apis.Event as Export
 
-import URL as Export hiding (base)
+import URL as Export
 
 import JS as Export hiding
   -- todo: describe these

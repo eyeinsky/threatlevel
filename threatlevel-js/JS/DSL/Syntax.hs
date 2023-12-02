@@ -3,6 +3,7 @@ module JS.DSL.Syntax where
 
 import Common.Prelude
 import Data.Time
+import Data.Time.Format.ISO8601
 import Prelude (Floating(..), Fractional(..))
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -115,10 +116,7 @@ instance ToExpr a => ToExpr (Maybe a) where
   lit = maybe Null lit
 
 instance ToExpr UTCTime where
-  lit t = lit $ formatTime defaultTimeLocale format t
-    where
-      format = iso8601DateFormat (Just "%H:%M:%S%QZ")
-      -- Prints ISO8601, e.g "2019-11-04T15:42:18.608734Z"
+  lit t = lit $ formatShow (iso8601Format @UTCTime) t
 
 instance ToExpr Day where
   lit t = lit $ show t
