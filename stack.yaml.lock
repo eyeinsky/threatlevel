@@ -5,33 +5,26 @@
 
 packages:
 - completed:
-    pantry-tree:
-      sha256: fcbc10e7648f835180bb9b6a5b98f4c8b3adad6f267db4f1980e08d8d9e30e29
-      size: 791
-    hackage: boomerang-1.4.7@sha256:c385e2269c78b2b2135d5b5b47491525e52f8d145f84eca427c7649c953c1cdf,2132
-  original:
-    hackage: boomerang-1.4.7@sha256:c385e2269c78b2b2135d5b5b47491525e52f8d145f84eca427c7649c953c1cdf,2132
-- completed:
+    hackage: rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec,1761
     pantry-tree:
       sha256: 3efe0ef730a5b7be0ec70cdd1ef3fec71f33991114f9dcc6f2cccf94a3b97c25
       size: 299
-    hackage: rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec,1761
   original:
     hackage: rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec
 - completed:
+    commit: 2f4642d8c697d9666fbf579b8d4d5616c3a397ec
+    git: https://github.com/eyeinsky/fixedlist.git
     name: fixedlist
     pantry-tree:
       sha256: 85ba2e70ea75e0ce909a7006dde9e1510e5c6fbef31b0665c581ccf1c640bf26
       size: 332
-    commit: 2f4642d8c697d9666fbf579b8d4d5616c3a397ec
-    git: https://github.com/eyeinsky/fixedlist.git
     version: 0.1.0.0
   original:
     commit: 2f4642d8c697d9666fbf579b8d4d5616c3a397ec
     git: https://github.com/eyeinsky/fixedlist.git
 snapshots:
 - completed:
-    sha256: e66e70a7f998036025e8f40abc89b8eeb79c88f57727020cba1b54f375aa7ca0
-    size: 586292
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/17.yaml
-  original: lts-18.17
+    sha256: afd5ba64ab602cabc2d3942d3d7e7dd6311bc626dcb415b901eaf576cb62f0ea
+    size: 640060
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/21/22.yaml
+  original: lts-21.22

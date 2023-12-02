@@ -87,10 +87,17 @@ name2dataDecl name = reify name >>= \info -> case info of
       mkAppliedTyped :: Dec -> Type
       mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _ [_] _) = appliedTyped
         where
+#if MIN_VERSION_template_haskell(2,17,0)
+          tyVarBndrName :: TyVarBndr flag -> Name
+          tyVarBndrName tvb = case tvb of
+            PlainTV name _flag -> name
+            KindedTV name _flag _ -> name
+#else
           tyVarBndrName :: TyVarBndr -> Name
           tyVarBndrName tvb = case tvb of
             PlainTV name -> name
             KindedTV name _ -> name
+#endif
           appliedTyped = case typeFirst_ of
             Just as -> foldl AppT type_ $ map (ConT . tyVarBndrName) as
             _ -> type_

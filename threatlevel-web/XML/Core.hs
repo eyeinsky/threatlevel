@@ -25,7 +25,13 @@ data XML ns a c where
        )
     => XML ns' a' c -> XML ns a c
 
-makePrisms ''XML
+_Element :: Prism' (XML ns a c) (TagName, a, [XML ns a c])
+_Element = prism from to
+  where
+    from (a, b, c) = Element a b c
+    to = \case
+      Element a b c -> Right (a, b, c)
+      other -> Left other
 
 contents
   :: forall k (f :: * -> *) (ns :: k) a (c :: * -> Constraint)
