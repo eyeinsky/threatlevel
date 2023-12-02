@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.7.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -29,45 +29,21 @@ library
   hs-source-dirs:
       ./
   default-extensions:
-      Arrows
-      BangPatterns
-      ConstraintKinds
       DataKinds
       DefaultSignatures
-      DeriveDataTypeable
-      DeriveFunctor
-      DeriveGeneric
       DerivingVia
-      EmptyDataDecls
       ExtendedDefaultRules
-      FlexibleContexts
-      FlexibleInstances
       FunctionalDependencies
       GADTs
-      GeneralizedNewtypeDeriving
-      ImportQualifiedPost
-      InstanceSigs
-      KindSignatures
       LambdaCase
-      MultiParamTypeClasses
-      NamedFieldPuns
       NoImplicitPrelude
       NoMonomorphismRestriction
       OverloadedStrings
-      PolyKinds
       QuasiQuotes
-      RankNTypes
       RecursiveDo
-      ScopedTypeVariables
-      StandaloneDeriving
-      StandaloneKindSignatures
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
       TypeInType
-      TypeOperators
-      TypeSynonymInstances
       UndecidableInstances
   ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
   build-depends:
@@ -81,4 +57,4 @@ library
     , template-haskell
     , text
     , threatlevel-common
-  default-language: Haskell2010
+  default-language: GHC2021

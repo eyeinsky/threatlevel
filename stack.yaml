@@ -1,4 +1,5 @@
-resolver: lts-21.22
+resolver: lts-20.26
+# resolver: lts-21.22 # ghc 9.4.8
 
 packages:
 - identifiers
