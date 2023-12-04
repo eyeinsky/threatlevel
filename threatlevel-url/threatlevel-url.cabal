@@ -1,9 +1,4 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.36.0.
---
--- see: https://github.com/sol/hpack
-
+cabal-version: 3.4
 name:           threatlevel-url
 version:        0.0.1
 synopsis:       Url
@@ -29,8 +24,7 @@ library
       URL.TH
   other-modules:
       Paths_threatlevel_url
-  hs-source-dirs:
-      ./
+  hs-source-dirs: .
   default-extensions:
       DataKinds
       DefaultSignatures

@@ -11,15 +11,13 @@ import qualified Rapid
 import qualified Data.Aeson as A
 import qualified Data.Aeson.DeriveNoPrefix as A
 
-import X.Prelude
+import Common.Prelude
 import JS
 import JS.TH
 import JS.Roundtrip
 import URL.TH (url)
-import X
+import Web
 import qualified SVG
-
-import Module1
 
 -- * Helpers
 

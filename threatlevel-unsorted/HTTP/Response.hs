@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 module HTTP.Response where
 
 import Common.Prelude

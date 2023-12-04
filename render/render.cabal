@@ -1,22 +1,13 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.36.0.
---
--- see: https://github.com/sol/hpack
-
+cabal-version: 3.4
 name:           render
 version:        0.1.0.0
-license:        BSD3
+license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
 
 library
-  exposed-modules:
-      Render
-  other-modules:
-      Paths_render
-  hs-source-dirs:
-      ./
+  exposed-modules: Render
+  hs-source-dirs: .
   default-extensions:
       OverloadedStrings
       ScopedTypeVariables
@@ -27,4 +18,4 @@ library
     , bytestring
     , mtl
     , text
-  default-language: Haskell2010
+  default-language: GHC2021

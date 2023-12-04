@@ -42,7 +42,7 @@ dev_init() {
 
 prepare() {
     local PKG="${1:-threatlevel-web}"
-    in_deps_do "hpack && cabal2nix . > default.nix"
+    in_deps_do "cabal2nix . > default.nix"
     cabal2nix --shell "$PKG" > shell.nix
     patch shell.nix nix/local-deps.patch
 }

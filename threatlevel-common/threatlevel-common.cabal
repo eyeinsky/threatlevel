@@ -1,15 +1,10 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.35.2.
---
--- see: https://github.com/sol/hpack
-
+cabal-version: 3.4
 name:           threatlevel-common
 version:        0.1.0.0
 category:       Language
 author:         Markus Läll
 maintainer:     markus.l2ll@gmail.com
-license:        GPL-2
+license:        BSD-3-Clause
 build-type:     Simple
 
 library
@@ -20,24 +15,12 @@ library
       Common.Polysemy
   other-modules:
       Paths_threatlevel_common
-  hs-source-dirs:
-      ./
+  hs-source-dirs: .
   default-extensions:
       DataKinds
-      DefaultSignatures
-      DerivingVia
-      ExtendedDefaultRules
       FunctionalDependencies
-      GADTs
-      LambdaCase
-      NoImplicitPrelude
-      NoMonomorphismRestriction
       OverloadedStrings
-      QuasiQuotes
-      RecursiveDo
       TemplateHaskell
-      TypeFamilies
-      TypeInType
   ghc-options: -Wall -Wno-name-shadowing -Wno-missing-signatures -Wno-type-defaults
   build-depends:
       base
