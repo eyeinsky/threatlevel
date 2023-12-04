@@ -1,20 +1,21 @@
 # threatlevel
 
-## Use
-
-Stack:
-
-Cabal:
-
-Nix:
-
 ## Develop
 
-Stack:
 ```bash
-git clone https://github.com/eyeinsky/threatlevel
-cd threatlevel
 stack repl
 ```
 
-Nix:
+### Cabal
+
+Cabal works best with nix below, otherwise you'll have to manually
+make sure to have non-haskell dependencies installed.
+
+### Nix
+
+```bash
+nix-shell
+cabal repl
+```
+
+The default.nix adds required dependencies.

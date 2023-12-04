@@ -1,4 +1,3 @@
 .vimrc
 .ghci
-default.nix
-shell.nix
+.direnv/
