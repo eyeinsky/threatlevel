@@ -14,7 +14,8 @@ import HTML.Paste
 
 data Html5
 type HTML c = XML Html5 AttributeSet c
-type Html = Writer [HTML Both] ()
+type HtmlM = Writer [HTML Both]
+type Html = HtmlM ()
 
 -- * Attributes
 

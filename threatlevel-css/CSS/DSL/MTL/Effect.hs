@@ -6,7 +6,7 @@ import CSS.Syntax
 
 -- * Effect
 
-class Monad m => CSS m where
+class (Monad m, Prop m) => CSS m where
   css
     :: m a     -- ^ rules and declarations to generated class
     -> m Class -- ^ returns a fresh class with rules attached
