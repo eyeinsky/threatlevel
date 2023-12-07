@@ -79,6 +79,15 @@ property name value = meta
 og :: TS.Text -> Value -> Html
 og name value = property (Static $ "og:" <> name) value
 
+-- | Embed file as Data URL. Format: https://developer.mozilla.org/en-US/docs/web/http/basics_of_http/data_urls
+dataUrl :: Maybe TS.Text -> Maybe TS.Text -> TS.Text -> Value
+dataUrl maybeMediaType maybeEncoding data_ = Static $ "data:" <> mediaType <> encoding <> "," <> data_
+  where
+    mediaType = fromMaybe "" maybeMediaType
+    encoding = case maybeEncoding of
+      Just encoding' -> ";" <> encoding'
+      Nothing -> ""
+
 -- * Document
 
 newtype Document = Document Html
