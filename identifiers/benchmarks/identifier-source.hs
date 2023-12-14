@@ -17,9 +17,4 @@ main = defaultMain
     , bench "!! 5000" $ nf (startFrom "" !!) 5000
     , bench "!! 50000" $ nf (startFrom "" !!) 50000
     ]
-  , bgroup "jsIdentifierSource"
-    [ bench "!! 500" $ nf (jsIdentifierSource !!) 500
-    , bench "!! 5000" $ nf (jsIdentifierSource !!) 5000
-    , bench "!! 50000" $ nf (jsIdentifierSource !!) 50000
-    ]
   ]
