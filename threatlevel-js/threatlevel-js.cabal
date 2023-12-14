@@ -67,7 +67,6 @@ library
     , identifiers
     , lens
     , mtl
-    , polysemy
     , render
     , template-haskell
     , text
