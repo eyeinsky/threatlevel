@@ -14,6 +14,10 @@ import Control.Applicative
 parseURL :: TS.Text -> Either String URL
 parseURL = parseToEnd uRLP
 
+-- | Same as above, but for qualified imports
+parse :: TS.Text -> Either String URL
+parse = parseURL
+
 parseWebURL :: TS.Text -> Either String WebURL
 parseWebURL = parseToEnd webURLP
 

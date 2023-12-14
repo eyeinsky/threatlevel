@@ -2,13 +2,14 @@ resolver: lts-20.26
 # resolver: lts-21.22 # ghc 9.4.8
 
 packages:
-- identifiers
-- render
-- threatlevel-common
-- threatlevel-url
-- threatlevel-css
-- threatlevel-js
-- threatlevel-web
+- ./identifiers
+- ./render
+- ./threatlevel-common
+- ./threatlevel-url
+- ./threatlevel-css
+- ./threatlevel-js
+- ./threatlevel-web
+- ./threatlevel-unsorted
 
 extra-deps:
 - rapid-0.1.4@sha256:b7e23399d49f0d8a6c79903ca822ac3e5827646b47b2b4e5716684179bd261ec

@@ -10,8 +10,8 @@ import Server.Wai
 
 mkHot :: Ord k => k -> IO () -> (IO (), IO ())
 mkHot name what = let
-  reload = rapid 1 (\r -> restart r name what)
-  stop_ = rapid 1 (\r -> stop r name what)
+  reload = rapid 0 (\r -> restart r name what)
+  stop_ = rapid 0 (\r -> stop r name what)
   in (reload, stop_)
 
 type HotType k r a = (Ord k) => k -> SiteType r a

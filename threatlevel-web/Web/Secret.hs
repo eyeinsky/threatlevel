@@ -197,16 +197,3 @@ obj iv = [("iv", Cast iv), ("mode", ex "CryptoJS.mode.CBC"), ("padding", ex "Cry
 
 decrypt :: (BlockCipher c, ByteArray a) => Key c a -> IV c -> a -> Either CryptoError a
 decrypt = encrypt
-
-runStatic :: Web Html -> HTML.Document
-runStatic wm = HTML.Document $ HTML.html $ head' *> body'
-  where
-    (body' :: Html, _, (css', js)) = Web.DSL.runFresh wm
-    css = CSS.wrapW (CSS.selFrom CSS.Any) css'
-    head' = do
-      HTML.style $ raw $ render (CSS.Pretty 2) css
-      HTML.script $ raw $ render (JS.Indent 2) js
-      HTML.favicon "data:;base64,iVBORw0KGgo="
-      meta
-        ! httpEquiv "Content-Type"
-        ! HTML.content "text/html; charset=utf-8" $ pure ()

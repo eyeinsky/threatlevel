@@ -29,12 +29,8 @@ instance Read Host where
   readsPrec _ str = [(fromString str, "")]
 
 newtype Port = Port Word16
-
-instance Num Port where
-  fromInteger a = Port (fromInteger a)
-
-instance Read Port where
-  readsPrec _ str = [(Port (read str), "")]
+  deriving stock (Eq, Show, Ord)
+  deriving newtype (Num, Enum, Real, Integral, Read)
 
 deriving instance Generic Port
 
@@ -128,13 +124,10 @@ deriving instance Eq URL
 deriving instance Eq Authority
 deriving instance Eq Proto
 deriving instance Eq Host
-deriving instance Eq Port
 deriving instance Eq Path
 deriving instance Eq Param
 deriving instance Eq Params
 deriving instance Eq Fragment
-
-deriving instance Ord Port
 
 deriving instance Show WebURL
 deriving instance Show PathParamsFragment
@@ -142,7 +135,6 @@ deriving instance Show URL
 deriving instance Show Authority
 deriving instance Show Proto
 deriving instance Show Host
-deriving instance Show Port
 deriving instance Show Path
 deriving instance Show Param
 deriving instance Show Params

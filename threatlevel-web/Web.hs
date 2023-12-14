@@ -3,7 +3,7 @@ module Web
   ) where
 
 import JS as Export hiding
-  ( Conf(..), empty, execSub
+  ( Conf(..), empty, execSub, Env
 
   , split
   )
@@ -11,6 +11,7 @@ import JS as Export hiding
 import CSS as Export hiding
   ( Conf(..), Reader_, State_, Writer_, empty, execSub
   , Tag --, Class, Id
+  , runFresh, run
 
   , String, filter, not, all
   , placeholder -- HTML
@@ -32,7 +33,7 @@ import Web.Prelude as Export hiding
   , first, forOf, set, aside, pre, (<+>)
   )
 
-import Web.DSL as Export hiding (runFresh, run)
+import Web.DSL as Export
 import Web.DSL.Helpers as Export
 
 -- | Pre

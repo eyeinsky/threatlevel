@@ -10,6 +10,7 @@ import JS.DSL.MTL.Mono qualified as JS
 import JS.Syntax qualified as JS
 
 import Render
+import HTML
 
 {- * Boilerplate
 
@@ -105,22 +106,45 @@ instance CSS.CSS Web where
 instance CSS.Prop Web where
   prop property value = CSS.propBase tellCSS property value
 
-instance Render (Web a) where
-  type Conf (Web a) = (CSS.Conf, JS.Conf)
-  renderM m = pure text
-    where
-      (css2, js1) = renderWeb m
-      text = "<style>\n"
-          <> css2
-          <> "</style>\n"
-          <> "<script>\n"
-          <> js1
-          <> "</script>"
-
-renderWeb :: Web a -> (TL.Text, TL.Text)
-renderWeb m = (css2, js1)
+runWeb :: Web a -> (a, TL.Text, TL.Text)
+runWeb web = (a, cssText, jsText)
   where
-    (_, _, (css, js)) = runFresh m
-    css1 = CSS.wrapW hostSelector css
-    css2 = render (CSS.Pretty 2) css1
-    js1 = render (JS.Indent 2) js
+    jsReader = JS.Indent 2
+    cssReader = hostSelector
+    cssRenderConf = CSS.Pretty 2
+    state = (CSS.identifiers, def)
+
+    (a, _, (css, js)) = run web (cssReader, jsReader) state
+    css :: CSS.W
+    js :: [JS.Statement ()]
+    css1 = CSS.wrapW cssReader css :: [CSS.OuterRule]
+
+    cssText = render cssRenderConf css1 :: TL.Text -- todo: or CSS.wrapW (CSS.selFrom CSS.Any) css'
+    jsText = render jsReader js :: TL.Text
+
+webHtml :: Web Html -> (Html, Html)
+webHtml web = (head', body)
+  where
+    (body, cssText, jsText) = runWeb web
+    head' = do
+      HTML.style $ raw cssText
+      HTML.script $ raw jsText
+
+runStatic :: Web Html -> HTML.Document
+runStatic web = Document $ htmlDoc extra web
+  where
+    extra = do
+      emptyFavicon
+      meta ! httpEquiv "Content-Type" ! HTML.content "text/html; charset=utf-8" $ pure ()
+
+-- | Collaps extra head content and @Web Html@ to final @Html@.
+--
+-- The reason we have @extraHeadContent@ is that from @Web Html@ we
+-- extract CSS and JS and add it to head, but we may want to add more
+-- stuff to it.
+htmlDoc :: Html -> Web Html -> Html
+htmlDoc extraHeadContent web = HTML.html $ do
+  HTML.head $ headContent_ >> extraHeadContent
+  body_
+  where
+    (headContent_, body_) = webHtml web

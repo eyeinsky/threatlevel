@@ -12,7 +12,7 @@ import Data.Functor as Export
 import Data.Foldable as Export
 import Control.Lens as Export hiding
   ((.=), (.>), Empty, Setter, Getter, Const, Context, transform, assign)
-import Control.Arrow as Export hiding (left, right)
+import Control.Arrow as Export hiding (left, right, app)
 
 import Data.Proxy as Export
 import Data.Void as Export
