@@ -113,11 +113,11 @@ replaceContent fragment element = Par (clearContent element) .|| (element !// "a
 
 -- * Attributes
 
-addClass :: JS m => DOM.Class -> Expr a -> m ()
-addClass cls el = bare $ call1 (el !. "classList" !. "add") $ mkExpr cls
+addClass :: JS m => Expr String -> Expr a -> m ()
+addClass className el = bare $ call1 (el !. "classList" !. "add") $ className
 
-removeClass :: JS m => DOM.Class -> Expr a -> m ()
-removeClass cls el = bare $ call1 (el !. "classList" !. "remove") $ mkExpr cls
+removeClass :: JS m => Expr String -> Expr a -> m ()
+removeClass className el = bare $ call1 (el !. "classList" !. "remove") $ className
 
 mkExpr :: DOM.Class -> Expr a
 mkExpr = Cast . lit . static . coerce @_ @DOM.Value
