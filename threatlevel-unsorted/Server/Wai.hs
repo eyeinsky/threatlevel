@@ -2,12 +2,17 @@ module Server.Wai where
 
 import Common.Prelude
 import Data.Text qualified as TS
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Lens qualified as LL
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import qualified Data.ByteString as BS
 import System.Environment
 import System.IO.Unsafe
-import qualified Network.Wai.Handler.WarpTLS as Warp
-import Network.Wai
+import Network.Wai.Handler.Warp as Warp
+import Network.Wai.Handler.WarpTLS qualified as Warp
+import Network.Wai as Wai
+import Network.HTTP.Types.URI as Wai
 import Network.HTTP.Types
 import Web.Cookie
 
@@ -62,14 +67,17 @@ postKvs request = do
 
 -- ** TLS settings with certificate
 
-tlsSettingsEnvIO :: String -> String -> IO (Maybe Warp.TLSSettings)
-tlsSettingsEnvIO cert key = do
+tlsSettingsEnv :: String -> String -> IO (Maybe Warp.TLSSettings)
+tlsSettingsEnv cert key = do
   certPath <- lookupEnv cert
   keyPath <- lookupEnv key
   return $ Warp.tlsSettings <$> certPath <*> keyPath
 
-tlsSettingsEnv :: String -> String -> Maybe Warp.TLSSettings
-tlsSettingsEnv cert key = unsafePerformIO $ tlsSettingsEnvIO cert key
+tlsSettingsUnsafe :: String -> String -> Maybe Warp.TLSSettings
+tlsSettingsUnsafe cert key = unsafePerformIO $ tlsSettingsEnv cert key
+
+runWarp :: Maybe Warp.TLSSettings -> Warp.Settings -> Wai.Application -> IO ()
+runWarp maybeTls = maybe Warp.runSettings Warp.runTLS maybeTls
 
 -- * Form submission
 

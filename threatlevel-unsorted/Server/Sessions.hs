@@ -1,24 +1,25 @@
 module Server.Sessions where
 
+import Common.Prelude hiding (map)
 import qualified Data.Text as TS
 import qualified Data.HashMap.Strict as HM
 import Data.Word (Word64)
 import Numeric
 import Control.Concurrent.MVar
-import qualified System.Random.MWC as MWC
-import X.Prelude hiding (map)
+import System.Random as Random
+import System.Random.Stateful as Random
 
 -- * API
 
 type Id = TS.Text
 data Store a = Store
   { storeMap :: MVar (HM.HashMap Id a)
-  , storeGen :: MWC.GenIO
+  , storeGen :: IOGenM StdGen
   }
 makeFields ''Store
 
 createStore :: IO (Store a)
-createStore = Store <$> newMVar mempty <*> MWC.createSystemRandom
+createStore = Store <$> newMVar mempty <*> (newIOGenM =<< Random.initStdGen)
 
 update :: Id -> a -> Store a -> IO ()
 update id value store = modifyMVar_ (store^.map) $ pure . HM.insert id value
@@ -34,8 +35,8 @@ get id store = readMVar (store^.map) <&> HM.lookup id
 
 -- * Helpers
 
-genId :: MWC.GenIO -> IO Id
-genId gen = TS.concat . fmap sh <$> replicateM 4 (MWC.uniform gen)
+genId :: IOGenM StdGen -> IO TS.Text
+genId gen = TS.concat . fmap sh <$> replicateM 4 (uniformM gen)
   where sh (bytes :: Word64) = TS.pack $ showHex bytes ""
 
 hot :: IO Id

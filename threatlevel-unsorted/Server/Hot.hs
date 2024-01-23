@@ -32,7 +32,7 @@ hotHttpsIO
   :: (Ord k, API.Confy r)
   => String -> String -> k -> IO (SiteTypePrim r (IO (), IO (), IO ()))
 hotHttpsIO cert key name = do
-  maybeTls <- tlsSettingsEnvIO cert key
+  maybeTls <- tlsSettingsEnv cert key
   case maybeTls of
     Just tls ->
       return $ \mc ms siteRoot settings env site ->

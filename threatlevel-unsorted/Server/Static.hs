@@ -5,6 +5,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as TS
 import qualified Data.Text.Strict.Lens as TS
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Lens as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import qualified Network.Mime as Mime
 import qualified Network.HTTP.Types as Wai
@@ -14,14 +15,13 @@ import System.Process as IO
 import Language.Haskell.TH
 import Data.FileEmbed
 
-import qualified HTTP.Header as Hdr
 import qualified HTTP.Response as HR
 import Server.Response as R
 import Server.API
 
+import Web
 import Network.Wai
-import X.Prelude as P
-import X
+import Common.Prelude as P
 
 -- ** File
 
@@ -34,17 +34,17 @@ diskFile path = do
 -- be Response.
 embeddedFile :: TL.Text -> ExpQ
 embeddedFile path = let
-    filePath = path^.from packed :: FilePath
+    filePath = path^.from TL.packed :: FilePath
     ct = path^.from lazy.to Mime.defaultMimeLookup.TS.utf8.from TS.packed & stringE
-  in [| let header = Hdr.header Hdr.ContentType $ct
+  in [| let header = (Wai.hContentType, $ct)
         in rawBS 200 [header] $(embedFile filePath)
            :: R.Response|]
 
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
-  mime = path^.TS.packed.to Mime.defaultMimeLookup.from strict & TL.decodeUtf8
-  headers = [Hdr.contentType mime]
+  mime = path^.TS.packed.to Mime.defaultMimeLookup
+  headers = [(Wai.hContentType, mime)]
   response = R.rawBl (toEnum 200) headers (bs^.from strict)
   path' = TS.pack path
   in (path,) <$> (pin path' $ staticResponse response)
@@ -83,15 +83,15 @@ sanitizePath parts = if any (== "..") parts
 staticDiskSubtree notFound path = staticDiskSubtree' P.id (\_ -> return notFound) path
 
 -- | Serve files from filesystem path using a content adressable hash
-assets :: (API m s, MonadIO m, Confy s) => R.Response -> FilePath -> m URL
-assets notFound path = do
-  hashPin path $ staticDiskSubtree' headerMod (\_ -> return notFound) path
-  where
-    headerMod = R.headers <>~ [HR.cacheForever]
-    hashPin path what = do
-      hash <- liftIO (folderHash path) <&> TS.pack
-      liftIO $ print (path, hash)
-      pin hash what
+-- assets :: (API m s, MonadIO m, Confy s) => R.Response -> FilePath -> m URL
+-- assets notFound path = do
+--   hashPin path $ staticDiskSubtree' headerMod (\_ -> return notFound) path
+--   where
+--     headerMod = R.headers <>~ [HR.cacheForever]
+--     hashPin path what = do
+--       hash <- liftIO (folderHash path) <&> TS.pack
+--       liftIO $ print (path, hash)
+--       pin hash what
 
 folderHash :: String -> IO [Char]
 folderHash path = do
@@ -105,11 +105,11 @@ folderHash path = do
 folderHashTH :: FilePath -> ExpQ
 folderHashTH path = runIO (folderHash path) >>= stringE
 
-pathContentType :: FilePath -> Hdr.Header
-pathContentType path = Hdr.header Hdr.ContentType mime'
+pathContentType :: FilePath -> Wai.Header
+pathContentType path = (Wai.hContentType, mime)
   where
     mime = Mime.defaultMimeLookup $ path^.TS.packed :: BS.ByteString
-    mime' = mime^.TS.utf8.from strict :: TL.Text
+--    mime' = mime^.TS.utf8.from strict :: TL.Text
 
 -- * New API
 

@@ -1,20 +1,16 @@
 module Template where
 
 import Common.Prelude
-import qualified Prelude
 import qualified Data.Text as TS
--- import JS
--- import HTML
--- import CSS hiding (Tag)
 import DOM.JS
-import X
+import Web
 
 -- | Creates ids, creates variables for the elements, returns a
 -- function to bind them.
 idsElems :: JS m => CSS m => Int -> m ([Id], [Expr Tag], Expr b)
 idsElems n = do
   ids <- replicateM n (cssId $ pure ())
-  elems <- mapM (Prelude.const $ let_ Null) ids
+  elems <- mapM (\_ -> let_ Null) ids
   mount <- newf $ do
     forM (zip ids elems) $ \(id, el) -> el .= querySelector id (ex "document")
   return (ids, elems, Cast mount)
@@ -33,14 +29,14 @@ data Template a html ctx out = Template
 makeFields ''Template
 
 class GetTemplate t ctx where
-  type Html' t ctx :: *
+  type Html' t ctx :: Type
   type Html' t ctx = ()
 
-  type In t ctx :: *
+  type In t ctx :: Type
   type In t ctx = ()
 
   -- | Anything the template needs to pass to outer context.
-  type Out t ctx :: *
+  type Out t ctx :: Type
   type Out t ctx = ()
 
   getTemplate :: (Monad m, MonadFix m, JS m) => In t ctx -> m (Template t (Html' t ctx) ctx (Out t ctx))
@@ -64,7 +60,8 @@ mock (title :: TS.Text) = do
   let title' = lit title :: Expr String
   create <- newf $ \(_ :: Expr p) -> do
     log $ "mock: create " <> title'
-    fragment :: Expr DocumentFragment <- createHtmls $ toHtml $ ("mock: create " <> title' :: Expr String)
+    fragment :: Expr DocumentFragment <- createHtmls $ dyn $ ("mock: create " <> title' :: Expr String)
+    -- todo: toHtml is dyn? this works?
     return_ fragment
   update <- newf $ log $ "mock: update " <> title'
   get <- newf $ log $ "mock: get " <> title'

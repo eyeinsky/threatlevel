@@ -39,6 +39,7 @@ library
       Web.Lib.HTML_URL
       Web.Lib.HTML
       Web.Lib.URL_CSS
+      Web.Lib.JS_CSS
       Web.Apis.DOM
       Web.Apis.Fetch
       Web.Apis.IDB

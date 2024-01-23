@@ -1,7 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 module Trie where
 
-import Common.Prelude hiding (lookup, Empty)
+import Common.Prelude hiding (lookup)
 import qualified Data.Hashable as H
 import qualified Data.HashMap.Lazy as HM
 
@@ -53,7 +53,7 @@ lookupPrefix
   => [k] -> Trie k v -> Maybe ([k], Maybe v, Maybe (HM.HashMap k (Trie k v)))
 lookupPrefix ks' t = go ks' t
   where
-    go kss@ (k : ks) t = case t of
+    go kss@(k : ks) t = case t of
       Branch mv hm -> case HM.lookup k hm >>= go ks of
         Nothing -> Just (kss, mv, Just hm)
         j -> j
@@ -82,7 +82,7 @@ union Empty t = t
 union t Empty = t
 union (Tip _) (Tip v) = Tip v
 union (Tip v) (Branch Nothing hm) = Branch (Just v) hm
-union (Tip _) t@ (Branch (Just _) _) = t
+union (Tip _) t@(Branch (Just _) _) = t
 union (Branch Nothing hm) (Tip v) = Branch (Just v) hm
 union (Branch (Just _) hm) (Tip v) = Branch (Just v) hm
 union (Branch Nothing hm) (Branch Nothing hm') = Branch Nothing (HM.unionWith union hm hm')

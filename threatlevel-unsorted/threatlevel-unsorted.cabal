@@ -32,57 +32,86 @@ common lang
 library
   import: lang
   exposed-modules:
-    Web.Monad
-    Server
-    Server.Run
-    Server.Static
-    Server.API
+    CSP
+    HTTP.Response
     Server.Response
-    Server.Hot
     Server.Wai
     Server.Sessions
     Server.WebSocket
     X.Cookie
-  other-modules:
-    CSP
-    HTTP
-    HTTP.Common
-    HTTP.Header
-    HTTP.Response
-    HTTP.Response.InlineFile
     JW.T
     Template
     Template.Common
-    Template.V2
     Template.V3
-    Trie
+    ToPayload
     Widgets.Menu
-    X
-    X.Auth.Google
     X.Google.Maps
     X.Google.Spreadsheet
     X.Widgets
     Paths_threatlevel_unsorted
+
+    -- * Server API
+    Trie
+    Server.API
+    Server.Hot
+    X.Auth.Google
+    Server.Run
+    Server.Static
   hs-source-dirs: ./
   build-depends:
-      base
-    , threatlevel-web
-
-test-suite test
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: manual-browser-tests.hs
-  other-modules: Paths_threatlevel_web
-  hs-source-dirs: tests
-  build-depends:
-    , base
     , aeson
+    , base
+    , base64-bytestring
+    , blaze-builder
+    , boomerang
+    , bytestring
+    , cookie
+    , cryptonite
     , deriveJsonNoPrefix
+    , file-embed
+    , hashable
+    , http-client
+    , http-types
+    , lens
+    , lens-aeson
+    , memory
+    , mime-types
+    , mtl
+    , process
+    , random
     , rapid
-    , warp
-    , warp-tls
+    , render
+    , template-haskell
     , text
     , threatlevel-common
+    , threatlevel-css
     , threatlevel-js
     , threatlevel-url
     , threatlevel-web
+    , time
+    , transformers
+    , unordered-containers
+    , wai
+    , wai-websockets
+    , warp
+    , warp-tls
+    , websockets
+    , wreq
+
+-- test-suite test
+--   import: lang
+--   type: exitcode-stdio-1.0
+--   main-is: manual-browser-tests.hs
+--   other-modules: Paths_threatlevel_web
+--   hs-source-dirs: tests
+--   build-depends:
+--     , base
+--     , aeson
+--     , rapid
+--     , warp
+--     , warp-tls
+--     , text
+--     , threatlevel-common
+--     , threatlevel-js
+--     , threatlevel-url
+--     , threatlevel-web

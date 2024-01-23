@@ -1,12 +1,14 @@
 module X.Cookie where
 
+import Common.Prelude
 import qualified Data.Text as TS
+import qualified Data.Text.Encoding as TS
 import qualified Data.Text.Lazy as TL
-import X.Prelude
 import Data.Time
+import Network.HTTP.Types
+
 import URL (Path, render')
-import HTTP.Common (ToPayload(..))
-import qualified HTTP.Header as H
+import ToPayload (ToPayload(..))
 import Server.Response
 
 -- * Abstract cookie
@@ -67,10 +69,10 @@ secureCookie k v = cookie k v & fields .~ [Secure, HttpOnly]
 -- * Interface to Response
 
 setCookie :: Cookie -> Response -> Response
-setCookie c = headers <>~ [H.header H.SetCookie (toPayload c)]
+setCookie c = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload c)]
 
 deleteCookie :: Cookie -> Response -> Response
-deleteCookie cookie = headers <>~ [H.header H.SetCookie (toPayload cookie')]
+deleteCookie cookie = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload cookie')]
   where
     cookie' = cookie & fields %~ (Expires inThePast :)
     inThePast = UTCTime (fromGregorian 1970 1 1) 1

@@ -1,6 +1,6 @@
 module X.Auth.Google where
 
-import X.Prelude as P
+import Common.Prelude
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Lens as Aeson
 import qualified Data.ByteString.Lazy  as BL
@@ -10,9 +10,10 @@ import qualified Data.Text.Lazy as TL
 import qualified Network.Wreq as Wreq
 import qualified Network.HTTP.Types as Wai
 
-import qualified DOM
 import qualified HTML
-import X
+import Web
+import Server.API
+import Server.Wai qualified as Wai
 
 -- * Google auth
 
@@ -69,7 +70,7 @@ googleSignout = do
 
 verifyToken id callback = do
   url <- api $ return $ \req -> do
-    bsBody <- liftIO $ getRequestBody req
+    bsBody <- liftIO $ Wai.getRequestBody req
     let kvs = Wai.parseQueryText $ BL.toStrict bsBody
         token = case kvs of
           (_, Just token') : _ -> token'
@@ -78,8 +79,8 @@ verifyToken id callback = do
     let mbtokeninfo = r ^? Wreq.responseBody . Aeson._JSON :: Maybe Tokeninfo
     callback $ mbtokeninfo
 
-  rc <- js ask
-  doSignIn <- lift $ js $ do
+  rc <- ask
+  doSignIn <- lift $ do
 
     doGoogleSignIn <- let_ Undefined
     onLoad <- newf $ do
@@ -95,12 +96,13 @@ verifyToken id callback = do
           user <- const $ Await $ call1 (googleAuth !. "signIn") prompt
           token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
-          DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
+          -- DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
+          todo
         doGoogleSignIn .= doLogin'
         log "google ready"
 
       const $ call (gapi !. "load") ["auth2", prepareLogin]
-    bare $ DOM.addEventListener (Cast DOM.window) Load onLoad
+    bare $ addEventListener (Cast window) Load onLoad
     return doGoogleSignIn
 
   return doSignIn

@@ -1,10 +1,9 @@
 module X.Widgets where
 
 import Common.Prelude as P
-import Prelude as P ((/))
-import X
 import qualified CSS
 import qualified JS.Lib as JS
+import Web
 
 -- parrallax :: _
 parrallaxContainer bgValue = do
@@ -23,15 +22,15 @@ parrallaxContainer bgValue = do
 
 sticky scrollContainer elemId extraCss = do
   cls <- css $ pure ()
-  cssRule (ssFrom elemId & classes <>~ [static $ coerce cls]) $ do
+  _ <- rule (ssFrom elemId) $ do --  & classes <>~ [static $ coerce cls] todo
     position "fixed"
     CSS.top 0
     zIndex 1
     extraCss
 
-  js $ onLoad $ do
+  onEvent Load window $ do
     doc <- const scrollContainer
-    menuElem <- const $ findBy elemId
+    menuElem <- const $ querySelector (jsIdName elemId) document
     initialTop <- const $ menuElem !. "offsetTop"
     is <- const $ lit False
     f <- newf $ do
@@ -39,33 +38,33 @@ sticky scrollContainer elemId extraCss = do
           should = top .> initialTop
       ifelse should
         (ifonly (JS.not is) $ do
-            bare $ menuElem!. "classList" !// "add" $ lit $ static $ coerce cls
+            addClass (jsClassName cls) menuElem
             is .= lit True
         )
         (ifonly is $ do
-            bare $ menuElem!. "classList" !// "remove" $ lit $ static $ coerce cls
+            addClass (jsClassName cls) menuElem
             is .= lit False
         )
     bare $ addEventListener (Cast window) Scroll f
 
 -- | Fading background images
 
-faidingImages li image ft = keyframes $ do
-  foldM_ f 0 $ let
-    li' = cycle li
-    in take n $ zip li' (tail li')
-  where
-    kf a b = keyframe a b
-    opacity _ = pure ()
-    f prc (url, next) = do
-      kf prc $ do
-        background url
-        backgroundSize "cover"
-        opacity 1
-      kf (prc + imgP) $ do
-        background url
-        backgroundSize "cover"
-        opacity 1
+-- faidingImages li image ft = keyframes $ do
+--   foldM_ f 0 $ let
+--     li' = cycle li
+--     in take n $ zip li' (tail li')
+--   where
+--     kf a b = keyframe a b
+--     opacity _ = pure ()
+--     f prc (url, next) = do
+--       kf prc $ do
+--         background url
+--         backgroundSize "cover"
+--         opacity 1
+--       kf (prc + imgP) $ do
+--         background url
+--         backgroundSize "cover"
+--         opacity 1
       -- kf (prc + imgP + fadeHalfP) $ do
       --   background url
       --   backgroundSize "cover"
@@ -78,16 +77,16 @@ faidingImages li image ft = keyframes $ do
       --   background next
       --   backgroundSize "cover"
       --   opacity 0
-      kf (prc + imgP + fadeHalfP + fadeHalfP) $ do
-        background next
-        backgroundSize "cover"
-        opacity 1
+    --   kf (prc + imgP + fadeHalfP + fadeHalfP) $ do
+    --     background next
+    --     backgroundSize "cover"
+    --     opacity 1
 
-      pure (prc + imgP + fadeHalfP + fadeHalfP)
+    --   pure (prc + imgP + fadeHalfP + fadeHalfP)
 
-    fade = ft * 2
-    period = image + fade
-    n = P.length li
-    periodP = 100.0 P./ fromIntegral n
-    imgP = periodP * (image P./ period)
-    fadeHalfP = periodP * (ft P./ period)
+    -- fade = ft * 2
+    -- period = image + fade
+    -- n = P.length li
+    -- periodP = 100.0 P./ fromIntegral n
+    -- imgP = periodP * (image P./ period)
+    -- fadeHalfP = periodP * (ft P./ period)

@@ -99,4 +99,4 @@ nGet = fn $ \(_ :: Expr [Node]) -> do
 createToHtml :: forall a o g i. Template a o g i -> Expr a -> Html
 createToHtml template o = let
   ctx = template^.create $ o :: Expr (Context a)
-  in dyn $ X.Template.Common.fragment ctx
+  in dyn $ Template.Common.fragment ctx

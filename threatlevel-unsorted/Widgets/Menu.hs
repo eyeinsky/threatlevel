@@ -1,11 +1,11 @@
-module X.Widgets.Menu where
+module Widgets.Menu where
 
 import Common.Prelude
 import Control.Monad.Writer
 import Web.DSL.Helpers
-import HTML hiding (for)
+import HTML qualified
 import CSS
-import Web.Lib.HTML_URL
+import Web
 
 -- * DSL
 
@@ -38,7 +38,7 @@ dropdown tr = do
   rule parent lbs
   rule HTML.a lbs
 
-  dropdown <- styleds ul $ do
+  dropdown <- styled ul $ do
     position "absolute"
     display "none"
     listStyle "none"
@@ -63,7 +63,7 @@ dropdown tr = do
           id <- cssId $ pure ()
           return $ li $ do
             checkbox ! hidden ! id
-            label ! parent ! for id $ label'
+            label ! parent {- ! for id -} $ label'
             dropdown subHtml
         Leaf html -> return $ li $ html
   go tr <&> menu

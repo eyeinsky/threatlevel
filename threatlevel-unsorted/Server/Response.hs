@@ -1,7 +1,7 @@
 module Server.Response where
 
 import qualified Prelude as P
-import X.Prelude
+import Common.Prelude
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as BS
 import qualified Data.Text.Lazy as TL
@@ -9,21 +9,33 @@ import qualified Network.HTTP.Types as WT
 import qualified Network.Wai as Wai
 import qualified Data.Aeson as Aeson
 import qualified Data.Text.Lazy.Lens as LL
+import qualified Data.Text.Strict.Lens as SL
 
-import qualified HTTP.Header as Hdr
+import Network.HTTP.Types
 import HTTP.Response
-import qualified JS
-import qualified JS.Syntax
+-- import qualified JS
+-- import qualified JS.Syntax
 import qualified HTML
 import Render
 import URL
 
+import HTML (Html, Document(Document))
+
 import qualified Network.WebSockets as WS
 
 
+docBody = undefined
+
+utf8text :: BS.ByteString -> Header
+utf8text what = (hContentType, ("text/"<>what<>"; charset=UTF-8"))
+
+ctJson :: Header
+ctJson = (hContentType, "application/json; charset=UTF-8")
+
+
 data AnyResponse where
-  HtmlDocument :: HTML.Document -> AnyResponse
-  JS :: JS.Syntax.Conf -> JS.M r a -> AnyResponse
+  HtmlDocument :: Document -> AnyResponse
+--  JS :: JS.Syntax.Conf -> JS.M r a -> AnyResponse
   JSON :: Aeson.ToJSON a => a -> AnyResponse
   Raw :: BL.ByteString -> AnyResponse
 
@@ -34,11 +46,11 @@ declareFields [d|
   data Response
     = Response
       { responseCode :: WT.Status
-      , responseHeaders :: [Hdr.Header]
+      , responseHeaders :: [Header]
       , responseBody :: AnyResponse
       }
     | WebSocket WS.ServerApp
-    | File WT.Status [Hdr.Header] FilePath (Maybe Wai.FilePart)
+    | File WT.Status [Header] FilePath (Maybe Wai.FilePart)
   |]
 
 instance ToRaw Response where
@@ -46,20 +58,19 @@ instance ToRaw Response where
     Response status origHeaders anyResponse -> httpResponse status (origHeaders <> headers) bl
       where
         (headers, bl) = case anyResponse of
-          HtmlDocument (HTML.Document h b) -> ([Hdr.utf8text "html"], tl^.re LL.utf8)
+          HtmlDocument (Document html') -> ([utf8text "html"], tl^.re LL.utf8)
             where
-              html' = HTML.html (HTML.head h >> b)
               tl = "<!DOCTYPE html>" <> render () html'
-          JS conf mcode -> let
-            ((_, code),_) = JS.runEmpty conf mcode
-            in ([Hdr.javascript], render conf code^.re LL.utf8)
-          JSON a -> ([Hdr.json], Aeson.encode a)
+          -- JS conf mcode -> let
+          --   ((_, code),_) = JS.runEmpty conf mcode
+          --   in ([Hdr.javascript], render conf code^.re LL.utf8)
+          JSON a -> ([ctJson], Aeson.encode a)
           Raw b -> ([], b)
 
     WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
     -- ^ fix: Figure out a better solution
 
-    File status headers path maybePartInfo -> Wai.responseFile status (map Hdr.toWai headers) path maybePartInfo
+    File status headers path maybePartInfo -> Wai.responseFile status headers path maybePartInfo
 
 -- * Helpers
 
@@ -67,48 +78,55 @@ instance ToRaw Response where
 resp200 :: AnyResponse -> Response
 resp200 = Response (toEnum 200) []
 
-htmlDoc head body = resp200 $ HtmlDocument (HTML.Document head body)
-page html = resp200 $ HtmlDocument $ HTML.docBody $ html
+htmlDoc :: Html -> Html -> Response
+htmlDoc head body = resp200 $ HtmlDocument (Document $ HTML.html $ head >> body)
 
+page :: Html -> Response
+page html = resp200 $ HtmlDocument $ Document html
+
+renderedPage :: BL.ByteString -> Response
 renderedPage = resp200 . Raw
 
 text :: TL.Text -> Response
 text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
-  where hs = [Hdr.utf8text "plain"]
+  where hs = [utf8text "plain"]
 
+json :: Aeson.ToJSON a => a -> Response
 json a = resp200 $ JSON a
 
 error :: WT.Status -> TL.Text -> Response
-error code message = rawText code [Hdr.header Hdr.ContentType "text/plain"] message
+error code message = rawText code [(hContentType, "text/plain")] message
 
 redirect :: URL -> Response
 redirect url = redirectRaw $ renderURL url
 
 redirectRaw :: TL.Text -> Response
-redirectRaw url = rawText (toEnum 303) [Hdr.header Hdr.Location url] ""
+redirectRaw url = rawText (toEnum 303) [th hLocation url] ""
 
-redirect' code url = rawText (toEnum code) headers ""
-  where headers = [Hdr.header Hdr.Location $ renderURL url]
+redirect' :: Int -> URL -> Response
+redirect' code url = rawText (toEnum code) [th hLocation $ renderURL url] ""
 
-redirectRaw' code url = rawText (toEnum code) [Hdr.header Hdr.Location url] ""
+redirectRaw' :: Int -> BS.ByteString -> Response
+redirectRaw' code url = rawText (toEnum code) [(hLocation, url)] ""
 
 noRobots :: Response
 noRobots = raw "text/plain"
-  [unindent|
-    User-agent: *
-    Disallow: /
-    |]
+  "User-agent: *\n\
+  \Disallow: / \n"
 
 -- ** Raw
 
-rawBl :: WT.Status -> [Hdr.Header] -> BL.ByteString -> Response
+rawBl :: WT.Status -> [Header] -> BL.ByteString -> Response
 rawBl status headers bl = Response status headers $ Raw bl
 
-rawBS :: WT.Status -> [Hdr.Header] -> BS.ByteString -> Response
+rawBS :: WT.Status -> [Header] -> BS.ByteString -> Response
 rawBS status headers bl = Response status headers $ Raw (bl^.from strict)
 
-rawText :: WT.Status -> [Hdr.Header] -> Text -> Response
+rawText :: WT.Status -> [Header] -> Text -> Response
 rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
 
 raw :: Text -> Text -> Response
-raw headers text = Response (toEnum 200) [Hdr.header Hdr.ContentType headers] $ Raw (text^.re LL.utf8)
+raw header text = Response (toEnum 200) [th hContentType header] $ Raw (text^.re LL.utf8)
+
+th :: HeaderName -> TL.Text -> Header
+th name textValue = (name, textValue^.strict.re SL.utf8)

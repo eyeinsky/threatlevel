@@ -8,15 +8,17 @@ import qualified Network.Wai.Handler.WebSockets as WS
 import qualified Network.WebSockets as WS
 import Network.Wai as Wai
 
-import qualified Web.Monad as WM
-import qualified HTTP.Response as HR
-import qualified Server.Response as WR
-import qualified Server.API as API
+import CSS qualified
+import JS qualified
+import Web.DSL qualified as WM
+import HTTP.Response qualified as HR
+import Server.Response qualified as WR
+import Server.API qualified as API
 import URL
 
 type SiteTypePrim r a
-   = WM.Conf
-  -> WM.State
+   = WM.Reader_
+  -> WM.State_
   -> URL
   -> Warp.Settings
   -> r
@@ -25,8 +27,8 @@ type SiteTypePrim r a
 
 type SiteType r a
   = (API.Confy r)
-  => WM.Conf
-  -> WM.State
+  => WM.Reader_
+  -> WM.State_
   -> URL
   -> Warp.Settings
   -> r
@@ -64,4 +66,4 @@ type SiteType' r a
   -> a
 
 siteMain :: Maybe Warp.TLSSettings -> SiteType' r (IO ())
-siteMain maybeTls = siteMain' maybeTls def def
+siteMain maybeTls = siteMain' maybeTls (WM.hostSelector, JS.Indent 2) (CSS.identifiers, def)
