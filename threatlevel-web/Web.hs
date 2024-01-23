@@ -42,6 +42,7 @@ import Web.Lib.HTML_URL as Export hiding (for)
 import Web.Lib.URL_CSS as Export
 import Web.Lib.JS_HTML as Export () -- it only contains instances
 import Web.Lib.HTML as Export
+import Web.Lib.JS_CSS as Export
 
 import HTML as Export hiding
   ( src -- Web.Lib.HTML_URL
