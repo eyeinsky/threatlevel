@@ -93,7 +93,7 @@ hoverChildren = css $ do
 makeHover rules = do
   children <- hoverChildren
   tree <- hoverTree children
-  rule children $ do
+  _ <- rule children $ do
     rules
   pure (tree, children)
 

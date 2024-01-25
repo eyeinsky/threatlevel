@@ -11,8 +11,6 @@ import Network.Wai as Wai
 import CSS qualified
 import JS qualified
 import Web.DSL qualified as WM
-import HTTP.Response qualified as HR
-import Server.Response qualified as WR
 import Server.API qualified as API
 import URL
 
@@ -39,19 +37,19 @@ siteMain' :: Maybe Warp.TLSSettings -> SiteType r (IO ())
 siteMain' maybeTls mc ms siteRoot settings env site = do
   handler <- API.toHandler mc ms siteRoot env site
   let handler' req respond = do
-        r :: Maybe WR.Response <- handler req
+        r :: Maybe API.Response <- handler req
         case r of
           Just r' -> case r' of
-            response@(WR.Response {}) -> respond $ HR.toRaw response
-            WR.WebSocket ws ->
+            response@(API.Response {}) -> respond $ API.toRaw response
+            API.WebSocket ws ->
               WS.websocketsOr WS.defaultConnectionOptions ws
                  (error "This should never happen")
                  req respond
-            file@(WR.File {}) -> respond $ HR.toRaw file
+            file@(API.File {}) -> respond $ API.toRaw file
           _ -> do
             print $ "Path not found: " <> show (Wai.pathInfo req)
               <> ", URL: " <> TL.unpack (render' siteRoot)
-            respond $ HR.toRaw $ WR.htmlDoc "" "Page not found"
+            respond $ API.toRaw $ API.htmlDoc "" "Page not found"
   case maybeTls of
     Just tls -> Warp.runTLS tls settings handler'
     _ -> Warp.runSettings settings handler'

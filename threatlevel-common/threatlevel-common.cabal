@@ -14,6 +14,7 @@ library
       Common.Prelude
   other-modules:
       Paths_threatlevel_common
+      Common.BasePreludeReExports
   hs-source-dirs: .
   default-extensions:
       DataKinds

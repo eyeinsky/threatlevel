@@ -2,7 +2,7 @@ module JS.BuiltIns.Full
   ( module JS.DSL
   , module JS.Derive
 
-  , module JS.API
+  , module JS.Apis.EventLoop
   , module JS.BuiltIns.JSON
   , module JS.BuiltIns.Date
   , module JS.BuiltIns.String
@@ -16,7 +16,7 @@ module JS.BuiltIns.Full
 import JS.DSL
 import JS.Derive
 
-import JS.API
+import JS.Apis.EventLoop
 
 import JS.BuiltIns.JSON
 import JS.BuiltIns.Date

@@ -12,6 +12,7 @@ import Control.Monad.Writer hiding (Any)
 import Control.Monad.State hiding (State)
 
 import Render
+import Identifiers
 
 import JS.Syntax as Syntax
 import JS.DSL.Core

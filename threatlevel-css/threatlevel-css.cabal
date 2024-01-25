@@ -15,11 +15,12 @@ library
       CSS.Syntax
       CSS.DSL
       CSS
+      CSS.TH.Internal
   other-modules:
       CSS.DSL.Common
       CSS.Syntax.AST
       CSS.Syntax.Render
-      CSS.TH
+      CSS.TH.Generated
   hs-source-dirs: .
   default-extensions:
       DataKinds

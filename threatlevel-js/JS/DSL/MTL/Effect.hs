@@ -3,7 +3,7 @@ module JS.DSL.MTL.Effect
   , module JS.DSL.MTL.Effect
   ) where
 
-import Common.Prelude hiding (next)
+import Common.Prelude
 import JS.Syntax as Syntax
 import JS.DSL.Core
 

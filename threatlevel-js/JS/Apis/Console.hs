@@ -1,4 +1,4 @@
-module JS.Console where
+module JS.Apis.Console where
 
 import Prelude hiding (log)
 import qualified Data.Text as TS

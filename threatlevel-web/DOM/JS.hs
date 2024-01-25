@@ -14,105 +14,10 @@ import XML.Core
 import JS hiding (Raw)
 import qualified JS.BuiltIns.Full as JS
 
-import qualified DOM.Core as D
 import HTML
 import SVG hiding (onload, id)
 
 import Web.Apis.DOM
-
-getAttribute :: Expr b -> Expr a -> Expr c
-getAttribute k e = call1 (e !. "getAttribute") k
-
-setAttribute :: Expr b -> Expr b -> Expr a -> Expr c
-setAttribute k v e = call (e !. "setAttribute") [k, v]
-
-requestAnimationFrame :: Expr a -> Expr b
-requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
-
--- * Finding elements
-
--- | The global find
-class    FindBy a where findBy :: a -> Expr Tag
-instance FindBy D.Id where
-   findBy (D.Id id) = valueSelf id (docCall "getElementById")
-instance FindBy D.Class where
-   findBy (D.Class a) = case a of
-     Static v -> call1 (document !. "getElementsByClassName") (lit v)
-     Dynamic v -> Cast v
-instance FindBy TagName where
-   findBy (TagName a) = valueSelf a (docCall "getElementsByTagName")
-instance FindBy (Expr D.Id) where
-   findBy a = docCall' "getElementById" a
-instance FindBy (Expr D.Class) where
-   findBy a = docCall' "getElementsByClassName" a
-
-instance FindBy (HTML Both) where
-  findBy a
-    | Just id <- P.join maybeId = findBy (D.Id id)
-    | [cls] <- classes_ = findBy cls
-    | _ : _ : _ <- classes_ = error "FindBy (HTML a): more than one class to find by"
-    | [] <- classes_ = error "FindBy (HTML a): no classes to find by"
-    where
-      maybeId = a ^? _Element._2.id_
-      classes_ = a ^. _Element._2.classes.P.to (map D.Class) :: [D.Class]
-
-instance FindBy Html where
-   findBy a = case execWriter a of
-     e : _ -> findBy e
-     _ -> error "FindBy Html: no html to find by"
-instance FindBy (Html -> Html) where
-  findBy a = case execWriter $ a $ pure () of
-    e : _ -> findBy e
-    _ -> error "FindBy (Html -> Html): no html to find by"
-
-valueSelf :: D.Value -> (TS.Text -> Expr b) -> Expr b
-valueSelf v f = case v of
-  Static a -> f a
-  Dynamic a -> Cast a
-
-docCall' :: TS.Text -> Expr b -> Expr c
-docCall' f a = call1 (document !. f) a
-
-docCall :: ToExpr a => TS.Text -> a -> Expr c
-docCall f a = docCall' f (lit a)
-
--- * Modify DOM
-
-timeStamp :: Expr a -> Expr b
-timeStamp e = e !. "timeStamp"
-
--- *** Text input
-
-cursorPosition :: JS m => Expr a1 -> m (Expr a2)
-cursorPosition e = do
-      start <- let_ $ e !. "selectionStart"
-      end <- const $ e !. "selectionEnd"
-      let_ $ ternary (start .== end) (Cast start) (Cast Null)
-   {- ^ Get caret position from textarea/input type=text
-
-      IE not implemented, see here for how:
-         http://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates
-
-   -}
-
--- ** DOM/Event
-
--- | Get char from keyboard event
-eventKey :: JS m => Expr a1 -> m ()
-eventKey event = do -- from: http://unixpapa.com/js/key.html
-   return_ $ let
-         which = event !. "which" -- :: Expr J.Number
-         from arg = call (ex "String" !. "fromCharCode") [ arg ]
-         -- from which or keyCode
-      in ternary (which .== ex "null")
-      (from $ event !. "keyCode" ) -- old IE
-      (ternary
-         (  (which .!= lit 0)
-        .&& event !. "charCode" .!= lit 0
-        ) (from which {-all others-}) Null)
-
-alert :: Expr a -> Expr b
-alert x = call1 (ex "alert") x
 
 -- * RenderJSM instances
 
@@ -159,7 +64,7 @@ createHtmls m = do
     bare $ appendChild e (Cast f)
   return f
 
--- -- * Svg
+-- * Svg
 
 instance  RenderJSM (XML SVG AttributeSet Both) where
   renderJSM xml = case xml of

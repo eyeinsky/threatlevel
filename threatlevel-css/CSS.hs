@@ -1,9 +1,36 @@
 module CSS
-  ( module CSS
+
+  {-| The CSS package broadly has three kinds of content:
+
+         1. MTL-based DSL, defined within "CSS.DSL"
+
+         1. CSS properties (TH-generated) and combinators for the DSL. These are defined under "CSS" and "CSS.TH"
+
+         1. CSS AST/syntax, defined within "CSS.Syntax"
+
+  Users of the framework will probably want the first two, and use AST
+  types only for corner cases not conveniently covered by the framework.
+
+  CSS AST can also be used to create your own DSL.
+
+  For the AST, there is only a printer available -- no parser.
+
+  -}
+
+  -- * Combinators
+  ( descendant, child, sibling, generalSibling, tagSelector
+
+  -- * Compound properties
+  , centerContent, flexbox, square, circle
+
+  -- * All CSS properties
+  --
+  -- | These are all TH-generated from CSS.TH.Generated.
+  , module CSS.TH.Generated
+
+  -- * Syntax
   , module CSS.Syntax
   , module CSS.DSL
-  , module CSS.TH
---  , keyframes', keyframe
   ) where
 
 import Common.Prelude as P
@@ -12,19 +39,7 @@ import CSS.Syntax hiding
   ( tag, maybeId, pseudos
   )
 import CSS.DSL
-import CSS.TH
-
--- | TH-generate all properties with @prop@
-concat <$> mapM declareCssProperty allProperties
-
--- | TH-generate all pseudo-classes
-$(
-  let leaveOut = (`elem` ["left", "right"]) -- ^ These are also CSS properties
-      predicate = not . either leaveOut leaveOut
-  in concat <$> mapM declarePseudoClass (P.filter predicate pseudoClasses)
- )
--- | TH-generate all pseoudo-elements
-concat <$> mapM declarePseudoElement pseudoElements
+import CSS.TH.Generated
 
 descendant, child, sibling, generalSibling :: forall m a . (CSS m, SimpleSelectorFrom a) => a -> m () -> m ()
 descendant = combinator Descendant
@@ -35,8 +50,6 @@ generalSibling = combinator GeneralSibling
 tagSelector :: TS.Text -> Tag
 tagSelector = Tag
 
--- * Useful styles
-
 centerContent :: Prop m => m ()
 centerContent = do
   display "flex"
@@ -45,9 +58,9 @@ centerContent = do
   alignItems "center"
 
 flexbox :: Prop m => Value -> m ()
-flexbox how = do
+flexbox flow = do
   display "flex"
-  flexFlow how
+  flexFlow flow
 
 square :: Prop m => Value -> m ()
 square n = do

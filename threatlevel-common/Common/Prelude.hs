@@ -1,64 +1,56 @@
 module Common.Prelude
-  ( module Common.Prelude
-  , module Export
+  (
+  -- * Helpers
+    module Common.Prelude
+  -- * Re-exports
+  , module Common.BasePreludeReExports
   ) where
 
-import Prelude as Export
-  hiding ((^), (/), const, rem, div, log, span)
-import Data.Maybe as Export
-import Data.String as Export
-import Control.Monad as Export
-import Data.Functor as Export
-import Data.Foldable as Export
-import Control.Lens as Export hiding
-  ((.=), (.>), Empty, Setter, Getter, Const, Context, transform, assign)
-import Control.Arrow as Export hiding (left, right, app)
-
-import Data.Proxy as Export
-import Data.Void as Export
-import Data.List.Fixed as Export
-import Data.Default as Export
-import Data.Kind as Export
-import Data.Coerce as Export
-import Identifiers as Export hiding (Element)
+import Common.BasePreludeReExports
 
 import Data.Text qualified as TS
 import Data.Text.Lazy qualified as TL
 import Data.Char
 import Data.List
+import Debug.Trace
 
-import Debug.Trace as Export
-
-
+-- | Flipped @(.)@
 infixr 9 ^
 (^) :: (a -> b) -> (b -> c) -> a -> c
 (^) = flip (.)
 
+-- | Placeholder that is easy to grep. Equals @undefined@.
 todo :: a
 todo = undefined
 
+-- | Same as above but fails with a message.
 todoMsg :: String -> a
 todoMsg msg = trace msg (error msg)
 
--- Data.Bool
+-- | Ternary operator, e.g @bool ? true $ false@.
 infix 1 ?
 (?) :: Bool -> p -> p -> p
 (?) bool = if bool then (\a _ -> a) else (\_ a -> a)
 
+-- | @if@ which takes t'Bool' as last argument.
 bool :: a -> a -> Bool -> a
 bool f t b = if b then t else f
 
--- Control.Monad
+-- * Control.Monad
+
+-- | @>>=@ with @$@ fixity.
 (>>=$) :: Monad m => m a -> (a -> m b) -> m b
 infixr 0 >>=$
 (>>=$) = (>>=)
 
+-- | @=<<@ with @$@ fixity.
 (=<<$) :: Monad m => (a -> m b) -> m a -> m b
 infixr 0 =<<$
 (=<<$) = (=<<)
 
--- * String, Text, Text.Lazy
+-- * String and Text
 
+-- | Convert kebab-case to camelCase
 kebab2camel :: String -> String
 kebab2camel xs = case xs of
   '-' : x' : xs'
@@ -71,8 +63,7 @@ kebab2camel xs = case xs of
     err :: a
     err = error "Common.Prelude.kebab2camel: This shouldn't ever happen"
 
--- * Data.Text
-
+-- | Convert lazy t'Text' from kebab-case to camelCase
 tlKebab2camel :: TL.Text -> TL.Text
 tlKebab2camel t = case TL.splitOn "-" t of
   x : xs -> TL.concat $ x : map capitalise xs
@@ -81,12 +72,13 @@ tlKebab2camel t = case TL.splitOn "-" t of
     capitalise t = let (a, b) = TL.splitAt 1 t
        in TL.toUpper a <> b
 
--- | Convert strict text kebab-case to camelCase
+-- | Convert strict t'Text' from kebab-case to camelCase
 tsKebab2camel :: TS.Text -> TS.Text
 tsKebab2camel k = TL.toStrict $ tlKebab2camel $ TL.fromStrict k
 
 -- * Data.List
 
+-- | Split list by delimiter
 split :: Eq a => [a] -> [a] -> [[a]] -- from MissingH
 split _ [] = []
 split delim str = let

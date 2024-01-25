@@ -30,17 +30,17 @@ makeFields ''Template
 type Template' a = Template a (Out a) (Get a) (Init a)
 
 class GetTemplate t where
-  type In t :: *
+  type In t :: Type
   type In t = ()
 
   -- | Anything the template needs to pass to outer context.
-  type Out t :: *
+  type Out t :: Type
   type Out t = ()
 
-  type Get t :: *
+  type Get t :: Type
   type Get t = t
 
-  type Init t :: *
+  type Init t :: Type
   type Init t = ()
 
   getTemplate

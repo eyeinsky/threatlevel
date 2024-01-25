@@ -33,8 +33,6 @@ library
   import: lang
   exposed-modules:
     CSP
-    HTTP.Response
-    Server.Response
     Server.Wai
     Server.Sessions
     Server.WebSocket
@@ -72,6 +70,7 @@ library
     , hashable
     , http-client
     , http-types
+    , identifiers
     , lens
     , lens-aeson
     , memory

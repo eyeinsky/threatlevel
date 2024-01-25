@@ -2,6 +2,7 @@ module JS.Syntax.Reserved where
 
 import Common.Prelude
 import Data.Text
+import Identifiers
 
 -- * Reserved by ECMA
 

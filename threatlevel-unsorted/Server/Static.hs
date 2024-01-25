@@ -1,31 +1,28 @@
 module Server.Static where
 
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text as TS
-import qualified Data.Text.Strict.Lens as TS
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Lens as TL
-import qualified Data.Text.Lazy.Encoding as TL
-import qualified Network.Mime as Mime
-import qualified Network.HTTP.Types as Wai
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BL
+import Data.Text qualified as TS
+import Data.Text.Strict.Lens qualified as TS
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Lens qualified as TL
+import Network.Mime qualified as Mime
+import Network.HTTP.Types qualified as Wai
 import System.IO as IO
 import Control.Exception
 import System.Process as IO
 import Language.Haskell.TH
 import Data.FileEmbed
 
-import qualified HTTP.Response as HR
-import Server.Response as R
 import Server.API
 
 import Web
-import Network.Wai
+import Network.Wai hiding (Response)
 import Common.Prelude as P
 
 -- ** File
 
-diskFile :: MonadIO m => FilePath -> m (Either IOException R.Response)
+diskFile :: MonadIO m => FilePath -> m (Either IOException Response)
 diskFile path = do
   either <- liftIO $ try $ BL.readFile path
   return $ rawBl (toEnum 200) [pathContentType path] <$> either
@@ -38,14 +35,14 @@ embeddedFile path = let
     ct = path^.from lazy.to Mime.defaultMimeLookup.TS.utf8.from TS.packed & stringE
   in [| let header = (Wai.hContentType, $ct)
         in rawBS 200 [header] $(embedFile filePath)
-           :: R.Response|]
+           :: Response|]
 
 -- | Serve source-embedded files by their paths. Note that for dev
 -- purposes the re-embedding of files might take too much time.
 statics' (pairs :: [(FilePath, BS.ByteString)]) = forM pairs $ \(path, bs) -> let
   mime = path^.TS.packed.to Mime.defaultMimeLookup
   headers = [(Wai.hContentType, mime)]
-  response = R.rawBl (toEnum 200) headers (bs^.from strict)
+  response = rawBl (toEnum 200) headers (bs^.from strict)
   path' = TS.pack path
   in (path,) <$> (pin path' $ staticResponse response)
 

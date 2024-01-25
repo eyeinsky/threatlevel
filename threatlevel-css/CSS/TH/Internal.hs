@@ -1,5 +1,5 @@
-module CSS.TH
-  ( module CSS.TH
+module CSS.TH.Internal
+  ( module CSS.TH.Internal
   , prop
   ) where
 

@@ -2,8 +2,8 @@ module CSS.DSL.Common where
 
 import Common.Prelude
 import qualified Data.Text as TS
+import Identifiers
 import CSS.Syntax
-
 
 type Names = Infinite TS.Text
 

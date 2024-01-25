@@ -10,7 +10,7 @@ module JS.DSL.MTL
   ) where
 
 import qualified Prelude as P
-import Common.Prelude as P hiding (break, next)
+import Common.Prelude as P hiding (break)
 import qualified Data.Text as TS
 
 import Data.Either

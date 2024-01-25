@@ -1,28 +1,165 @@
 module Server.API where
 
-import Common.Prelude hiding (next)
-import Control.Monad.Reader
+import Common.Prelude as P
+import Control.Monad.Error.Class
 import Control.Monad.RWS
 import Control.Monad.Trans.Except
-import Control.Monad.Error.Class
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BL
 import Data.Text qualified as TS
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Lens qualified as LL
+import Data.Text.Strict.Lens qualified as SL
 
-import URL qualified
-import URL (URL, Segment)
-import Web.DSL qualified as W
-import HTML qualified
--- import Render
--- import Identifiers (identifierSource)
-
-import Server.Response qualified as Re
+import Blaze.ByteString.Builder qualified as BBB
+import Data.Aeson qualified as Aeson
+import Network.HTTP.Types qualified as Wai
 import Network.Wai qualified as Wai
+import Network.Wai.Handler.WebSockets qualified as WS
+import Network.Wai.Internal qualified as Wai
+import Network.WebSockets qualified as WS
+import Text.Boomerang hiding ((.~))
+import Text.Boomerang.Texts
+import Text.Boomerang.Texts qualified as B
+
+import HTML qualified
+import Render
+import URL
+import HTML (Html, Document(Document))
+import Web.DSL qualified as W
+import Identifiers (identifierSource)
 import Trie qualified as Tr
 
-import Text.Boomerang.Texts
-import Text.Boomerang hiding ((.~))
-import qualified Text.Boomerang.Texts as B
-import Network.WebSockets qualified as WS
-import Network.Wai.Handler.WebSockets qualified as WS
+docBody = undefined
+
+utf8text :: BS.ByteString -> Wai.Header
+utf8text what = (Wai.hContentType, ("text/"<>what<>"; charset=UTF-8"))
+
+ctJson :: Wai.Header
+ctJson = (Wai.hContentType, "application/json; charset=UTF-8")
+
+
+data AnyResponse where
+  HtmlDocument :: Document -> AnyResponse
+--  JS :: JS.Syntax.Conf -> JS.M r a -> AnyResponse
+  JSON :: Aeson.ToJSON a => a -> AnyResponse
+  Raw :: BL.ByteString -> AnyResponse
+
+instance Show AnyResponse where
+  show _ = "AnyResponse"
+
+declareFields [d|
+  data Response
+    = Response
+      { responseCode :: Wai.Status
+      , responseHeaders :: [Wai.Header]
+      , responseBody :: AnyResponse
+      }
+    | WebSocket WS.ServerApp
+    | File Wai.Status [Wai.Header] FilePath (Maybe Wai.FilePart)
+  |]
+
+instance ToRaw Response where
+  toRaw r = case r of
+    Response status origHeaders anyResponse -> httpResponse status (origHeaders <> headers) bl
+      where
+        (headers, bl) = case anyResponse of
+          HtmlDocument (Document html') -> ([utf8text "html"], tl^.re LL.utf8)
+            where
+              tl = "<!DOCTYPE html>" <> render () html'
+          -- JS conf mcode -> let
+          --   ((_, code),_) = JS.runEmpty conf mcode
+          --   in ([Hdr.javascript], render conf code^.re LL.utf8)
+          JSON a -> ([ctJson], Aeson.encode a)
+          Raw b -> ([], b)
+
+    WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
+    -- ^ fix: Figure out a better solution
+
+    File status headers path maybePartInfo -> Wai.responseFile status headers path maybePartInfo
+
+-- * Helpers
+
+-- | Successful response with empty headers
+resp200 :: AnyResponse -> Response
+resp200 = Response (toEnum 200) []
+
+htmlDoc :: Html -> Html -> Response
+htmlDoc head body = resp200 $ HtmlDocument (Document $ HTML.html $ head >> body)
+
+page :: Html -> Response
+page html = resp200 $ HtmlDocument $ Document html
+
+renderedPage :: BL.ByteString -> Response
+renderedPage = resp200 . Raw
+
+text :: TL.Text -> Response
+text text = Response (toEnum 200) hs $ Raw (text^.re LL.utf8)
+  where hs = [utf8text "plain"]
+
+json :: Aeson.ToJSON a => a -> Response
+json a = resp200 $ JSON a
+
+httpError :: Wai.Status -> TL.Text -> Response
+httpError code message = rawText code [(Wai.hContentType, "text/plain")] message
+
+redirect :: URL -> Response
+redirect url = redirectRaw $ renderURL url
+
+redirectRaw :: TL.Text -> Response
+redirectRaw url = rawText (toEnum 303) [th Wai.hLocation url] ""
+
+redirect' :: Int -> URL -> Response
+redirect' code url = rawText (toEnum code) [th Wai.hLocation $ renderURL url] ""
+
+redirectRaw' :: Int -> BS.ByteString -> Response
+redirectRaw' code url = rawText (toEnum code) [(Wai.hLocation, url)] ""
+
+noRobots :: Response
+noRobots = raw "text/plain"
+  "User-agent: *\n\
+  \Disallow: / \n"
+
+-- ** Raw
+
+rawBl :: Wai.Status -> [Wai.Header] -> BL.ByteString -> Response
+rawBl status headers bl = Response status headers $ Raw bl
+
+rawBS :: Wai.Status -> [Wai.Header] -> BS.ByteString -> Response
+rawBS status headers bl = Response status headers $ Raw (bl^.from strict)
+
+rawText :: Wai.Status -> [Wai.Header] -> Text -> Response
+rawText status headers text = Response status headers $ Raw (text^.re LL.utf8)
+
+raw :: Text -> Text -> Response
+raw header text = Response (toEnum 200) [th Wai.hContentType header] $ Raw (text^.re LL.utf8)
+
+th :: Wai.HeaderName -> TL.Text -> Wai.Header
+th name textValue = (name, textValue^.strict.re SL.utf8)
+
+
+type Raw = Wai.Response
+
+class ToRaw a where
+  toRaw :: a -> Raw
+
+instance ToRaw Raw where
+  toRaw = id
+
+httpResponse :: Wai.Status -> [Wai.Header] -> BL.ByteString -> Wai.Response
+httpResponse status headers body = Wai.responseBuilder status headers (BBB.fromLazyByteString body)
+
+-- * Helpers
+
+waiAddHeaders :: Wai.ResponseHeaders -> Wai.Response -> Wai.Response
+waiAddHeaders hs r = case r of
+   Wai.ResponseBuilder st hdrs builder -> Wai.ResponseBuilder st (hs <> hdrs) builder
+   Wai.ResponseFile st hdrs path mFilePart -> Wai.ResponseFile st (hs <> hdrs) path mFilePart
+   Wai.ResponseStream _ _ _ -> todo
+   Wai.ResponseRaw _ _ -> todo
+
+cacheForever :: Wai.Header
+cacheForever = (Wai.hCacheControl, "max-age=31536000, public, immutable")
 
 -- * Inner
 
@@ -37,7 +174,7 @@ runM r r' s m = m
 -- * Endpoint
 
 type InT' r a = RWST URL (Writer r) State (M IO r) a
-type EHandler r = Wai.Request -> M IO r Re.Response
+type EHandler r = Wai.Request -> M IO r Response
 type InT r = InT' r (EHandler r)
 data T r where T :: InT r -> T r
 data State = State [Segment] (Maybe WS.ServerApp)
@@ -87,12 +224,12 @@ handle
   -> r
   -> Wai.Request
   -> HandlerTuple r
-  -> IO Re.Response
+  -> IO Response
 handle mc r req (i_io, js_css_st, js_css_wr, _) = merge <$> res
   where
-    res :: IO (Re.Response, W.State_, W.Writer_)
+    res :: IO (Response, W.State_, W.Writer_)
     res = runM mc r js_css_st (i_io req)
-    merge (Re.Response s h (Re.HtmlDocument doc), _, wr) = Re.Response s h $ Re.HtmlDocument $ collapse (js_css_wr <> wr) doc
+    merge (Response s h (HtmlDocument doc), _, wr) = Response s h $ HtmlDocument $ collapse (js_css_wr <> wr) doc
     merge (other, _, _) = other
 
     collapse :: W.Writer_ -> HTML.Document -> HTML.Document
@@ -113,7 +250,7 @@ type Confy r = (HasDynPath r [URL.Segment])
 toHandler
   :: forall r. Confy r
   => W.Reader_ -> W.State_ -> URL -> r -> T r
-  -> IO (Wai.Request -> IO (Maybe Re.Response))
+  -> IO (Wai.Request -> IO (Maybe Response))
 toHandler mc ms rootUrl conf0 site = do
   app <- build mc ms rootUrl conf0 site
   return $ \req -> let
@@ -128,7 +265,7 @@ toHandler mc ms rootUrl conf0 site = do
     in case runExcept handler' of
       Right (handlerTuple@(_, _, _, ws :: Maybe WS.ServerApp), suffix) ->
         if WS.isWebSocketsReq req
-        then return $ Re.WebSocket <$> ws
+        then return $ WebSocket <$> ws
         else
           let conf = conf0 & dynPath .~ suffix
           in handle mc conf req handlerTuple <&> Just

@@ -21,6 +21,21 @@ window = ex "window"
 location :: Expr Location
 location = window !. "location"
 
+getAttribute :: Expr b -> Expr a -> Expr c
+getAttribute k e = call1 (e !. "getAttribute") k
+
+setAttribute :: Expr b -> Expr b -> Expr a -> Expr c
+setAttribute k v e = call (e !. "setAttribute") [k, v]
+
+requestAnimationFrame :: Expr a -> Expr b
+requestAnimationFrame f = call1 (window !. "requestAnimationFrame") f
+
+timeStamp :: Expr a -> Expr b
+timeStamp e = e !. "timeStamp"
+
+alert :: Expr a -> Expr b
+alert x = call1 (ex "alert") x
+
 -- * Move @element@ content to document fragment
 
 contentToFragment :: JS m => Expr Tag -> m (Expr DocumentFragment)

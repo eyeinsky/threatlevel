@@ -1,15 +1,14 @@
 module X.Cookie where
 
 import Common.Prelude
-import qualified Data.Text as TS
-import qualified Data.Text.Encoding as TS
-import qualified Data.Text.Lazy as TL
+import Data.Text qualified as TS
+-- import Data.Text.Encoding qualified as TS
+import Data.Text.Lazy qualified as TL
 import Data.Time
-import Network.HTTP.Types
+-- import Network.HTTP.Types
 
 import URL (Path, render')
 import ToPayload (ToPayload(..))
-import Server.Response
 
 -- * Abstract cookie
 
@@ -68,14 +67,14 @@ secureCookie k v = cookie k v & fields .~ [Secure, HttpOnly]
 
 -- * Interface to Response
 
-setCookie :: Cookie -> Response -> Response
-setCookie c = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload c)]
+-- setCookie :: Cookie -> Response -> Response
+-- setCookie c = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload c)]
 
-deleteCookie :: Cookie -> Response -> Response
-deleteCookie cookie = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload cookie')]
-  where
-    cookie' = cookie & fields %~ (Expires inThePast :)
-    inThePast = UTCTime (fromGregorian 1970 1 1) 1
+-- deleteCookie :: Cookie -> Response -> Response
+-- deleteCookie cookie = headers <>~ [(hCookie, TS.encodeUtf8 $ TL.toStrict $ toPayload cookie')]
+--   where
+--     cookie' = cookie & fields %~ (Expires inThePast :)
+--     inThePast = UTCTime (fromGregorian 1970 1 1) 1
     {- ^ "Thu, 01-Jan-1970 00:00:01 GMT"
 
        From https://tools.ietf.org/search/rfc6265#section-3.1 (search "Finally,

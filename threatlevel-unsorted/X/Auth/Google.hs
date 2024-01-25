@@ -69,7 +69,7 @@ googleSignout = do
   const $ Await $ call0 (auth2 !. "signOut")
 
 verifyToken id callback = do
-  url <- api $ return $ \req -> do
+  _url <- api $ return $ \req -> do
     bsBody <- liftIO $ Wai.getRequestBody req
     let kvs = Wai.parseQueryText $ BL.toStrict bsBody
         token = case kvs of
@@ -79,7 +79,7 @@ verifyToken id callback = do
     let mbtokeninfo = r ^? Wreq.responseBody . Aeson._JSON :: Maybe Tokeninfo
     callback $ mbtokeninfo
 
-  rc <- ask
+  _rc <- ask
   doSignIn <- lift $ do
 
     doGoogleSignIn <- let_ Undefined
@@ -94,7 +94,7 @@ verifyToken id callback = do
         googleAuth <- const $ Await $ call1 (auth2 !. "init") params
         doLogin' <- async $ do
           user <- const $ Await $ call1 (googleAuth !. "signIn") prompt
-          token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
+          _token <- const $ call0 (user !. "getAuthResponse") !. "id_token"
           -- get url ("?id_token=" .+ token) Undefined
           -- DOM.xhrJs rc "POST" (lit $ renderURL url) ("id_token=" + token) []
           todo
