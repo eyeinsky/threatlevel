@@ -1,7 +1,7 @@
 module Web.Apis.Event where
 
 import Common.Prelude
-import JS.Event
+import JS (Event)
 
 instance Event MouseEvent
 instance Event KeyboardEvent

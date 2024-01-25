@@ -29,10 +29,7 @@ library
       JS.BuiltIns.Object
       JS.BuiltIns
       JS.BuiltIns.Full
-      JS.Event
       JS
-      JS.Lib
-      JS.Lib.Sleep
   other-modules:
       JS.BuiltIns.Array
       JS.BuiltIns.Promise

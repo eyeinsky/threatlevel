@@ -12,6 +12,16 @@ import qualified Data.Aeson as A
 
 import JS.Syntax
 
+-- * Event
+
+class Show a => Event a where
+  eventString :: a -> TS.Text
+  eventString a = TS.toLower $ TS.pack $ show a
+
+-- | Make @onevent@ attribute
+toOn :: Event a => a -> TS.Text
+toOn = ("on"<>) . eventString
+
 -- * Expressional keywords
 
 this :: Expr a

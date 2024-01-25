@@ -4,8 +4,7 @@ import qualified Network.Wai.Handler.WarpTLS as Warp
 import Rapid
 
 import Common.Prelude
-import qualified Server.API as API
-import Server.Run
+import Server.API as API
 import Server.Wai
 
 mkHot :: Ord k => k -> IO () -> (IO (), IO ())

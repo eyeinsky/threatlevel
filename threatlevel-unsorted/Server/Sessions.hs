@@ -39,10 +39,5 @@ genId :: IOGenM StdGen -> IO TS.Text
 genId gen = TS.concat . fmap sh <$> replicateM 4 (uniformM gen)
   where sh (bytes :: Word64) = TS.pack $ showHex bytes ""
 
-hot :: IO Id
-hot = do
-  s <- createStore
-  genId $ s^.gen
-
 listTokens :: Store a -> IO [Id]
 listTokens store = readMVar (store^.map) <&> HM.keys

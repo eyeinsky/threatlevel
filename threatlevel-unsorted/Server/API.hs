@@ -7,6 +7,7 @@ import Control.Monad.Trans.Except
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BL
 import Data.Text qualified as TS
+import Data.Text.Encoding qualified as TS
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Lens qualified as LL
 import Data.Text.Strict.Lens qualified as SL
@@ -21,7 +22,9 @@ import Network.WebSockets qualified as WS
 import Text.Boomerang hiding ((.~))
 import Text.Boomerang.Texts
 import Text.Boomerang.Texts qualified as B
+import Data.Time
 
+import Cookie
 import HTML qualified
 import Render
 import URL
@@ -29,6 +32,14 @@ import HTML (Html, Document(Document))
 import Web.DSL qualified as W
 import Identifiers (identifierSource)
 import Trie qualified as Tr
+
+import CSS qualified
+import JS qualified
+import Web.DSL qualified as WM
+-- import Server.API qualified as API
+import Network.Wai.Handler.Warp qualified as Warp
+import qualified Network.Wai.Handler.WarpTLS as Warp
+
 
 docBody = undefined
 
@@ -59,24 +70,24 @@ declareFields [d|
     | File Wai.Status [Wai.Header] FilePath (Maybe Wai.FilePart)
   |]
 
-instance ToRaw Response where
-  toRaw r = case r of
-    Response status origHeaders anyResponse -> httpResponse status (origHeaders <> headers) bl
-      where
-        (headers, bl) = case anyResponse of
-          HtmlDocument (Document html') -> ([utf8text "html"], tl^.re LL.utf8)
-            where
-              tl = "<!DOCTYPE html>" <> render () html'
-          -- JS conf mcode -> let
-          --   ((_, code),_) = JS.runEmpty conf mcode
-          --   in ([Hdr.javascript], render conf code^.re LL.utf8)
-          JSON a -> ([ctJson], Aeson.encode a)
-          Raw b -> ([], b)
+toWai :: Response -> Wai.Response
+toWai = \case
+  Response status origHeaders anyResponse -> httpResponse status (origHeaders <> headers) bl
+    where
+      (headers, bl) = case anyResponse of
+        HtmlDocument (Document html') -> ([utf8text "html"], tl^.re LL.utf8)
+          where
+            tl = "<!DOCTYPE html>" <> render () html'
+        -- JS conf mcode -> let
+        --   ((_, code),_) = JS.runEmpty conf mcode
+        --   in ([Hdr.javascript], render conf code^.re LL.utf8)
+        JSON a -> ([ctJson], Aeson.encode a)
+        Raw b -> ([], b)
 
-    WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
-    -- ^ fix: Figure out a better solution
+  WebSocket _ -> P.error "ToRaw: Response(WebSocket) can't be converted to Raw"
+  -- ^ fix: Figure out a better solution
 
-    File status headers path maybePartInfo -> Wai.responseFile status headers path maybePartInfo
+  File status headers path maybePartInfo -> Wai.responseFile status headers path maybePartInfo
 
 -- * Helpers
 
@@ -120,6 +131,23 @@ noRobots = raw "text/plain"
   "User-agent: *\n\
   \Disallow: / \n"
 
+setCookie :: Cookie -> Response -> Response
+setCookie c = headers <>~ [(Wai.hCookie, TS.encodeUtf8 $ TL.toStrict $ render' c)]
+
+deleteCookie :: Cookie -> Response -> Response
+deleteCookie cookie = headers <>~ [(Wai.hCookie, TS.encodeUtf8 $ TL.toStrict $ render' cookie')]
+  where
+    cookie' = cookie & fields %~ (Expires inThePast :)
+    inThePast = UTCTime (fromGregorian 1970 1 1) 1
+    {- ^ "Thu, 01-Jan-1970 00:00:01 GMT"
+
+       From https://tools.ietf.org/search/rfc6265#section-3.1 (search "Finally,
+       to remove a cookie")
+
+       To remove a cookie, in short:
+       - set Expires to the past
+       - use same path and domain -}
+
 -- ** Raw
 
 rawBl :: Wai.Status -> [Wai.Header] -> BL.ByteString -> Response
@@ -136,15 +164,6 @@ raw header text = Response (toEnum 200) [th Wai.hContentType header] $ Raw (text
 
 th :: Wai.HeaderName -> TL.Text -> Wai.Header
 th name textValue = (name, textValue^.strict.re SL.utf8)
-
-
-type Raw = Wai.Response
-
-class ToRaw a where
-  toRaw :: a -> Raw
-
-instance ToRaw Raw where
-  toRaw = id
 
 httpResponse :: Wai.Status -> [Wai.Header] -> BL.ByteString -> Wai.Response
 httpResponse status headers body = Wai.responseBuilder status headers (BBB.fromLazyByteString body)
@@ -322,3 +341,58 @@ parseDyn parser = asks (view dynPath) <&> parseTexts parser
 
 renderDyn :: Boomerang e [Segment] () (r :- ()) -> r -> URL -> URL
 renderDyn pp dt url = url & URL.segments <>~ fromJust (unparseTexts pp dt)
+
+-- * Site
+
+type SiteTypePrim r a
+   = WM.Reader_
+  -> WM.State_
+  -> URL
+  -> Warp.Settings
+  -> r
+  -> T r
+  -> a
+
+type SiteType r a
+  = (Confy r)
+  => WM.Reader_
+  -> WM.State_
+  -> URL
+  -> Warp.Settings
+  -> r
+  -> T r
+  -> a
+
+siteMain' :: Maybe Warp.TLSSettings -> SiteType r (IO ())
+siteMain' maybeTls mc ms siteRoot settings env site = do
+  handler <- toHandler mc ms siteRoot env site
+  let handler' req respond = do
+        r :: Maybe Response <- handler req
+        case r of
+          Just r' -> case r' of
+            response@(Response {}) -> respond $ toWai response
+            WebSocket ws ->
+              WS.websocketsOr WS.defaultConnectionOptions ws
+                 (error "This should never happen")
+                 req respond
+            file@(File {}) -> respond $ toWai file
+          _ -> do
+            print $ "Path not found: " <> show (Wai.pathInfo req)
+              <> ", URL: " <> TL.unpack (render' siteRoot)
+            respond $ toWai $ htmlDoc "" "Page not found"
+  case maybeTls of
+    Just tls -> Warp.runTLS tls settings handler'
+    _ -> Warp.runSettings settings handler'
+
+
+type SiteType' r a
+  = (Confy r)
+  => URL
+  -> Warp.Settings
+  -> r
+  -> T r
+  -> a
+
+siteMain :: Maybe Warp.TLSSettings -> SiteType' r (IO ())
+siteMain maybeTls siteRootUrl settings env site =
+  siteMain' maybeTls (WM.hostSelector, JS.Indent 2) (CSS.identifiers, def) siteRootUrl settings env site

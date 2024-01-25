@@ -2,7 +2,7 @@ module X.Widgets where
 
 import Common.Prelude as P
 import qualified CSS
-import qualified JS.Lib as JS
+import JS qualified
 import Web
 
 -- parrallax :: _

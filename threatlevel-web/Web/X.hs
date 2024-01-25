@@ -32,7 +32,6 @@ import CSS as Export hiding
   --
   , Minify, execSub
   )
-import JS.Event as Export
 import Web.Apis.Event as Export
 
 import URL as Export
@@ -62,24 +61,6 @@ parseTextTime fmt inp =
   parseTimeM True defaultTimeLocale fmt str
   where
     str = TS.unpack inp
-
--- * JS + CSS
-
-instance ToExpr DOM.Id where
-  lit = coerce @_ @DOM.Value ^ render' ^ lit
-
-instance ToExpr DOM.Class where
-  lit = coerce @_ @DOM.Value ^ render' ^ lit
-
-instance ToExpr SimpleSelector where
-  lit = lit . render CSS.Minify
-
--- | In JS set element's inline style to @declarations@ [api]
-inlineStyle :: JS m => Expr tag -> MonoProp () -> m ()
-inlineStyle element declarations = do
-  forM_ (execMonoProp declarations) $ \(Declaration k v) -> let
-    property = tsKebab2camel k
-    in element !. "style" !. property .= lit (render CSS.Minify v)
 
 -- * JS + HTML + URL
 

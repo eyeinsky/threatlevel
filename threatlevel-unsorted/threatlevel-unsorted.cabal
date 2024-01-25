@@ -36,12 +36,11 @@ library
     Server.Wai
     Server.Sessions
     Server.WebSocket
-    X.Cookie
+    Cookie
     JW.T
     Template
     Template.Common
     Template.V3
-    ToPayload
     Widgets.Menu
     X.Google.Maps
     X.Google.Spreadsheet
@@ -53,7 +52,6 @@ library
     Server.API
     Server.Hot
     X.Auth.Google
-    Server.Run
     Server.Static
   hs-source-dirs: ./
   build-depends:

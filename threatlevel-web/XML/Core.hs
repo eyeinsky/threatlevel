@@ -7,10 +7,9 @@ import Control.Monad.Writer
 
 import Common.Prelude hiding (id)
 import Common.Lens
-import qualified JS
+import JS qualified
 import DOM.Core hiding (Id(..), Class(..))
 import qualified DOM.Core as DOM.Core
-import JS.Event
 import qualified Render
 import CSS qualified
 
@@ -71,7 +70,7 @@ data Attribute where
   Id :: Value -> Attribute
   Data :: TS.Text -> Value -> Attribute
   Boolean :: TS.Text -> Bool -> Attribute
-  On :: Event event => event -> JS.Expr a -> Attribute
+  On :: JS.Event event => event -> JS.Expr a -> Attribute
 
 data AttributeSet = AttributeSet
   { attributeSetId_ :: Maybe Value
@@ -109,7 +108,7 @@ instance Attributable AttributeSet where
     Id v -> a & id_ .~ Just v
     Data k _ -> a & attrs %~ (HM.insert k attr)
     Boolean k _ -> a & attrs %~ (HM.insert k attr)
-    On e _ -> a & attrs %~ (HM.insert (toOn e) attr)
+    On e _ -> a & attrs %~ (HM.insert (JS.toOn e) attr)
 
 instance Attributable (XMLA ns c) where
   (!-) e attr = e & _Element._2 %~ (!- attr)

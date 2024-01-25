@@ -10,7 +10,6 @@ import Control.Monad.Writer
 import Render
 import XML.Core
 import DOM.Core hiding (Id(..), Class(..))
-import JS.Event
 import qualified JS.Syntax
 import qualified JS
 
@@ -19,7 +18,7 @@ instance Render Attribute where
     Custom k v -> eq' k v
     On et handler -> pure $ let
       value = renderJS $ JS.call1 handler $ JS.ex "event"
-      in eq (TL.fromStrict $ toOn et) value
+      in eq (TL.fromStrict $ JS.toOn et) value
     Data k v -> eq' ("data-" <> k) v
     Boolean k v -> if v
       then f k
