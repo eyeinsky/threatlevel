@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-
 module JS.DSL.MTL.Mono
   ( module JS.DSL.MTL.Mono
   , module JS.DSL.MTL.Effect
@@ -52,12 +50,14 @@ type State_ = JS.DSL.Core.State
 type Reader_ = Env
 type Writer_ = Code_
 
-type MonoJS' m = WriterT Writer_ (StateT State_ (ReaderT Reader_ m))
-type MonoJS = MonoJS' Identity
+newtype MonoJST m a = MonoJST (WriterT Writer_ (StateT State_ (ReaderT Reader_ m)) a)
+  deriving newtype (Functor, Applicative, Monad, MonadState State_, MonadWriter Writer_, MonadReader Reader_)
+
+type MonoJS = MonoJST Identity
 type Result' a = (State_, (Writer_, a))
 
-runM :: Reader_ -> State_ -> MonoJS' m a -> m ((a, Writer_), State_)
-runM r s m = m
+runM :: Reader_ -> State_ -> MonoJST m a -> m ((a, Writer_), State_)
+runM r s (MonoJST m) = m
   & runWriterT
   & flip runStateT s
   & flip runReaderT r
