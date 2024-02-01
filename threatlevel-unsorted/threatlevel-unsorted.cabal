@@ -55,7 +55,7 @@ library
     Server.Static
   hs-source-dirs: ./
   build-depends:
-    , aeson
+      aeson
     , base
     , base64-bytestring
     , blaze-builder
