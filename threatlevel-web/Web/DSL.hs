@@ -58,11 +58,11 @@ tellJS t = tell (mempty, t)
 type WebRaw m = RWST Reader_ Writer_ State_ m
 
 newtype WebT m a = WebT (WebRaw m a)
-  deriving newtype (Functor, Applicative, Monad, MonadTrans)
-  deriving (MonadReader (CSS.Reader_, JS.Reader_)) via WebRaw m
-  deriving (MonadState (CSS.State_, JS.State_)) via WebRaw m
-  deriving (MonadWriter (CSS.Writer_, JS.Writer_)) via WebRaw m
-  deriving MonadFix via WebRaw m
+  deriving newtype
+    ( Functor, Applicative, Monad, MonadTrans, MonadFix, MonadIO
+    , MonadReader (CSS.Reader_, JS.Reader_)
+    , MonadState (CSS.State_, JS.State_)
+    , MonadWriter (CSS.Writer_, JS.Writer_))
 
 runRaw :: WebRaw m a -> Reader_ -> State_ -> m (a, State_, Writer_)
 runRaw m r s = runRWST m r s
