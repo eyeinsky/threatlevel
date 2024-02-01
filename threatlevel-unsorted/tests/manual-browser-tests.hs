@@ -17,7 +17,6 @@ import Common.Prelude
 import JS
 import JS.TH
 import JS.Roundtrip
-import URL.TH (url)
 import qualified SVG
 
 import DOM.JS
