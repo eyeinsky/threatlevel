@@ -12,6 +12,17 @@ import Network.Wai.Handler.WarpTLS qualified as Warp
 import Data.Aeson qualified as A
 import Data.Aeson.DeriveNoPrefix qualified as A
 import qualified Blaze.ByteString.Builder as BL
+import System.IO qualified as IO
+import System.Environment qualified as IO
+import Control.Concurrent qualified as IO
+import Control.Monad.State (MonadState)
+
+import Hedgehog qualified
+import Hedgehog.Gen qualified
+import Hedgehog.Range qualified
+import Test.QuickCheck qualified as Q
+import Test.QuickCheck (Arbitrary(arbitrary))
+
 
 import Common.Prelude
 import JS
@@ -24,6 +35,7 @@ import HTML qualified
 import Web
 import Server.Wai qualified as Wai
 import Server.Hot (mkHot)
+import Server.API qualified as API
 
 -- * Helpers
 
@@ -32,20 +44,102 @@ encodeText = TL.decodeUtf8 . A.encode
 
 -- * Scaffold data types
 
-data SingleDC = SingleDC
-  { singleDCInt :: Int
-  , singleDCString :: String
-  } deriving (Eq, Show, Data, Generic)
+data SingleEnum = SingleEnum deriving (Eq, Ord, Show, Generic)
+data MultiEnum = MultiEnumA | MultiEnumB | MultiEnumC deriving (Eq, Ord, Show, Generic, Enum, Bounded)
+data SingleDcOneField = SingleDcOneField { singleDcOneField :: Int } deriving (Eq, Ord, Show, Generic)
+data SingleDcManyFields = SingleDcManyFields
+  { singleDcManyFieldsInt :: Int
+  , singleDcManyFieldsString :: String
+  } deriving (Eq, Show, Ord, Generic)
+data MultiRecordOneField
+  = MultiRecordOneField1 { multiRecordOneField1 :: Int }
+  | MultiRecordOneField2 { multiRecordOneField2 :: Int }
+  | MultiRecordOneField3 { multiRecordOneField3 :: Int }
+  | MultiRecordOneField4 { multiRecordOneField4 :: Int }
+  deriving (Eq, Ord, Show, Generic)
+data MultiRecordManyFields
+  = MultiRecordManyFields1 { multiRecordManyFields1 :: Int }
+  | MultiRecordManyFields2 { multiRecordManyFields21 :: Int, multiRecordManyFields22 :: Int }
+  | MultiRecordManyFields3 { multiRecordManyFields31 :: Int, multiRecordManyFields32 :: Int, multiRecordManyFields33 :: Int }
+  | MultiRecordManyFields4 { multiRecordManyFields41 :: Int, multiRecordManyFields42 :: Int, multiRecordManyFields43 :: Int, multiRecordManyFields44 :: Int }
+  deriving (Eq, Ord, Show, Generic)
+data MultiRecordMixed
+  = MultiRecordMixed1_RecordSingleField { multiRecordMixed_RecordSingleField :: Int }
+  | MultiRecordMixed1_Enum1
+  | MultiRecordMixed1_RecordMultiField { multiRecordMixed_RecordMultiField1 :: Int, multiRecordMixed_RecordMultiField2 :: Int }
+  | MultiRecordMixed1_Enum2
+  deriving (Eq, Ord, Show, Generic)
+data AnyData
+  = AnyData_SingleEnum SingleEnum
+  | AnyData_MultiEnum MultiEnum
+  | AnyData_SingleDcOneField SingleDcOneField
+  | AnyData_SingleDcManyFields SingleDcManyFields
+  | AnyData_MultiRecordOneField MultiRecordOneField
+  | AnyData_MultiRecordManyFields MultiRecordManyFields
+  | AnyData_MultiRecordMixed MultiRecordMixed
+  deriving (Eq, Ord, Show, Generic)
 
-makeFields ''SingleDC
-deriveToExpr ''SingleDC
-A.deriveJsonNoTypeNamePrefix ''SingleDC
+-- ** Arbitrary instances
 
-data MultiDC
-  = First Int  String
-  | Second Double String
+instance Arbitrary SingleEnum where arbitrary = return SingleEnum
+instance Arbitrary MultiEnum where arbitrary = Q.arbitraryBoundedEnum
+instance Arbitrary SingleDcOneField where arbitrary = SingleDcOneField <$> arbitrary
+instance Arbitrary SingleDcManyFields where arbitrary = SingleDcManyFields <$> arbitrary <*> arbitrary
+instance Arbitrary MultiRecordOneField where
+  arbitrary = Q.oneof
+    [ MultiRecordOneField1 <$> arbitrary
+    , MultiRecordOneField2 <$> arbitrary
+    , MultiRecordOneField3 <$> arbitrary
+    , MultiRecordOneField4 <$> arbitrary
+    ]
+instance Arbitrary MultiRecordManyFields where
+  arbitrary = Q.oneof
+    [ MultiRecordManyFields1 <$> arbitrary
+    , MultiRecordManyFields2 <$> arbitrary <*> arbitrary
+    , MultiRecordManyFields3 <$> arbitrary <*> arbitrary <*> arbitrary
+    , MultiRecordManyFields4 <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+    ]
+instance Arbitrary MultiRecordMixed where
+  arbitrary = Q.oneof
+    [ MultiRecordMixed1_RecordSingleField <$> arbitrary
+    , pure MultiRecordMixed1_Enum1
+    , MultiRecordMixed1_RecordMultiField <$> arbitrary <*> arbitrary
+    , pure MultiRecordMixed1_Enum2
+    ]
+instance Arbitrary AnyData where
+  arbitrary = Q.oneof
+    [ AnyData_SingleEnum <$> arbitrary
+    , AnyData_MultiEnum <$> arbitrary
+    , AnyData_SingleDcOneField <$> arbitrary
+    , AnyData_SingleDcManyFields <$> arbitrary
+    , AnyData_MultiRecordOneField <$> arbitrary
+    , AnyData_MultiRecordManyFields <$> arbitrary
+    , AnyData_MultiRecordMixed <$> arbitrary
+    ]
 
-makeClassyPrisms ''MultiDC
+-- ** JSON
+
+instance A.ToJSON SingleEnum
+instance A.ToJSON MultiEnum
+instance A.ToJSON SingleDcOneField
+instance A.ToJSON SingleDcManyFields
+instance A.ToJSON MultiRecordOneField
+instance A.ToJSON MultiRecordManyFields
+instance A.ToJSON MultiRecordMixed
+instance A.ToJSON AnyData
+
+instance A.FromJSON SingleEnum
+instance A.FromJSON MultiEnum
+instance A.FromJSON SingleDcOneField
+instance A.FromJSON SingleDcManyFields
+instance A.FromJSON MultiRecordOneField
+instance A.FromJSON MultiRecordManyFields
+instance A.FromJSON MultiRecordMixed
+instance A.FromJSON AnyData
+
+makeFields ''SingleDcManyFields
+deriveToExpr ''SingleDcManyFields
+-- A.deriveJsonNoTypeNamePrefix ''SingleDcManyFields
 
 -- * Upstream
 
@@ -54,14 +148,30 @@ htmlResponse status headers html = Wai.responseBuilder status headers . addDocty
   where
     addDoctype = ("<!doctype html>" <>)
 
+-- * Test scaffolding
+
+warpSettings :: IO (Maybe Warp.TLSSettings, Warp.Settings)
+warpSettings = do
+  IO.hSetBuffering IO.stdout IO.LineBuffering
+  maybeTls <- Wai.tlsSettingsEnv "DEV_WEBSERVER_CERT" "DEV_WEBSERVER_KEY"
+  let settings = Warp.setPort 8087 Warp.defaultSettings
+  mapM_ print [("port", show 8087), ("TLS", show $ isJust maybeTls)]
+  return (maybeTls, settings)
+
 -- | Run @Web Html@ in warp, with TLS from environment (DEV_WEBSERVER_CERT DEV_WEBSERVER_KEY) if available.
 runWarpWeb :: Web Html -> IO ()
 runWarpWeb web = do
-  maybeTls <- Wai.tlsSettingsEnv "DEV_WEBSERVER_CERT" "DEV_WEBSERVER_KEY"
-  maybe (putStrLn "No TLS") (\_ -> putStrLn "TLS") maybeTls
-  let settings = Warp.setPort 8087 Warp.defaultSettings
+  (maybeTls, settings) <- warpSettings
   Wai.runWarp maybeTls settings $ \_req respond -> do
     respond $ htmlResponse (toEnum 2000) [] $ htmlDoc mempty web
+
+runWarpApi :: API.T [Segment] -> IO ()
+runWarpApi t = do
+  (maybeTls, settings) <- warpSettings
+  let siteBaseUrl = [url|https://localhost.yay:8087|] :: URL
+  API.siteMain maybeTls siteBaseUrl settings [] t
+
+instance API.HasDynPath [Segment] [Segment] where
 
 -- * Main
 
@@ -69,58 +179,67 @@ hot, stop_ :: IO ()
 (hot, stop_) = mkHot "webserver" main
 
 main :: IO ()
-main = runWarpWeb tryCatchSyntax
+main = runWarpApi jsonRoundtripTest
 
-roundtrip :: Web Html
-roundtrip = do
-  f <- newf $ \(event :: Expr MouseEvent) -> log event
-  c <- css $ pure ()
-  dest <- cssId $ pure ()
-  code' <- styleds code $ do
-    padding $ rem 0.2 <> rem 0.3
-    borderRadius $ rem 0.2
-    backgroundColor "black"
-    color "white"
-  addLi <- newf $ \(label' :: Expr String) (what :: Expr String) -> do
-    fragment <- createHtmls $ tr $ do
-      td $ dyn label'
-      td $ code' $ dyn what
-    bare $ querySelector dest document !// "append" $ fragment
+-- * Roundtrip
 
-  onEvent Load window $ do
-    let
-      lodash = ex "_"
+jsonRoundtripTest :: API.T [Segment]
+jsonRoundtripTest = API.T $ do
+  mvar :: IO.MVar AnyData <- liftIO $ IO.newEmptyMVar
 
-      singleDCInt = 123
-      singleDCString = "456"
-      singleDC = SingleDC {singleDCInt, singleDCString} :: SingleDC
-      lit_singleDC = lit singleDC
-      encode_singleDC = fromJSON $ lit $ encodeText singleDC
+  compare <- API.pin "json-compare" $ return $ \_req -> do
+    A.eitherDecode <$> liftIO (Wai.getRequestBody _req) >>= \case
+      Left err -> do
+        liftIO $ putStrLn err
+        return $ API.json False
+      Right a -> do
+        sent <- liftIO $ IO.takeMVar mvar
+        return $ API.json (sent == a)
 
-      singleDC' = obj SingleDC (lit singleDCInt) (lit singleDCString) -- <= :: Expr SingleDC
+  json <- API.pin "json-new" $ return $ \_req -> do
+    a <- liftIO $ Q.generate Q.arbitrary
+    liftIO $ IO.putMVar mvar a
+    return $ API.json a
 
-    -- * Single constructor record => lens
+  return $ \_req -> do
+    return $ API.page $ htmlDoc mempty $ do
 
-    bare $ call addLi ["lit $ show singleDC", lit $ show singleDC]
-    bare $ call addLi ["lit singleDC", stringify lit_singleDC]
-    bare $ call addLi ["lit $ A.toJSON singleDC", stringify encode_singleDC]
-    bare $ call addLi ["_.isEqual(lit, A.toJSON)", call (lodash !. "isEqual") [lit_singleDC, encode_singleDC]]
-    bare $ call addLi ["lit $ singleDC^.int", stringify $ lit $ singleDC^.int]
-    bare $ call addLi ["lit $ singleDC^.string", stringify $ lit $ singleDC^.string]
-    bare $ call addLi ["singleDC'", stringify singleDC']
-    -- bare $ call addLi ["singleDC'^.int", stringify $ singleDC'^.int]
-    -- bare $ call addLi ["singleDC'^.string", stringify $ singleDC'^.string]
-    -- bare $ call addLi ["int eq", stringify $ lit (singleDC^.int) .=== singleDC'^.int]
-    -- todo bare $ call addLi ["string eq", stringify $ lit (singleDC^.string) .=== singleDC'^.string]
+      jsonCompare <- async $ do
+        resp <- const $ Await $ fetch (lit json) []
+        jsonValue <- const $ Await $ resp !/ "json"
+        send <- const $ Await $ fetchPost (lit compare) (jsonBody jsonValue)
+        return_ $ Await $ send !/ "json"
 
-    -- * Multi-constructor => prisms
 
-  -- before body
---  let _ = htmlDoc (includeJs [url|https://cdn.jsdelivr.net/npm/lodash@4.17.19/lodash.min.js|])
+      jsonRoundtripElem <- css $ pure ()
+      reportResult <- fn $ \(name :: Expr String) -> do
+        querySelector jsonRoundtripElem document !. "innerHTML" .=$ name
+        return_ (Null :: Expr ())
 
-  return $ body $ do
-    h1 "Roundtrippin'" ! On Click f ! c
-    table "" ! dest
+      onEvent Load window $ do
+        i <- let_ 0
+        successes <- let_ 0
+        result <- let_ Null
+        querySelector jsonRoundtripElem document !. "innerHTML" .=$ "RUNNING..."
+        while (i .< 100) $ do
+          result .= Await (call0 jsonCompare)
+          ifonly result $ successes .= successes + 1
+          i .= i + 1
+
+        res :: Expr String <- const $ " (" + Cast successes + "/" + Cast i + ")"
+        ifelse (i .== successes)
+          (bare $ reportResult $ "SUCCESS" + res)
+          (bare $ reportResult $ "FAIL" + res)
+
+      return $ do
+        h1 "Tests"
+        ul $ do
+          li $ do
+            p $ do
+              label "JSON roundtrip: "
+              span ! jsonRoundtripElem $ "NOT RUNNING"
+            p "Generates arbitrary data in back-end, queried and parsed by front-end, then reserialised and sent back, then parsed again and compared."
+
 
 tryCatchSyntax :: Web Html
 tryCatchSyntax = do
@@ -179,26 +298,6 @@ asyncIterator = do
 suffixRepeatedNames = do
   todo -- replicateM_ 10 $ new' "test" Undefined
   return $ "Check page source: all js variables with name \"test\" should be made unique unique with a prefix."
-
-js_th = do
-  dest <- cssId $ pure ()
-
-  let singleDC = SingleDC 123 "abc"
-      singleDC' = lit singleDC :: Expr SingleDC
-
-  f <- newf $ \(str :: Expr String) -> do
-    log str
-    h <- todo -- createHtmls $ li $ toHtml str
-    log h
-    bare $ querySelector dest document !// "append" $ h
-
-  _ <- onEvent Load window $ do
-    bare $ call1 f $ stringify singleDC'
-    log "done"
-
-  return $ do
-    div "Result"
-    ul ! dest $ ""
 
 home = do
   testSection <- styled section $ do

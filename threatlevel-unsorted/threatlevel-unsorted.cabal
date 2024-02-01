@@ -95,6 +95,9 @@ library
     , websockets
     , wreq
 
+    , hedgehog
+    , QuickCheck
+
 -- test-suite test
 --   import: lang
 --   type: exitcode-stdio-1.0
