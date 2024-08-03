@@ -40,12 +40,12 @@ siteMain' maybeTls mc ms siteRoot settings env site = do
         r :: Maybe WR.Response <- handler req
         case r of
           Just r' -> case r' of
-            response@ (WR.Response {}) -> respond $ HR.toRaw response
+            response@(WR.Response {}) -> respond $ HR.toRaw response
             WR.WebSocket ws ->
               WS.websocketsOr WS.defaultConnectionOptions ws
                  (error "This should never happen")
                  req respond
-            file@ (WR.File {}) -> respond $ HR.toRaw file
+            file@(WR.File {}) -> respond $ HR.toRaw file
           _ -> do
             print $ "Path not found: " <> show (Wai.pathInfo req)
               <> ", URL: " <> TL.unpack (render' siteRoot)

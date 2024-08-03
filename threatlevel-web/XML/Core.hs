@@ -23,13 +23,19 @@ data XML ns a c where
        )
     => XML ns' a' c -> XML ns a c
 
-makePrisms ''XML
-
-contents :: forall k (f :: * -> *) (ns :: k) a
-                         (c :: * -> Constraint).
+contents :: forall k (f :: Type -> Type) (ns :: k) a
+                         (c :: Type -> Constraint).
                   Applicative f =>
                   ([XML ns a c] -> f [XML ns a c]) -> XML ns a c -> f (XML ns a c)
 contents = _Element._3
+
+_Element :: Simple Prism (XML ns a c) (TagName, a, [XML ns a c])
+_Element = prism' set get
+  where
+    set (a, b, c) = Element a b c
+    get = \case
+      Element a b c -> Just (a, b, c)
+      _ -> Nothing
 
 instance IsString (XML ns a c) where
    fromString str = Text $ TL.pack str

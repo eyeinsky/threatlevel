@@ -44,7 +44,7 @@ countFields :: Data a => a -> Int
 countFields a = length $ gmapQ (\_ -> ()) a
 
 
-type family Result a :: *
+type family Result a :: Type
   where Result (a -> b) = Expr a -> Result b
         Result a = Expr a
 

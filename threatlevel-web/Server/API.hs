@@ -127,7 +127,7 @@ toHandler mc ms rootUrl conf0 site = do
         & maybe (throwError "No handler at path") pure
       return (handler, pathSuffix)
     in case runExcept handler' of
-      Right (handlerTuple@ (_, _, _, ws :: Maybe WS.ServerApp), suffix) ->
+      Right (handlerTuple@(_, _, _, ws :: Maybe WS.ServerApp), suffix) ->
         if WS.isWebSocketsReq req
         then return $ Re.WebSocket <$> ws
         else

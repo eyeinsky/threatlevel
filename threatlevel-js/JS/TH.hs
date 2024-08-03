@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 {- |
   TH-generate @ToExpr@ and @HasField@ instances data types.
 -}
@@ -9,9 +10,7 @@ import Data.Char
 import Data.List
 import Control.Lens hiding (Empty)
 import Data.Maybe
-
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
 
 import JS.DSL
 
@@ -70,7 +69,7 @@ name2dataDecl name = reify name >>= \info -> case info of
           maybeDec :: Maybe Dec
           maybeDec = find ((nameBase conName ==) . nameBase . dcName . getCon) singleConInstances
         case maybeDec of
-          Just di@ (DataInstD _ _ _ _ [con] _) -> do
+          Just di@(DataInstD _ _ _ _ [con] _) -> do
             let (_ {- conName -- same as the one in scope -}, fieldNamesTypes) = record con
             return $ DataFamilyInstance (mkAppliedTyped di) conName fieldNamesTypes
           _ -> fail "here here here"
@@ -86,10 +85,17 @@ name2dataDecl name = reify name >>= \info -> case info of
       mkAppliedTyped :: Dec -> Type
       mkAppliedTyped (DataInstD _ typeFirst_ (type_ :: Type) _ [_] _) = appliedTyped
         where
+#if MIN_VERSION_template_haskell(2,17,0)
+          tyVarBndrName :: TyVarBndr flag -> Name
+          tyVarBndrName tvb = case tvb of
+            PlainTV name _flag -> name
+            KindedTV name _flag _ -> name
+#else
           tyVarBndrName :: TyVarBndr -> Name
           tyVarBndrName tvb = case tvb of
             PlainTV name -> name
             KindedTV name _ -> name
+#endif
           appliedTyped = case typeFirst_ of
             Just as -> foldl AppT type_ $ map (ConT . tyVarBndrName) as
             _ -> type_
@@ -146,12 +152,12 @@ mkToExpr :: TypeQ -> [(String, Type)] -> Q [Dec]
 mkToExpr mainType namesTypes = case namesTypes of
   nameType : rest -> [d|
     instance {-# OVERLAPPING #-} ToExpr $(mainType) where
-      lit _v = lit $(listE $ toTup nameType : map toTup rest :: ExpQ)
+      lit v = lit $(listE $ toTup nameType : map toTup rest :: ExpQ)
     |]
   _ -> fail "mkToExpr: "
   where
   toTup :: (String, Type) -> ExpQ
-  toTup (name, type_) = [e| ($(stringE name), lit (_v ^. $(varE $ mkName name) :: $(pure type_)) ) |]
+  toTup (name, type_) = [e| ($(stringE name), lit (v ^. $(varE $ mkName name) :: $(pure type_)) ) |]
 
 
 -- | Make HasField instance
